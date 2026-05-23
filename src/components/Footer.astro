@@ -1,0 +1,90 @@
+---
+const year = new Date().getFullYear();
+
+const catalog = [
+  { href: '/catalog/krovlya', label: 'Кровля' },
+  { href: '/catalog/fasad', label: 'Фасад' },
+  { href: '/catalog/vodostok', label: 'Водосток' },
+  { href: '/catalog/ograzhdeniya', label: 'Ограждения' },
+  { href: '/catalog/uteplenie', label: 'Утепление' },
+  { href: '/catalog/ventilyatsiya', label: 'Вентиляция' },
+];
+
+const info = [
+  { href: '/montazh', label: 'Монтаж' },
+  { href: '/o-kompanii', label: 'О компании' },
+  { href: '/oplata-dostavka', label: 'Оплата и доставка' },
+  { href: '/garantiya', label: 'Гарантия' },
+  { href: '/kontakty', label: 'Контакты' },
+];
+---
+
+<footer class="bg-slate-900 text-slate-400 mt-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <!-- Brand -->
+      <div class="md:col-span-1">
+        <a href="/" class="text-xl font-bold text-white">
+          <span class="text-orange-500">У</span>-Стройка
+        </a>
+        <p class="mt-3 text-sm leading-relaxed">
+          Кровельные и фасадные материалы в Москве и МО. Гарантия лучшей цены.
+        </p>
+        <div class="mt-4 space-y-1 text-sm">
+          <p class="text-white font-medium">+7 (495) 123-45-67</p>
+          <p>Ежедневно 9:00–20:00</p>
+        </div>
+      </div>
+
+      <!-- Catalog links -->
+      <div>
+        <h3 class="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Каталог</h3>
+        <ul class="space-y-2">
+          {catalog.map(link => (
+            <li>
+              <a href={link.href} class="text-sm hover:text-white transition-colors">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Info links -->
+      <div>
+        <h3 class="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Информация</h3>
+        <ul class="space-y-2">
+          {info.map(link => (
+            <li>
+              <a href={link.href} class="text-sm hover:text-white transition-colors">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Brands -->
+      <div>
+        <h3 class="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Бренды</h3>
+        <ul class="space-y-2 text-sm">
+          <li>GrandLine</li>
+          <li>DÖCKE</li>
+          <li>Металл Профиль</li>
+          <li>ТЕХНОНИКОЛЬ</li>
+          <li>АльтаПрофиль</li>
+          <li>Stynergy</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-10 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
+      <p>© {year} У-Стройка. Все права защищены.</p>
+      <div class="flex gap-4">
+        <a href="/politika-konfidentsialnosti" class="hover:text-white transition-colors">
+          Политика конфиденциальности
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>

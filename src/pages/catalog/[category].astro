@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { categories, getCategoryBySlug } from '../../data/categories';
+
+export function getStaticPaths() {
+  return categories.map(cat => ({
+    params: { category: cat.slug },
+    props: { category: cat },
+  }));
+}
+
+const { category } = Astro.props;
+---
+
+<BaseLayout
+  title={category.title}
+  description={`${category.title} — ${category.description} Москва и МО, доставка за 1 день.`}
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-orange-500 transition-colors">Главная</a>
+      <span>→</span>
+      <a href="/catalog" class="hover:text-orange-500 transition-colors">Каталог</a>
+      <span>→</span>
+      <span class="text-slate-900 font-medium">{category.title}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-8">
+      <span class="text-4xl">{category.icon}</span>
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900">{category.title}</h1>
+        <p class="mt-1 text-slate-500">{category.description}</p>
+      </div>
+    </div>
+
+    <!-- Subcategories -->
+    {category.subcategories && category.subcategories.length > 0 ? (
+      <div>
+        <h2 class="text-xl font-semibold text-slate-900 mb-4">Подразделы</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {category.subcategories.map(sub => (
+            <a
+              href={`/catalog/${category.slug}/${sub.slug}`}
+              class="group block bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-400 hover:shadow-md transition-all duration-200"
+            >
+              <h3 class="font-semibold text-slate-900 group-hover:text-orange-500 transition-colors">
+                {sub.title}
+              </h3>
+              {sub.brands && sub.brands.length > 0 && (
+                <p class="mt-1.5 text-xs text-slate-400">
+                  {sub.brands.join(' · ')}
+                </p>
+              )}
+              <div class="mt-3 flex items-center text-sm font-medium text-orange-500 gap-1 group-hover:gap-2 transition-all">
+                Перейти
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    ) : (
+      <!-- Placeholder when no subcategories yet -->
+      <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-12 text-center">
+        <p class="text-slate-500 text-lg">Раздел в разработке</p>
+        <p class="mt-2 text-slate-400 text-sm">
+          Ассортимент будет добавлен в ближайшее время
+        </p>
+        <a
+          href="tel:+74951234567"
+          class="mt-6 inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm"
+        >
+          Позвоните — уточним наличие
+        </a>
+      </div>
+    )}
+
+    <!-- CTA block -->
+    <div class="mt-12 bg-slate-900 text-white rounded-xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-semibold text-lg">Нужна консультация по {category.title.toLowerCase()}?</p>
+        <p class="text-slate-400 text-sm mt-1">Поможем подобрать материал под ваш проект и бюджет</p>
+      </div>
+      <a
+        href="tel:+74951234567"
+        class="shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+      >
+        Позвонить
+      </a>
+    </div>
+  </div>
+</BaseLayout>

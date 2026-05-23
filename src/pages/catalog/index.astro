@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CategoryCard from '../../components/catalog/CategoryCard.astro';
+import { categories } from '../../data/categories';
+---
+
+<BaseLayout
+  title="Каталог материалов"
+  description="Полный каталог кровельных, фасадных материалов и водостоков в Москве и МО. Широкий ассортимент, лучшие цены."
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-orange-500 transition-colors">Главная</a>
+      <span>→</span>
+      <span class="text-slate-900 font-medium">Каталог</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-slate-900">Каталог материалов</h1>
+    <p class="mt-2 text-slate-500">
+      {categories.length} разделов · Москва и МО
+    </p>
+
+    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {categories.map(cat => (
+        <CategoryCard
+          slug={cat.slug}
+          title={cat.title}
+          description={cat.description}
+          icon={cat.icon}
+          subcategoriesCount={cat.subcategories?.length ?? 0}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>
