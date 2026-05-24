@@ -42,6 +42,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Yandex -->
     <meta name="yandex-verification" content="" />
+
+    <!-- JSON-LD и доп. теги конкретной страницы -->
+    <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col bg-white text-slate-900 antialiased">
     <Header />

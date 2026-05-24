@@ -10,12 +10,38 @@ export function getStaticPaths() {
 }
 
 const { category } = Astro.props;
+
+const canonicalURL = new URL(`/catalog/${category.slug}/`, 'https://ystroika.ru').href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ystroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://ystroika.ru/catalog/" },
+        { "@type": "ListItem", "position": 3, "name": category.title, "item": canonicalURL }
+      ]
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": canonicalURL,
+      "name": `${category.title} — У-Стройка`,
+      "description": `${category.title} — ${category.description} Москва и МО.`,
+      "url": canonicalURL,
+      "breadcrumb": { "@type": "BreadcrumbList" },
+      "isPartOf": { "@id": "https://ystroika.ru/#website" }
+    }
+  ]
+};
 ---
 
 <BaseLayout
   title={category.title}
   description={`${category.title} — ${category.description} Москва и МО, доставка за 1 день.`}
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
@@ -71,7 +97,7 @@ const { category } = Astro.props;
           Ассортимент будет добавлен в ближайшее время
         </p>
         <a
-          href="tel:+74951234567"
+          href="tel:88003339495"
           class="mt-6 inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm"
         >
           Позвоните — уточним наличие
@@ -86,7 +112,7 @@ const { category } = Astro.props;
         <p class="text-slate-400 text-sm mt-1">Поможем подобрать материал под ваш проект и бюджет</p>
       </div>
       <a
-        href="tel:+74951234567"
+        href="tel:88003339495"
         class="shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
       >
         Позвонить
