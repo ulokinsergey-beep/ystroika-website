@@ -1,0 +1,58 @@
+name: Deploy to Timeweb
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:  # ручной запуск из GitHub UI
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # 1. Checkout
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Node.js 20.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. Установить зависимости
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Собрать сайт
+      - name: Build Astro site
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      # 5. Деплой по FTP на Timeweb
+      # Secrets нужно добавить в GitHub → Settings → Secrets → Actions:
+      #   TIMEWEB_FTP_SERVER  — FTP-сервер (например: ftp.ystroika.ru или IP)
+      #   TIMEWEB_FTP_USER    — FTP-логин (обычно совпадает с логином хостинга)
+      #   TIMEWEB_FTP_PASSWORD — FTP-пароль
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.TIMEWEB_FTP_SERVER }}
+          username: ${{ secrets.TIMEWEB_FTP_USER }}
+          password: ${{ secrets.TIMEWEB_FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: /public_html/
+          dangerous-clean-slate: false  # не удалять лишние файлы автоматически
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      # 6. Уведомление об успехе
+      - name: Notify deploy complete
+        if: success()
+        run: echo "✅ Деплой выполнен успешно: https://ystroika.ru"
