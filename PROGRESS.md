@@ -5,7 +5,7 @@
 
 ---
 
-## Последнее обновление: 2026-05-24
+## Последнее обновление: 2026-05-24 (сессия 2)
 
 ---
 
@@ -18,21 +18,25 @@
 - [x] `<slot name="head" />` для JSON-LD в BaseLayout ← добавлен 2026-05-24
 - [x] Header (навигация, телефон 8-800-333-94-95, mobile menu)
 - [x] Footer (контакты, ссылки, бренды)
-- [ ] Favicon (нет `favicon.svg` / `favicon.ico`)
+- [x] `favicon.svg` — базовая иконка с буквой «У» в orange-500 ← добавлен 2026-05-24
+- [x] `robots.txt` — базовый с ссылкой на sitemap ← добавлен 2026-05-24
+- [x] `@astrojs/sitemap` → `sitemap-index.xml` + `sitemap-0.xml` генерируются автоматически ← добавлен 2026-05-24
+- [x] `.gitattributes` — нормализация LF ← добавлен 2026-05-24
 - [ ] CI/CD GitHub Actions → Timeweb
 
 ### Страницы
-- [ ] `index.astro` — Главная страница (есть заготовка, **не из Figma**)
-- [ ] `catalog/index.astro` — Каталог (есть заготовка, минимальный)
-- [ ] `catalog/[category].astro` — Страница раздела (есть заготовка)
+- [x] `index.astro` — 8 секций (Hero, Trust, Каталог, Как работаем, Преимущества, Бренды, Отзывы, CTA) ← **нужна сверка с Figma**
+- [x] `catalog/index.astro` — Каталог с BreadcrumbList и CTA-блоком ← **нужна сверка с Figma**
+- [x] `catalog/[category].astro` — Страница раздела ← **нужна сверка с Figma**
 - [ ] `tovar/[slug].astro` — Карточка товара (не начата)
 
 ### SEO / JSON-LD
-- [ ] JSON-LD Organization + LocalBusiness на `index.astro`
-- [ ] JSON-LD BreadcrumbList + ItemList на `catalog/[category].astro`
+- [x] JSON-LD Organization + LocalBusiness + WebSite на `index.astro` ← добавлен 2026-05-24
+- [x] JSON-LD CollectionPage + BreadcrumbList на `catalog/index.astro` ← добавлен 2026-05-24
+- [x] JSON-LD CollectionPage + BreadcrumbList на `catalog/[category].astro` ← добавлен 2026-05-24
 - [ ] JSON-LD Product + Offer на `tovar/[slug].astro`
-- [ ] Sitemap.xml
-- [ ] Robots.txt
+- [x] Sitemap.xml ← @astrojs/sitemap, 2026-05-24
+- [x] Robots.txt ← 2026-05-24
 
 ### Данные
 - [x] `src/data/categories.ts` — 8 разделов каталога
