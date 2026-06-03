@@ -1,0 +1,293 @@
+---
+/**
+ * Страница подкатегории каталога — SSR, пагинация 60 товаров/страница.
+ * Данные: src/data/catalog/[category]/[subcategory].json (из process-catalog.mjs)
+ * Цены: подтягиваются клиентским JS через /api/catalog/prices
+ */
+export const prerender = false;
+
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProductCard from '../../../components/catalog/ProductCard.astro';
+import { categories } from '../../../data/categories';
+
+const { category: categorySlug, subcategory: subcategorySlug } = Astro.params;
+
+// Найти категорию и подкатегорию в нашем маппинге
+const category = categories.find(c => c.slug === categorySlug);
+const subcategory = category?.subcategories?.find(s => s.slug === subcategorySlug);
+
+if (!category || !subcategory) {
+  return new Response(null, { status: 404 });
+}
+
+// Загрузить данные о товарах из pre-generated JSON
+const PAGE_SIZE = 60;
+const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1'));
+
+let products: any[] = [];
+let totalCount = 0;
+
+const dataPath = resolve('src/data/catalog', categorySlug, `${subcategorySlug}.json`);
+if (existsSync(dataPath)) {
+  try {
+    const raw = readFileSync(dataPath, 'utf-8');
+    const data = JSON.parse(raw);
+    products = data.products ?? [];
+    totalCount = data.count ?? products.length;
+  } catch {}
+}
+
+const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+const kodsBatch = pageProducts.map((p: any) => p.kod).filter(Boolean);
+
+const canonicalURL = new URL(
+  `/catalog/${categorySlug}/${subcategorySlug}/`,
+  'https://ystroika.ru'
+).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ystroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://ystroika.ru/catalog/" },
+        { "@type": "ListItem", "position": 3, "name": category.title, "item": `https://ystroika.ru/catalog/${categorySlug}/` },
+        { "@type": "ListItem", "position": 4, "name": subcategory.title, "item": canonicalURL }
+      ]
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": canonicalURL,
+      "name": `${subcategory.title} — купить в Москве · У-Стройка`,
+      "description": `${subcategory.title} в Москве и МО. ${totalCount > 0 ? totalCount + ' позиций' : ''}. Широкий ассортимент, доставка 1 день, гарантия лучшей цены.`,
+      "url": canonicalURL,
+      "numberOfItems": totalCount,
+    },
+    ...(pageProducts.slice(0, 10).map((p: any, i: number) => ({
+      "@type": "ListItem",
+      "position": (page - 1) * PAGE_SIZE + i + 1,
+      "item": {
+        "@type": "Product",
+        "name": p.name,
+        "sku": p.kod,
+        "brand": p.brand ? { "@type": "Brand", "name": p.brand } : undefined,
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "RUB",
+          "availability": "https://schema.org/InStock",
+          "seller": { "@type": "Organization", "name": "У-Стройка" }
+        }
+      }
+    })))
+  ]
+};
+---
+
+<BaseLayout
+  title={`${subcategory.title} — купить в Москве`}
+  description={`${subcategory.title} — купить в Москве и МО по выгодным ценам. ${subcategory.brands?.length ? `Бренды: ${subcategory.brands.join(', ')}.` : ''} ${totalCount} позиций. Доставка 1 день. Звоните: 8-800-333-94-95.`}
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-slate-50 min-h-screen">
+
+    <!-- Шапка страницы -->
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <!-- Breadcrumb -->
+        <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-3">
+          <a href="/" class="hover:text-brand transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <a href="/catalog" class="hover:text-brand transition-colors">Каталог</a>
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <a href={`/catalog/${categorySlug}`} class="hover:text-brand transition-colors">{category.title}</a>
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-slate-900 font-medium">{subcategory.title}</span>
+        </nav>
+
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">{subcategory.title}</h1>
+            <p class="mt-1 text-slate-500 text-sm">
+              {category.title} · {totalCount > 0 ? `${totalCount.toLocaleString('ru-RU')} позиций` : 'нет данных'} · Москва и МО
+            </p>
+          </div>
+          <!-- Бренды -->
+          {subcategory.brands && subcategory.brands.length > 0 && (
+            <div class="flex flex-wrap gap-2">
+              {subcategory.brands.map(brand => (
+                <span class="inline-flex items-center px-3 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
+                  {brand}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      {totalCount === 0 ? (
+        <!-- Нет данных -->
+        <div class="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center">
+          <p class="text-slate-500 font-semibold text-lg">Товары загружаются</p>
+          <p class="mt-2 text-slate-400 text-sm max-w-sm mx-auto">
+            Ассортимент появится в ближайшее время. Для уточнения — позвоните нам.
+          </p>
+          <a href="tel:88003339495" class="mt-6 inline-flex items-center gap-2 bg-brand text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+            Позвонить
+          </a>
+        </div>
+      ) : (
+        <>
+          <!-- Верхняя панель: счёт + пагинация -->
+          <div class="flex items-center justify-between mb-5">
+            <p class="text-sm text-slate-500">
+              Показано {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE, totalCount)} из {totalCount.toLocaleString('ru-RU')}
+            </p>
+            {totalPages > 1 && (
+              <div class="flex items-center gap-1">
+                {page > 1 && (
+                  <a
+                    href={`?page=${page-1}`}
+                    class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-brand hover:text-brand transition-colors"
+                  >
+                    ← Назад
+                  </a>
+                )}
+                <span class="px-3 py-1.5 text-sm font-medium text-brand bg-brand/10 rounded-lg">
+                  {page} / {totalPages}
+                </span>
+                {page < totalPages && (
+                  <a
+                    href={`?page=${page+1}`}
+                    class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-brand hover:text-brand transition-colors"
+                  >
+                    Вперёд →
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          <!-- Сетка товаров -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4" id="products-grid">
+            {pageProducts.map((p: any) => (
+              <ProductCard
+                kod={p.kod}
+                name={p.name}
+                artikul={p.artikul}
+                unit={p.unit}
+                brand={p.brand}
+                categorySlug={categorySlug!}
+                subcategorySlug={subcategorySlug!}
+              />
+            ))}
+          </div>
+
+          <!-- Нижняя пагинация -->
+          {totalPages > 1 && (
+            <div class="flex items-center justify-center gap-2 mt-10">
+              {page > 1 && (
+                <a href={`?page=${page-1}`} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
+                  ← Назад
+                </a>
+              )}
+              {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                const p2 = Math.max(1, page - 3) + i;
+                if (p2 > totalPages) return null;
+                return (
+                  <a
+                    href={`?page=${p2}`}
+                    class={`px-3.5 py-2 text-sm rounded-xl transition-colors ${p2 === page ? 'bg-brand text-white font-semibold' : 'border border-slate-200 hover:border-brand hover:text-brand'}`}
+                  >
+                    {p2}
+                  </a>
+                );
+              })}
+              {page < totalPages && (
+                <a href={`?page=${page+1}`} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
+                  Вперёд →
+                </a>
+              )}
+            </div>
+          )}
+
+          <!-- Другие разделы -->
+          {category.subcategories && category.subcategories.filter(s => s.slug !== subcategorySlug).length > 0 && (
+            <div class="mt-12">
+              <h2 class="text-lg font-semibold text-slate-900 mb-4">Другие разделы в «{category.title}»</h2>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {category.subcategories.filter(s => s.slug !== subcategorySlug).map(s => (
+                  <a
+                    href={`/catalog/${categorySlug}/${s.slug}`}
+                    class="group flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-brand hover:shadow-sm transition-all"
+                  >
+                    <span class="text-sm font-medium text-slate-700 group-hover:text-brand">{s.title}</span>
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-brand flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      <!-- CTA -->
+      <div class="mt-12 bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <p class="font-bold text-lg">Нужна консультация по {subcategory.title.toLowerCase()}?</p>
+          <p class="text-slate-400 text-sm mt-1">Поможем подобрать под ваш проект и бюджет, рассчитаем количество</p>
+        </div>
+        <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+          Позвонить
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Скрипт: подгружаем цены после рендера -->
+  <script define:vars={{ kodsBatch }}>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!kodsBatch || kodsBatch.length === 0) return;
+      try {
+        const resp = await fetch('/api/catalog/prices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kods: kodsBatch }),
+        });
+        if (!resp.ok) return;
+        const { prices } = await resp.json();
+        document.querySelectorAll('[data-product-kod]').forEach(card => {
+          const kod = card.getAttribute('data-product-kod');
+          const priceEl = card.querySelector('.price-value');
+          if (!priceEl) return;
+          const p = prices[kod];
+          if (p && (p.discounted_price > 0 || p.price > 0)) {
+            const displayPrice = p.discounted_price > 0 ? p.discounted_price : p.price;
+            priceEl.textContent = displayPrice.toLocaleString('ru-RU') + ' ₽';
+          } else {
+            priceEl.textContent = 'Цена по запросу';
+            priceEl.classList.add('text-sm', 'text-slate-500');
+            priceEl.classList.remove('text-lg', 'font-bold', 'text-slate-900');
+          }
+        });
+      } catch {}
+    });
+  </script>
+</BaseLayout>

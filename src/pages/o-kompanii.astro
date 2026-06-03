@@ -1,0 +1,141 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import aboutData from '../data/about-company.json';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  '@id': 'https://ystroika.ru/o-kompanii#aboutpage',
+  url: 'https://ystroika.ru/o-kompanii',
+  name: 'О компании У-Стройка',
+  description: aboutData.firstBlock.text.slice(0, 160),
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'У-Стройка',
+    foundingDate: '2014',
+    description: aboutData.firstBlock.text,
+  },
+};
+---
+
+<BaseLayout
+  title="О компании"
+  description="У-Стройка — поставщик кровельных и фасадных материалов с 2014 года. Более 30 000 позиций в наличии, 3000+ специалистов, 98 офисов, 16 региональных складов."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- HERO: page title + breadcrumb -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <nav class="text-[14px] text-[#898989] mb-[20px]">
+      <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span> <span class="text-[#333333]">О компании</span>
+    </nav>
+    <div class="flex items-end gap-[25px]">
+      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        О компании
+      </h1>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+  </section>
+
+  <!-- FIRST BLOCK: text + banner (стиль 8 экрана главной) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:30px;padding-bottom:60px;">
+    <div class="flex flex-col lg:flex-row gap-[40px] items-start">
+      <p class="text-[#333333] text-[16px] leading-[1.5] whitespace-pre-line" style="max-width:651px;">
+        {aboutData.firstBlock.text}
+      </p>
+
+      <!-- Banner -->
+      <div class="relative bg-[#464646] rounded-[5px] overflow-hidden flex-shrink-0"
+           style="width:100%;max-width:1045px;height:360px;">
+        <img src="/images/about/pngwing.png" alt=""
+             class="absolute pointer-events-none"
+             style="right:0;top:-200px;width:823px;height:1122px;object-fit:cover;opacity:0.85;" />
+        <div class="absolute inset-0 bg-gradient-to-r from-[#464646] via-[#464646]/80 to-transparent pointer-events-none"></div>
+        <div class="absolute flex items-center" style="left:40px;top:50px;width:273px;height:47px;background:#FFAE01;border-radius:5px;">
+          <span class="text-[#333333] font-bold text-[24px] px-3">{aboutData.firstBlock.subtitle}</span>
+        </div>
+        <p class="absolute font-[Montserrat] font-semibold text-white leading-[1.3] z-10"
+           style="left:40px;top:120px;width:334px;font-size:28px;">
+          {aboutData.firstBlock.title}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIGURES BLOCK: 4 цифры -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[50px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Цифры о&nbsp;нас
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+      {aboutData.figures.map((f) => (
+        <div class="bg-white rounded-[5px] flex flex-col gap-[15px]" style="padding:30px;min-height:200px;">
+          <div class="font-[Montserrat] font-bold text-[#FFAE01] text-[48px] leading-none">{f.number}</div>
+          <div class="font-[Montserrat] font-semibold text-[#333333] text-[20px] leading-[1.2]">{f.label}</div>
+          <p class="text-[#333333] text-[14px] leading-[1.4]">{f.description}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- SECOND BLOCK: цель и девиз -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        {aboutData.secondBlock.title}
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <p class="text-[#333333] text-[16px] leading-[1.5] whitespace-pre-line" style="max-width:1200px;">
+      {aboutData.secondBlock.text}
+    </p>
+  </section>
+
+  <!-- HISTORY: timeline -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[50px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        История компании
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+      {aboutData.history.map((h) => (
+        <div class="bg-white rounded-[5px] flex flex-col gap-[15px] relative overflow-hidden" style="padding:25px;min-height:180px;">
+          <div class="font-[Montserrat] font-bold text-[#FFAE01] text-[32px] leading-none">{h.year}</div>
+          <p class="text-[#333333] text-[15px] leading-[1.4]">{h.description}</p>
+          <div class="absolute right-[-20px] bottom-[-20px] w-[80px] h-[80px] rounded-full bg-[#FFAE01]/10 pointer-events-none"></div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- DIRECTIONS -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:80px;">
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Наши направления
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <div class="flex flex-wrap gap-[10px]">
+      {aboutData.directions.map((url) => {
+        const label = url.replace(/^\/catalog\//, '').replace(/\/$/, '').replace(/-/g, ' ');
+        const displayLabel = label.charAt(0).toUpperCase() + label.slice(1);
+        return (
+          <a href={url}
+             class="inline-flex items-center bg-[#F5F5F5] hover:bg-[#FFAE01] rounded-[5px] text-[#333333] text-[15px] font-medium transition-colors"
+             style="height:44px;padding:0 20px;">
+            {displayLabel}
+          </a>
+        );
+      })}
+    </div>
+  </section>
+</BaseLayout>

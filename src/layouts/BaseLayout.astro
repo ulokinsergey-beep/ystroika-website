@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import FormSuccessToast from '../components/FormSuccessToast.astro';
 
 interface Props {
   title: string;
@@ -28,6 +29,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Google Fonts: Inter (основной) + Montserrat (заголовки) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;900&display=swap" rel="stylesheet" />
+
     <!-- SEO -->
     <title>{title} | У-Стройка</title>
     <meta name="description" content={description} />
@@ -46,11 +52,83 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <!-- JSON-LD и доп. теги конкретной страницы -->
     <slot name="head" />
   </head>
-  <body class="min-h-screen flex flex-col bg-white text-slate-900 antialiased">
-    <Header />
-    <main class="flex-1">
-      <slot />
-    </main>
-    <Footer />
+  <body class="bg-white text-slate-900 antialiased overflow-x-clip">
+    <!-- Figma-canvas auto-scale: 1920px design canvas scales to actual viewport on desktop -->
+    <div id="figma-canvas" class="flex flex-col min-h-screen">
+      <Header />
+      <main class="flex-1">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <FormSuccessToast />
+
+    <script is:inline>
+      (function () {
+        var DESIGN_W = 1920;
+        var BREAKPOINT = 1024;
+        var canvas = document.getElementById('figma-canvas');
+        if (!canvas) return;
+
+        function fit() {
+          var vw = document.documentElement.clientWidth || window.innerWidth;
+          if (vw >= BREAKPOINT) {
+            // Reset for measurement
+            canvas.style.transform = '';
+            canvas.style.width = DESIGN_W + 'px';
+            // Measure natural height while at 1920px width
+            var naturalH = canvas.offsetHeight;
+            // Apply scale
+            var s = vw / DESIGN_W;
+            canvas.style.transformOrigin = 'top left';
+            canvas.style.transform = 'scale(' + s + ')';
+            // Compensate body height so scrollbar is correct
+            document.body.style.height = (naturalH * s) + 'px';
+            document.body.style.width = vw + 'px';
+          } else {
+            // Mobile: no transform, normal flow
+            canvas.style.transform = '';
+            canvas.style.width = '';
+            document.body.style.height = '';
+            document.body.style.width = '';
+          }
+        }
+
+        var raf = null;
+        function scheduleFit() {
+          if (raf) cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(fit);
+        }
+
+        // Initial fit
+        fit();
+
+        // Re-fit on resize, load, font-load, image-load
+        window.addEventListener('resize', scheduleFit, { passive: true });
+        window.addEventListener('load', fit);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(fit);
+        }
+
+        // Re-fit when canvas content changes (images loading, etc.)
+        if (window.ResizeObserver) {
+          var ro = new ResizeObserver(function () {
+            // Only re-measure if at desktop
+            var vw = document.documentElement.clientWidth || window.innerWidth;
+            if (vw >= BREAKPOINT) scheduleFit();
+          });
+          ro.observe(canvas);
+        }
+
+        // Re-fit after all images load
+        var imgs = canvas.querySelectorAll('img');
+        imgs.forEach(function (img) {
+          if (!img.complete) {
+            img.addEventListener('load', scheduleFit, { once: true });
+            img.addEventListener('error', scheduleFit, { once: true });
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

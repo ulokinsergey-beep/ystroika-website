@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import officesData from '../data/offices.json';
+
+// Find specific office types for easy display
+const findByName = (substr) => officesData.find(o => o.name.toLowerCase().includes(substr.toLowerCase()));
+const sales = findByName('продаж');
+const email = findByName('связаться');
+const props = findByName('реквизит');
+const office = findByName('офис');
+const messengers = officesData.filter(o => ['WhatsApp', 'Telegram', 'Viber'].some(m => o.name.includes(m)));
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  '@id': 'https://ystroika.ru/kontakty#contactpage',
+  url: 'https://ystroika.ru/kontakty',
+  name: 'Контакты У-Стройка',
+  mainEntity: {
+    '@type': 'LocalBusiness',
+    name: 'У-Стройка',
+    telephone: sales?.phone || '+7-800-333-94-95',
+    email: email?.email || 'office@y-stroika.ru',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: office?.address?.split(',')[0] || 'ул. Советская 1А',
+      addressLocality: 'Куровское',
+      postalCode: '142620',
+      addressCountry: 'RU',
+    },
+  },
+};
+---
+
+<BaseLayout
+  title="Контакты"
+  description="Связаться с У-Стройка — телефон 8-800-333-94-95, email office@y-stroika.ru, мессенджеры WhatsApp/Telegram/Viber. Офис: ул. Советская 1А, Куровское, 142620."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- HERO -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <nav class="text-[14px] text-[#898989] mb-[20px]">
+      <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span> <span class="text-[#333333]">Контакты</span>
+    </nav>
+    <div class="flex items-end gap-[25px]">
+      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Контакты
+      </h1>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTACT BLOCKS: 4 large cards (sales / email / office / props) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:30px;padding-bottom:30px;">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+
+      {sales && (
+        <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:30px;min-height:200px;">
+          <span class="flex items-center justify-center w-[50px] h-[50px] rounded-full bg-[#FFAE01]">
+            <svg width="24" height="24" fill="none" stroke="#333333" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          </span>
+          <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{sales.name}</h3>
+          <a href={`tel:${sales.phone.replace(/[^+\d]/g, '')}`}
+             class="text-[#333333] text-[24px] font-bold leading-tight hover:text-[#FFAE01] transition-colors">
+            {sales.phone}
+          </a>
+          <p class="text-[#898989] text-[14px]">{sales.schedule}</p>
+        </div>
+      )}
+
+      {email && (
+        <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:30px;min-height:200px;">
+          <span class="flex items-center justify-center w-[50px] h-[50px] rounded-full bg-[#FFAE01]">
+            <svg width="24" height="24" fill="none" stroke="#333333" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </span>
+          <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{email.name}</h3>
+          <a href={`mailto:${email.email}`} class="text-[#333333] text-[18px] font-semibold break-words hover:text-[#FFAE01] transition-colors">
+            {email.email}
+          </a>
+          <p class="text-[#898989] text-[14px]">Отвечаем в&nbsp;течение часа в&nbsp;рабочее время</p>
+        </div>
+      )}
+
+      {office && (
+        <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:30px;min-height:200px;">
+          <span class="flex items-center justify-center w-[50px] h-[50px] rounded-full bg-[#FFAE01]">
+            <svg width="24" height="24" fill="none" stroke="#333333" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </span>
+          <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{office.name}</h3>
+          <p class="text-[#333333] text-[16px] leading-[1.4]">{office.address}</p>
+          {office.buttonText && (
+            <a href="#map" class="text-[#FFAE01] text-[14px] font-semibold hover:underline">
+              {office.buttonText} →
+            </a>
+          )}
+        </div>
+      )}
+
+      {props && (
+        <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:30px;min-height:200px;">
+          <span class="flex items-center justify-center w-[50px] h-[50px] rounded-full bg-[#FFAE01]">
+            <svg width="24" height="24" fill="none" stroke="#333333" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </span>
+          <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{props.name}</h3>
+          <p class="text-[#333333] text-[14px] leading-[1.4] whitespace-pre-line">{props.details}</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- MESSENGERS: WhatsApp/Telegram/Viber -->
+  {messengers.length > 0 && (
+    <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+      <div class="flex items-end gap-[25px] mb-[40px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+          Мессенджеры
+        </h2>
+        <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
+        {messengers.map((m) => {
+          const color = m.name === 'WhatsApp' ? '#25D366' : m.name === 'Telegram' ? '#0088CC' : '#7360F2';
+          return (
+            <a href={m.link} target="_blank" rel="noopener noreferrer"
+               class="bg-white rounded-[5px] flex items-center gap-[20px] hover:shadow-lg transition-shadow" style="padding:25px;min-height:120px;">
+              <span class="flex items-center justify-center w-[60px] h-[60px] rounded-full flex-shrink-0" style={`background:${color}`}>
+                <span class="text-white text-[24px] font-bold">{m.name.charAt(0)}</span>
+              </span>
+              <div class="flex flex-col gap-[5px]">
+                <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{m.name}</h3>
+                <span class="text-[#333333] text-[16px]">{m.phone}</span>
+                <span class="text-[#FFAE01] text-[13px] font-semibold">{m.buttonText} →</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  )}
+
+  <!-- MAP placeholder + address (Yandex.Maps embed planned) -->
+  <section id="map" class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:80px;">
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Как нас найти
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <div class="relative bg-[#F5F5F5] rounded-[5px] flex items-center justify-center" style="height:500px;">
+      <!-- Yandex.Maps iframe — место для будущего embed (требует API key и публикации) -->
+      <div class="flex flex-col items-center gap-[15px] text-center" style="padding:40px;">
+        <svg width="80" height="80" fill="none" stroke="#898989" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <p class="text-[#333333] text-[18px] font-semibold">{office?.address || 'ул. Советская 1А, Куровское'}</p>
+        <p class="text-[#898989] text-[14px]">Подключим карту Яндекс после деплоя</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

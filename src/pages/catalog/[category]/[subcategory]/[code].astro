@@ -1,0 +1,256 @@
+---
+/**
+ * Карточка товара — SSR.
+ * URL: /catalog/[category]/[subcategory]/[code]/
+ *
+ * Данные: из pre-generated JSON (src/data/catalog/)
+ * Цена и остаток: подтягиваются с API КровАльянс при SSR
+ */
+export const prerender = false;
+
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { categories } from '../../../../data/categories';
+import { fetchPrices, fetchStock } from '../../../../lib/kroval';
+
+const { category: categorySlug, subcategory: subcategorySlug, code } = Astro.params;
+
+const category = categories.find(c => c.slug === categorySlug);
+const subcategory = category?.subcategories?.find(s => s.slug === subcategorySlug);
+
+if (!category || !subcategory) {
+  return new Response(null, { status: 404 });
+}
+
+// Найти товар в JSON
+const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
+let product: any = null;
+
+if (existsSync(dataPath)) {
+  try {
+    const raw = readFileSync(dataPath, 'utf-8');
+    const data = JSON.parse(raw);
+    product = (data.products ?? []).find((p: any) => p.kod === code);
+  } catch {}
+}
+
+if (!product) {
+  return new Response(null, { status: 404 });
+}
+
+// Получить цену и остаток с API (параллельно, с fallback)
+let priceData: { price: number; discounted_price: number } | null = null;
+let stockData: Record<string, number> = {};
+
+try {
+  const [prices, stocks] = await Promise.allSettled([
+    fetchPrices([product.kod]),
+    fetchStock([product.kod]),
+  ]);
+  if (prices.status === 'fulfilled' && prices.value.length > 0) {
+    priceData = prices.value[0];
+  }
+  if (stocks.status === 'fulfilled') {
+    stockData = stocks.value;
+  }
+} catch {}
+
+const displayPrice = priceData
+  ? (priceData.discounted_price > 0 ? priceData.discounted_price : priceData.price)
+  : null;
+const stockQty = product.kod ? (stockData[product.kod] ?? null) : null;
+const inStock = stockQty !== null ? stockQty > 0 : null;
+
+const canonicalURL = `https://ystroika.ru/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(code!)}/`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": product.name,
+  "sku": product.kod,
+  "mpn": product.artikul || undefined,
+  "description": `${product.name} — купить в Москве и МО. Артикул: ${product.kod}. ${product.brand ? 'Производитель: ' + product.brand + '.' : ''}`,
+  "brand": product.brand ? { "@type": "Brand", "name": product.brand } : undefined,
+  "offers": {
+    "@type": "Offer",
+    "url": canonicalURL,
+    "priceCurrency": "RUB",
+    "price": displayPrice ?? undefined,
+    "availability": inStock === true
+      ? "https://schema.org/InStock"
+      : inStock === false
+        ? "https://schema.org/OutOfStock"
+        : "https://schema.org/PreOrder",
+    "seller": {
+      "@type": "Organization",
+      "name": "У-Стройка",
+      "url": "https://ystroika.ru"
+    }
+  }
+};
+---
+
+<BaseLayout
+  title={`${product.name} — купить в Москве`}
+  description={`${product.name}. Артикул ${product.kod}. ${product.brand ? 'Производитель: ' + product.brand + '. ' : ''}Купить в Москве и МО с доставкой за 1 день. Звоните: 8-800-333-94-95.`}
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-brand">Главная</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <a href="/catalog" class="hover:text-brand">Каталог</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <a href={`/catalog/${categorySlug}`} class="hover:text-brand">{category.title}</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="hover:text-brand">{subcategory.title}</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-slate-900 font-medium truncate max-w-[200px]" title={product.name}>{product.name}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+
+      <!-- Левая колонка: фото (заглушка) -->
+      <div>
+        <div class="aspect-square bg-slate-100 rounded-2xl flex items-center justify-center">
+          <svg class="w-24 h-24 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Правая колонка: данные товара -->
+      <div class="flex flex-col">
+
+        <!-- Бренд -->
+        {product.brand && (
+          <span class="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">{product.brand}</span>
+        )}
+
+        <!-- Название -->
+        <h1 class="text-xl lg:text-2xl font-bold text-slate-900 leading-snug">
+          {product.name}
+        </h1>
+
+        <!-- Артикул + Код -->
+        <div class="flex flex-wrap gap-4 mt-3 text-sm text-slate-500">
+          {product.artikul && <span>Арт. <span class="font-medium text-slate-700">{product.artikul}</span></span>}
+          <span>Код: <span class="font-medium text-slate-700">{product.kod}</span></span>
+        </div>
+
+        <!-- Цена и наличие -->
+        <div class="mt-6 p-5 bg-slate-50 rounded-xl">
+          {displayPrice ? (
+            <div class="flex items-end gap-3">
+              <p class="text-3xl font-bold text-slate-900">
+                {displayPrice.toLocaleString('ru-RU')} ₽
+              </p>
+              <p class="text-slate-500 text-sm mb-1">за {product.unit}</p>
+            </div>
+          ) : (
+            <p class="text-slate-500 font-medium">Цена по запросу</p>
+          )}
+
+          <!-- Наличие -->
+          {inStock !== null && (
+            <div class={`mt-2 flex items-center gap-1.5 text-sm font-medium ${inStock ? 'text-green-600' : 'text-amber-600'}`}>
+              <span class={`w-2 h-2 rounded-full ${inStock ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+              {inStock
+                ? `В наличии${stockQty ? ` — ${stockQty} ${product.unit}` : ''}`
+                : 'Уточните наличие'}
+            </div>
+          )}
+
+          {/* Кнопки */}
+          <div class="flex flex-col sm:flex-row gap-3 mt-4">
+            <a
+              href="tel:88003339495"
+              class="flex-1 inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+              Позвонить и заказать
+            </a>
+            <a
+              href="/raschet"
+              class="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 hover:border-brand text-slate-700 hover:text-brand font-semibold px-6 py-3 rounded-xl transition-colors"
+            >
+              Получить счёт
+            </a>
+          </div>
+        </div>
+
+        <!-- Характеристики -->
+        <div class="mt-6">
+          <h2 class="text-base font-semibold text-slate-900 mb-3">Характеристики</h2>
+          <table class="w-full text-sm">
+            <tbody class="divide-y divide-slate-100">
+              {product.unit && (
+                <tr class="py-2">
+                  <td class="py-2 pr-4 text-slate-500 w-1/2">Единица измерения</td>
+                  <td class="py-2 font-medium text-slate-800">{product.unit}</td>
+                </tr>
+              )}
+              {product.brand && (
+                <tr>
+                  <td class="py-2 pr-4 text-slate-500">Производитель</td>
+                  <td class="py-2 font-medium text-slate-800">{product.brand}</td>
+                </tr>
+              )}
+              {product.weightEnabled && (
+                <tr>
+                  <td class="py-2 pr-4 text-slate-500">Вес учитывается</td>
+                  <td class="py-2 font-medium text-slate-800">Да ({product.weightUnit})</td>
+                </tr>
+              )}
+              {product.lengthEnabled && (
+                <tr>
+                  <td class="py-2 pr-4 text-slate-500">Длина</td>
+                  <td class="py-2 font-medium text-slate-800">Учитывается</td>
+                </tr>
+              )}
+              {product.areaEnabled && (
+                <tr>
+                  <td class="py-2 pr-4 text-slate-500">Площадь</td>
+                  <td class="py-2 font-medium text-slate-800">Учитывается</td>
+                </tr>
+              )}
+              <tr>
+                <td class="py-2 pr-4 text-slate-500">Код товара</td>
+                <td class="py-2 font-medium text-slate-800 font-mono text-xs">{product.kod}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Назад в раздел -->
+    <div class="mt-10 pt-8 border-t border-slate-200">
+      <a
+        href={`/catalog/${categorySlug}/${subcategorySlug}`}
+        class="inline-flex items-center gap-2 text-sm font-medium text-brand hover:text-brand-hover transition-colors"
+      >
+        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        Назад в «{subcategory.title}»
+      </a>
+    </div>
+
+  </div>
+</BaseLayout>

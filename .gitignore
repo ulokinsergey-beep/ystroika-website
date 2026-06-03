@@ -32,3 +32,10 @@ scripts/__pycache__/
 
 # KrovAlians sync temp files
 data/products/*.tmp
+
+# Большие файлы каталога — не коммитить в Git
+# Генерируются через: node scripts/process-catalog.mjs
+src/data/kroval-catalog-full.json
+# Данные каталога по подкатегориям (~91 МБ) — хранятся локально
+# При деплое генерируются из API или копируются на сервер
+src/data/catalog/

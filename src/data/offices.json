@@ -1,0 +1,93 @@
+[
+  {
+    "bitrixId": 326,
+    "name": "Отдел продаж",
+    "sort": 1,
+    "phone": "+7 (800) 333-94-95",
+    "email": "",
+    "address": "",
+    "schedule": "Ежедневно с 9:00 до 18:00",
+    "details": "",
+    "buttonText": "",
+    "link": "",
+    "iconRef": "955"
+  },
+  {
+    "bitrixId": 327,
+    "name": "Связаться с нами",
+    "sort": 2,
+    "phone": "",
+    "email": "office@y-stroika.ru",
+    "address": "",
+    "schedule": "",
+    "details": "",
+    "buttonText": "Написать сообщение",
+    "link": "",
+    "iconRef": "956"
+  },
+  {
+    "bitrixId": 328,
+    "name": "Реквизиты",
+    "sort": 3,
+    "phone": "",
+    "email": "",
+    "address": "",
+    "schedule": "",
+    "details": "ИНН 503409833032    ОГРН 317505300034130",
+    "buttonText": "",
+    "link": "",
+    "iconRef": "957"
+  },
+  {
+    "bitrixId": 329,
+    "name": "Офис",
+    "sort": 4,
+    "phone": "",
+    "email": "",
+    "address": "ул. Советская 1 А, Куровское, Россия, 142620",
+    "schedule": "",
+    "details": "",
+    "buttonText": "Показать на карте",
+    "link": "",
+    "iconRef": "958"
+  },
+  {
+    "bitrixId": 330,
+    "name": "WhatsApp",
+    "sort": 5,
+    "phone": "+ 7 (991) 988-37-44",
+    "email": "",
+    "address": "",
+    "schedule": "",
+    "details": "",
+    "buttonText": "Написать",
+    "link": "https://wa.me/+ 79919883744",
+    "iconRef": "959"
+  },
+  {
+    "bitrixId": 331,
+    "name": "Telegram",
+    "sort": 6,
+    "phone": "+ 7 (985) 055-34-44",
+    "email": "",
+    "address": "",
+    "schedule": "",
+    "details": "",
+    "buttonText": "Написать",
+    "link": "https://t.me/+79850553444",
+    "iconRef": "960"
+  },
+  {
+    "bitrixId": 332,
+    "name": "Viber",
+    "sort": 7,
+    "phone": "+ 7 (991) 988-37-44",
+    "email": "",
+    "address": "",
+    "schedule": "",
+    "details": "",
+    "buttonText": "Написать",
+    "link": "viber://add?number=79919883744",
+    "iconRef": "961"
+  }
+]

@@ -1,45 +1,228 @@
 ---
-const navLinks = [
-  { href: '/catalog', label: 'Каталог' },
-  { href: '/catalog/krovlya', label: 'Кровля' },
-  { href: '/catalog/fasad', label: 'Фасад' },
-  { href: '/catalog/vodostok', label: 'Водосток' },
-  { href: '/montazh', label: 'Монтаж' },
-  { href: '/kontakty', label: 'Контакты' },
+const currentPath = Astro.url.pathname;
+
+// Figma: header 1 → menu (White links) + 3D-тур (Orange accent)
+const topLinks = [
+  { href: '/3d-tur', label: '3D-тур', accent: true },
+  { href: '/uslugi', label: 'Услуги' },
+  { href: '/servisy', label: 'Наши сервисы' },
+  { href: '/oplata-dostavka', label: 'Оплата и доставка' },
+  { href: '/vozvrat-obmen', label: 'Возврат и обмен' },
+  { href: '/proekty', label: 'Проекты' },
+  { href: '/faq', label: 'Вопрос-ответ' },
+  { href: '/pomoshch', label: 'Помощь' },
 ];
 
-const currentPath = Astro.url.pathname;
+// Figma: header 3 → menu (Black links, gap 50px) + кнопка «Получить счёт»
+const navLinks = [
+  { href: '/catalog/krovlya', label: 'Кровля' },
+  { href: '/catalog/fasad', label: 'Фасад' },
+  { href: '/catalog/ograzhdenie', label: 'Ограждение' },
+  { href: '/spetspredlozheniya', label: '% Спецпредложения' },
+  { href: '/sravnenie', label: 'Сравнение товаров' },
+  { href: '/o-kompanii', label: 'О компании' },
+  { href: '/otzyvy', label: 'Отзывы' },
+  { href: '/kontakty', label: 'Контакты' },
+];
 ---
 
-<header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-  <!-- Top bar -->
-  <div class="bg-slate-800 text-slate-300 text-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-9">
-      <span>Москва и МО · Ежедневно 9:00–20:00</span>
-      <a href="tel:88003339495" class="text-white font-medium hover:text-orange-400 transition-colors">
-        8-800-333-94-95
-      </a>
+<header class="sticky top-0 z-50 shadow-md">
+
+  <!-- ── СТРОКА 1: тёмная утилитарная панель (#333333, h=44px) ── -->
+  <div class="bg-[#333333] h-11">
+    <div class="px-4 sm:px-8 lg:px-[60px] h-full flex items-center justify-between gap-6">
+
+      <!-- Левый блок: геолокация -->
+      <div class="hidden lg:flex items-center gap-4 text-[13px]">
+        <div class="flex items-center gap-1.5 text-[#898989]">
+          <!-- location icon -->
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span>Москва и Подмосковье</span>
+        </div>
+        <span class="text-white">ул. Советская, 1а</span>
+        <span class="text-white">пн-вс с 9 до 18</span>
+      </div>
+
+      <!-- Центр: служебные ссылки -->
+      <nav class="hidden xl:flex items-center gap-5 text-[13px] flex-1 justify-center">
+        {topLinks.map(link => (
+          <a
+            href={link.href}
+            class={link.accent
+              ? 'text-[#FFAE01] font-medium hover:opacity-80 transition-opacity whitespace-nowrap'
+              : 'text-white/80 hover:text-white transition-colors whitespace-nowrap'}
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Правый блок: контакты -->
+      <div class="flex items-center gap-4 text-[13px] font-bold text-[#FFAE01]">
+        <a href="mailto:office@y-stroika.ru" class="hidden lg:block hover:opacity-80 transition-opacity text-[15px]">
+          office@y-stroika.ru
+        </a>
+        <a href="tel:88003339495" class="hover:opacity-80 transition-opacity text-[15px]">
+          +7 800 333 94 95
+        </a>
+      </div>
     </div>
   </div>
 
-  <!-- Main header -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      <!-- Logo -->
-      <a href="/" class="flex items-center gap-2 font-bold text-xl text-slate-900">
-        <span class="text-orange-500">У</span>-Стройка
+  <!-- ── СТРОКА 2: логотип + поиск + кнопки + иконки (#FFFFFF, h=90px) ── -->
+  <div class="bg-white h-[90px]">
+    <div class="px-4 sm:px-8 lg:px-[60px] h-full flex items-center gap-6">
+
+      <!-- Логотип: Figma logo 1 (153×40) + tagline Inter 500 12px Gray; container 332×40 -->
+      <a href="/" class="flex-shrink-0 flex items-center" style="width:332px;height:40px;">
+        <img src="/images/logo.svg" width="153" height="40" alt="У-Стройка" class="flex-shrink-0" />
+        <span class="hidden lg:block text-[12px] font-medium text-[#898989] leading-tight ml-[15px] w-[164px]">
+          Продажа кровельных и фасадных материалов
+        </span>
       </a>
 
-      <!-- Nav -->
-      <nav class="hidden md:flex items-center gap-6">
+      <!-- Поиск -->
+      <div class="flex-1 hidden md:block">
+        <form action="/search" method="get" class="relative">
+          <input
+            type="search"
+            name="q"
+            placeholder="Поиск по товарам"
+            class="w-full h-[50px] pl-5 pr-14 bg-[#F5F5F5] rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#898989] placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#FFAE01] transition-all"
+          />
+          <button
+            type="submit"
+            class="absolute right-3 top-1/2 -translate-y-1/2"
+            aria-label="Найти"
+          >
+            <svg class="w-5 h-5 text-[#898989]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" stroke-width="2"/>
+              <path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- Кнопки: Прайс-лист + Калькулятор -->
+      <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
+        <a
+          href="/price-list"
+          class="flex items-center gap-2.5 border border-[#FFAE01] rounded-lg px-4 h-11 hover:bg-[#FFAE01]/10 transition-colors"
+        >
+          <svg class="w-5 h-5 text-[#FFAE01]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <div class="leading-tight text-left">
+            <div class="text-[14px] font-medium text-[#FFAE01] leading-none">Скачать каталог</div>
+            <div class="text-[12px] text-[#898989] leading-none mt-0.5">Прайс-лист</div>
+          </div>
+        </a>
+
+        <a
+          href="/raschet"
+          class="flex items-center gap-2.5 border border-[#333333] rounded-lg px-4 h-11 hover:bg-[#333333]/5 transition-colors"
+        >
+          <svg class="w-5 h-5 text-[#333333]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          <div class="leading-tight text-left">
+            <div class="text-[14px] font-medium text-[#333333] leading-none">Калькулятор</div>
+            <div class="text-[12px] text-[#898989] leading-none mt-0.5">Онлайн</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Иконки: корзина, избранное, сравнение -->
+      <div class="hidden lg:flex items-center gap-2 flex-shrink-0">
+        <!-- Корзина -->
+        <a href="/korzina" class="relative flex items-center justify-center w-10 h-10 bg-[#333333] rounded-full hover:bg-[#444] transition-colors" aria-label="Корзина">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-[#FFAE01] text-[#333333] text-[11px] font-bold rounded-full flex items-center justify-center">0</span>
+        </a>
+
+        <!-- Избранное -->
+        <a href="/izbrannoe" class="relative flex items-center justify-center w-10 h-10 bg-[#333333] rounded-full hover:bg-[#444] transition-colors" aria-label="Избранное">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-[#FFAE01] text-[#333333] text-[11px] font-bold rounded-full flex items-center justify-center">0</span>
+        </a>
+
+        <!-- Сравнение -->
+        <a href="/sravnenie" class="relative flex items-center justify-center w-10 h-10 bg-[#333333] rounded-full hover:bg-[#444] transition-colors" aria-label="Сравнение">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-[#FFAE01] text-[#333333] text-[11px] font-bold rounded-full flex items-center justify-center">0</span>
+        </a>
+      </div>
+
+      <!-- Мобильная кнопка меню -->
+      <button
+        id="menu-toggle"
+        class="lg:hidden ml-auto p-2 rounded-md text-[#333333] hover:bg-[#F5F5F5]"
+        aria-label="Меню"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── СТРОКА 3: навигация (#F5F5F5, h=90px) ── -->
+  <div class="hidden lg:block bg-[#F5F5F5] h-[90px] border-b border-[#E9E9E9]">
+    <div class="px-4 sm:px-8 lg:px-[60px] h-full flex items-center gap-6">
+
+      <!-- Кнопка "Каталог" с dropdown -->
+      <div class="relative group flex-shrink-0">
+        <button
+          class="flex items-center gap-2 bg-white border border-[#E0E0E0] rounded-lg px-4 h-[40px] text-[18px] font-medium text-[#333333] hover:border-[#FFAE01] transition-colors"
+        >
+          <!-- hamburger grid icon -->
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="4" height="4" rx="1"/>
+            <rect x="10" y="3" width="4" height="4" rx="1"/>
+            <rect x="17" y="3" width="4" height="4" rx="1"/>
+            <rect x="3" y="10" width="4" height="4" rx="1"/>
+            <rect x="10" y="10" width="4" height="4" rx="1"/>
+            <rect x="17" y="10" width="4" height="4" rx="1"/>
+            <rect x="3" y="17" width="4" height="4" rx="1"/>
+            <rect x="10" y="17" width="4" height="4" rx="1"/>
+            <rect x="17" y="17" width="4" height="4" rx="1"/>
+          </svg>
+          Каталог
+          <svg class="w-4 h-4 text-[#898989]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <!-- Dropdown placeholder -->
+        <div class="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-[#E0E0E0] hidden group-hover:block z-50 py-2">
+          <a href="/catalog/krovlya" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Кровля</a>
+          <a href="/catalog/fasad" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Фасад</a>
+          <a href="/catalog/vodostok" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Водосточные системы</a>
+          <a href="/catalog/uteplenie" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Утепление</a>
+          <a href="/catalog/fasadnye-paneli" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Фасадные панели</a>
+          <a href="/catalog/vodostochnye-sistemy" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Водосточные системы</a>
+          <a href="/catalog" class="block px-4 py-2.5 text-[15px] text-[#FFAE01] font-medium hover:bg-[#F5F5F5]">Весь каталог →</a>
+        </div>
+      </div>
+
+      <!-- Навигационные ссылки: Figma gap=50px, Inter 500 18px -->
+      <nav class="flex items-center gap-[50px] flex-1 overflow-x-auto">
         {navLinks.map(link => (
           <a
             href={link.href}
             class:list={[
-              'text-sm font-medium transition-colors hover:text-orange-500',
-              currentPath.startsWith(link.href) && link.href !== '/'
-                ? 'text-orange-500'
-                : 'text-slate-600',
+              'whitespace-nowrap text-[18px] font-medium transition-colors',
+              currentPath.startsWith(link.href)
+                ? 'text-[#FFAE01]'
+                : 'text-[#333333] hover:text-[#FFAE01]',
             ]}
           >
             {link.label}
@@ -47,46 +230,69 @@ const currentPath = Astro.url.pathname;
         ))}
       </nav>
 
-      <!-- CTA -->
+      <!-- Кнопка "Получить счёт": Figma 200×40px, bg #333333, radius 5px, Inter 500 18px, orange -->
       <a
-        href="tel:88003339495"
-        class="hidden md:inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+        href="/raschet"
+        class="flex-shrink-0 bg-[#333333] hover:bg-[#444] text-[#FFAE01] text-[18px] font-medium flex items-center justify-center transition-colors whitespace-nowrap rounded-[5px]"
+        style="width:200px;height:40px;"
       >
-        Перезвоните мне
+        Получить счёт
       </a>
-
-      <!-- Mobile menu button -->
-      <button
-        id="menu-toggle"
-        class="md:hidden p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-        aria-label="Меню"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
     </div>
   </div>
 
-  <!-- Mobile nav -->
-  <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white">
-    <div class="px-4 py-3 space-y-1">
+  <!-- ── МОБИЛЬНОЕ МЕНЮ ── -->
+  <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-[#E0E0E0]">
+    <!-- Поиск -->
+    <div class="px-4 pt-3 pb-2">
+      <form action="/search" method="get" class="relative">
+        <input
+          type="search"
+          name="q"
+          placeholder="Поиск товаров"
+          class="w-full h-11 pl-4 pr-12 bg-[#F5F5F5] rounded-lg text-[15px] placeholder:text-[#898989] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]"
+        />
+        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2">
+          <svg class="w-5 h-5 text-[#898989]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke-width="2"/>
+            <path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Ссылки -->
+    <div class="px-4 pb-2 space-y-0.5">
+      <a href="/catalog" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-[15px] font-medium text-[#333333] hover:bg-[#F5F5F5]">
+        Каталог (все товары)
+      </a>
       {navLinks.map(link => (
         <a
           href={link.href}
-          class="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-orange-500 transition-colors"
+          class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-[15px] font-medium text-[#333333] hover:bg-[#F5F5F5]"
         >
           {link.label}
         </a>
       ))}
+    </div>
+
+    <!-- CTA кнопки -->
+    <div class="px-4 pb-4 pt-2 border-t border-[#E0E0E0] flex gap-2">
       <a
         href="tel:88003339495"
-        class="block mt-2 text-center bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+        class="flex-1 text-center bg-[#333333] hover:bg-[#444] text-[#FFAE01] text-[15px] font-semibold px-4 py-3 rounded-xl transition-colors"
       >
-        Перезвоните мне
+        +7 800 333 94 95
+      </a>
+      <a
+        href="/raschet"
+        class="flex-1 text-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] text-[15px] font-semibold px-4 py-3 rounded-xl transition-colors"
+      >
+        Получить счёт
       </a>
     </div>
   </div>
+
 </header>
 
 <script>

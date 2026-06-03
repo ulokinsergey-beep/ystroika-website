@@ -1,0 +1,189 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allReviews = await getCollection('reviews', ({ data }) => data.published !== false);
+
+// Sort by date descending (newest first)
+const reviews = allReviews
+  .map((entry) => ({
+    id: entry.id,
+    slug: entry.slug,
+    data: entry.data,
+    body: entry.body || '',
+  }))
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+
+// Category counts for filter tabs
+const counts = {
+  all: reviews.length,
+  kompaniya: reviews.filter((r) => r.data.category === 'kompaniya').length,
+  produktsiya: reviews.filter((r) => r.data.category === 'produktsiya').length,
+  obsluzhivanie: reviews.filter((r) => r.data.category === 'obsluzhivanie').length,
+};
+
+const ratingAvg = (reviews.reduce((sum, r) => sum + (r.data.rating || 0), 0) / reviews.length).toFixed(1);
+
+const dateFmt = (d) => {
+  const dt = new Date(d);
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+};
+
+const firstNameOnly = (full) => {
+  const parts = (full || '').trim().split(/\s+/);
+  if (parts.length === 0) return full;
+  return parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+};
+
+const cleanCity = (c) => {
+  if (!c) return '';
+  const cleaned = c.split(',')[0].trim();
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+};
+
+// JSON-LD: aggregate rating + sample of first 5 reviews for AEO
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': 'https://ystroika.ru/otzyvy#collection',
+  url: 'https://ystroika.ru/otzyvy',
+  name: 'Отзывы клиентов У-Стройка',
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: reviews.length,
+    itemListElement: reviews.slice(0, 10).map((r, i) => ({
+      '@type': 'Review',
+      position: i + 1,
+      author: { '@type': 'Person', name: firstNameOnly(r.data.name) },
+      datePublished: new Date(r.data.date).toISOString().slice(0, 10),
+      reviewBody: r.body.slice(0, 500),
+      reviewRating: { '@type': 'Rating', ratingValue: r.data.rating, bestRating: 5 },
+      itemReviewed: { '@type': 'Organization', name: 'У-Стройка' },
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title="Отзывы клиентов"
+  description={`${reviews.length} реальных отзывов клиентов У-Стройка о кровельных и фасадных материалах. Средний рейтинг ${ratingAvg} из 5.`}
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- HERO -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <nav class="text-[14px] text-[#898989] mb-[20px]">
+      <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span> <span class="text-[#333333]">Отзывы</span>
+    </nav>
+    <div class="flex items-end gap-[25px]">
+      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Отзывы клиентов
+      </h1>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <p class="text-[#898989] text-[16px] mt-[15px]">
+      {reviews.length}&nbsp;реальных отзывов &middot; средняя оценка
+      <span class="text-[#333333] font-semibold">{ratingAvg} из&nbsp;5</span>
+    </p>
+  </section>
+
+  <!-- FILTER TABS -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:20px;padding-bottom:30px;">
+    <div class="flex flex-wrap gap-[20px]" id="review-filters">
+      <button data-filter="all"
+              class="filter-btn bg-[#FFAE01] rounded-[5px] text-[#333333] text-[16px] font-medium" style="width:auto;height:40px;padding:0 20px;">
+        Все <span class="text-[14px] opacity-70 ml-1">({counts.all})</span>
+      </button>
+      <button data-filter="kompaniya"
+              class="filter-btn bg-[#E9E9E9] hover:bg-[#d8d8d8] rounded-[5px] text-[#898989] text-[16px] font-medium transition-colors" style="height:40px;padding:0 20px;">
+        О&nbsp;компании <span class="text-[14px] opacity-70 ml-1">({counts.kompaniya})</span>
+      </button>
+      <button data-filter="produktsiya"
+              class="filter-btn bg-[#E9E9E9] hover:bg-[#d8d8d8] rounded-[5px] text-[#898989] text-[16px] font-medium transition-colors" style="height:40px;padding:0 20px;">
+        О&nbsp;продукции <span class="text-[14px] opacity-70 ml-1">({counts.produktsiya})</span>
+      </button>
+      <button data-filter="obsluzhivanie"
+              class="filter-btn bg-[#E9E9E9] hover:bg-[#d8d8d8] rounded-[5px] text-[#898989] text-[16px] font-medium transition-colors" style="height:40px;padding:0 20px;">
+        Об&nbsp;обслуживании <span class="text-[14px] opacity-70 ml-1">({counts.obsluzhivanie})</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- REVIEWS GRID -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:40px;padding-bottom:80px;">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]" id="reviews-grid">
+      {reviews.map((r) => {
+        const name = firstNameOnly(r.data.name);
+        const city = cleanCity(r.data.city);
+        const date = dateFmt(r.data.date);
+        return (
+          <article class="review-card bg-white rounded-[5px] flex flex-col gap-[15px]"
+                   data-category={r.data.category}
+                   style="padding:25px;min-height:280px;">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-[12px]">
+                <div class="w-[50px] h-[50px] rounded-full bg-[#FFAE01] flex items-center justify-center text-white text-[20px] font-semibold flex-shrink-0">
+                  {name.charAt(0)}
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-[#333333] text-[16px] font-semibold leading-tight">{name}</span>
+                  {city && <span class="text-[#898989] text-[13px]">{city}</span>}
+                </div>
+              </div>
+              <div class="flex items-center gap-[5px] bg-[#333333] rounded-[5px]" style="padding:2px 7px;height:25px;">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>
+                <span class="text-white text-[13px]">{r.data.rating.toFixed(1)}</span>
+              </div>
+            </div>
+            <p class="text-[#333333] text-[14px] leading-[1.4] flex-1 whitespace-pre-line">{r.body}</p>
+            <span class="text-[#898989] text-[13px]">{date}</span>
+          </article>
+        );
+      })}
+    </div>
+
+    <!-- Empty state for filter -->
+    <div id="empty-state" class="hidden text-center py-12">
+      <p class="text-[#898989] text-[16px]">Отзывов в&nbsp;этой категории пока нет</p>
+    </div>
+  </section>
+
+  <!-- Filter JS -->
+  <script is:inline>
+    (function() {
+      const buttons = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.review-card');
+      const empty = document.getElementById('empty-state');
+      const activeClasses = ['bg-[#FFAE01]', 'text-[#333333]'];
+      const inactiveClasses = ['bg-[#E9E9E9]', 'text-[#898989]', 'hover:bg-[#d8d8d8]'];
+
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const filter = btn.dataset.filter;
+
+          // Update button states
+          buttons.forEach((b) => {
+            b.classList.remove(...activeClasses);
+            b.classList.add(...inactiveClasses);
+          });
+          btn.classList.remove(...inactiveClasses);
+          btn.classList.add(...activeClasses);
+
+          // Filter cards
+          let visible = 0;
+          cards.forEach((card) => {
+            if (filter === 'all' || card.dataset.category === filter) {
+              card.style.display = '';
+              visible++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+
+          empty.classList.toggle('hidden', visible > 0);
+        });
+      });
+    })();
+  </script>
+</BaseLayout>

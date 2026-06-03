@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Страница не найдена — У-Стройка"
+  description="Страница не существует. Воспользуйтесь каталогом или поиском на сайте У-Стройка."
+>
+  <div class="min-h-[70vh] flex items-center justify-center bg-slate-50">
+    <div class="max-w-md mx-auto px-4 text-center">
+      <div class="text-8xl font-black text-slate-200 mb-4 leading-none">404</div>
+      <h1 class="text-2xl font-bold text-slate-900 mb-2">Страница не найдена</h1>
+      <p class="text-slate-500 mb-8">
+        Возможно, страница была перемещена или удалена.
+        Воспользуйтесь каталогом или позвоните нам.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a
+          href="/catalog"
+          class="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+        >
+          Перейти в каталог
+        </a>
+        <a
+          href="/"
+          class="inline-flex items-center justify-center gap-2 border border-slate-200 hover:border-brand text-slate-700 hover:text-brand font-semibold px-6 py-3 rounded-xl transition-colors"
+        >
+          На главную
+        </a>
+      </div>
+      <div class="mt-8 text-sm text-slate-400">
+        Или позвоните нам:
+        <a href="tel:88003339495" class="text-brand font-medium hover:underline ml-1">8-800-333-94-95</a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

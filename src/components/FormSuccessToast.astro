@@ -1,0 +1,58 @@
+---
+// Глобальный toast для форм — подключать в BaseLayout или в конкретной форме
+---
+
+<div
+  id="form-toast"
+  class="fixed bottom-6 right-6 z-[9999] translate-y-24 opacity-0 transition-all duration-300 pointer-events-none"
+  aria-live="polite"
+>
+  <div class="bg-slate-900 text-white rounded-2xl shadow-2xl p-4 flex items-center gap-3 min-w-[280px] max-w-sm">
+    <div class="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0">
+      <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+    </div>
+    <div>
+      <p class="font-semibold text-sm">Заявка отправлена!</p>
+      <p class="text-xs text-slate-400 mt-0.5">Перезвоним в течение 15 минут</p>
+    </div>
+    <button
+      id="form-toast-close"
+      class="ml-auto text-slate-500 hover:text-white flex-shrink-0"
+      aria-label="Закрыть"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  function showToast() {
+    const toast = document.getElementById('form-toast');
+    if (!toast) return;
+    toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => hideToast(), 5000);
+  }
+
+  function hideToast() {
+    const toast = document.getElementById('form-toast');
+    if (!toast) return;
+    toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+    toast.classList.remove('translate-y-0', 'opacity-100');
+  }
+
+  document.getElementById('form-toast-close')?.addEventListener('click', hideToast);
+
+  // Перехватываем все формы на странице
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      showToast();
+      form.reset();
+    });
+  });
+</script>

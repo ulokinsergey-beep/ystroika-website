@@ -1,0 +1,189 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://ystroika.ru/raschet/",
+  "name": "Расчёт стоимости материалов — У-Стройка",
+  "description": "Бесплатный расчёт стоимости кровельных и фасадных материалов. Оставьте заявку и наш специалист свяжется с вами в течение 15 минут.",
+  "url": "https://ystroika.ru/raschet/",
+  "isPartOf": { "@id": "https://ystroika.ru/#website" }
+};
+---
+
+<BaseLayout
+  title="Расчёт стоимости материалов"
+  description="Бесплатный расчёт стоимости кровельных и фасадных материалов в Москве и МО. Оставьте заявку — специалист перезвонит в течение 15 минут и подберёт оптимальный вариант."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-slate-50 min-h-screen py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- Заголовок -->
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center gap-2 bg-brand/10 text-brand text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+          Бесплатно · Без обязательств
+        </div>
+        <h1 class="text-3xl lg:text-4xl font-bold text-slate-900">Получить счёт на материалы</h1>
+        <p class="mt-3 text-slate-500 text-lg max-w-lg mx-auto">
+          Оставьте заявку — специалист перезвонит в течение 15 минут и рассчитает точную стоимость
+        </p>
+      </div>
+
+      <!-- Форма + контакты -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Форма (2/3) -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:p-8">
+          <h2 class="text-lg font-semibold text-slate-900 mb-6">Заполните форму</h2>
+
+          <form id="quote-form" class="space-y-5">
+            <!-- Тип работ -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Что нужно?</label>
+              <div class="grid grid-cols-2 gap-3">
+                {[
+                  { value: 'krovlya', label: 'Кровля' },
+                  { value: 'fasad', label: 'Фасад' },
+                  { value: 'vodostok', label: 'Водосток' },
+                  { value: 'kompleks', label: 'Комплекс работ' },
+                ].map((item, i) => (
+                  <label class="flex items-center gap-2.5 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-brand transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+                    <input type="radio" name="work_type" value={item.value} class="w-4 h-4 accent-brand" checked={i === 0} />
+                    <span class="text-sm font-medium text-slate-700">{item.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <!-- Площадь -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="area" class="block text-sm font-medium text-slate-700 mb-1.5">Площадь, м²</label>
+                <input
+                  id="area"
+                  type="number"
+                  name="area"
+                  placeholder="Например, 120"
+                  min="1"
+                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                />
+              </div>
+              <div>
+                <label for="budget" class="block text-sm font-medium text-slate-700 mb-1.5">Бюджет (₽)</label>
+                <select
+                  id="budget"
+                  name="budget"
+                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white"
+                >
+                  <option value="">Не указывать</option>
+                  <option value="50k">До 50 000 ₽</option>
+                  <option value="100k">50–100 000 ₽</option>
+                  <option value="300k">100–300 000 ₽</option>
+                  <option value="500k">300–500 000 ₽</option>
+                  <option value="500k+">Более 500 000 ₽</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Комментарий -->
+            <div>
+              <label for="comment" class="block text-sm font-medium text-slate-700 mb-1.5">Комментарий (необязательно)</label>
+              <textarea
+                id="comment"
+                name="comment"
+                rows="3"
+                placeholder="Тип кровли, материал, особые требования..."
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Контакты -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Ваше имя</label>
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  placeholder="Иван"
+                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                />
+              </div>
+              <div>
+                <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">Телефон <span class="text-red-500">*</span></label>
+                <input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  placeholder="+7 (___) ___-__-__"
+                  required
+                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                />
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button
+              type="submit"
+              class="w-full h-12 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              Получить расчёт бесплатно
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+
+            <p class="text-center text-xs text-slate-400">
+              Нажимая кнопку, вы соглашаетесь с
+              <a href="/politika-konfidentsialnosti" class="text-brand hover:underline">политикой конфиденциальности</a>
+            </p>
+          </form>
+        </div>
+
+        <!-- Контакты (1/3) -->
+        <div class="space-y-4">
+          <!-- Телефон -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Позвонить</p>
+            <a href="tel:88003339495" class="text-xl font-bold text-slate-900 hover:text-brand transition-colors block">
+              8-800-333-94-95
+            </a>
+            <p class="text-xs text-slate-400 mt-1">Бесплатно по России<br />Ежедневно 9:00–20:00</p>
+          </div>
+
+          <!-- Почему стоит позвонить -->
+          <div class="bg-brand rounded-2xl p-5 text-white">
+            <p class="font-semibold text-sm mb-3">Что вы получите:</p>
+            <ul class="space-y-2 text-sm">
+              {[
+                'Точный расчёт количества материала',
+                'Сравнение по ценам и брендам',
+                'Консультацию по технологии',
+                'Ответ за 15 минут',
+              ].map(item => (
+                <li class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-white/80 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <!-- Режим работы -->
+          <div class="bg-slate-800 text-white rounded-2xl p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Режим работы</p>
+            <p class="font-semibold">Ежедневно</p>
+            <p class="text-2xl font-black text-brand">9:00–20:00</p>
+            <p class="text-xs text-slate-400 mt-1">без выходных</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

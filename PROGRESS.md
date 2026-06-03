@@ -1,81 +1,98 @@
 # PROGRESS.md — У-Стройка Website
 
 > Источник правды о текущем состоянии разработки.
-> Обновляется вручную или через `ystroika-orchestrator`.
 
 ---
 
-## Последнее обновление: 2026-05-24 (сессия 2)
+## Последнее обновление: 2026-05-24 (сессия 3)
 
 ---
 
 ## Фаза 1 — MVP (в работе)
 
 ### Инфраструктура
-- [x] Инициализация Astro 5 проекта
-- [x] Tailwind CSS 4 via @tailwindcss/vite
-- [x] BaseLayout с SEO meta тегами, OG
-- [x] `<slot name="head" />` для JSON-LD в BaseLayout ← добавлен 2026-05-24
-- [x] Header (навигация, телефон 8-800-333-94-95, mobile menu)
-- [x] Footer (контакты, ссылки, бренды)
-- [x] `favicon.svg` — базовая иконка с буквой «У» в orange-500 ← добавлен 2026-05-24
-- [x] `robots.txt` — базовый с ссылкой на sitemap ← добавлен 2026-05-24
-- [x] `@astrojs/sitemap` → `sitemap-index.xml` + `sitemap-0.xml` генерируются автоматически ← добавлен 2026-05-24
-- [x] `.gitattributes` — нормализация LF ← добавлен 2026-05-24
-- [ ] CI/CD GitHub Actions → Timeweb
+- [x] Astro 5 + Tailwind CSS 4 (@tailwindcss/vite)
+- [x] BaseLayout: SEO, OG, `<slot name="head" />` для JSON-LD
+- [x] FormSuccessToast — глобальный компонент для форм (показывает успех)
+- [x] Header: top bar + строка поиска + logo + "Получить счёт" + мобильное меню ← обновлён 2026-05-24
+- [x] Footer: каталог, информация, бренды, телефон
+- [x] `favicon.svg` — иконка с «У» в brand-цвете
+- [x] `robots.txt` + `sitemap-index.xml` (через @astrojs/sitemap)
+- [x] `.gitattributes` — LF нормализация
+- [x] `.github/workflows/deploy.yml` — CI/CD → Timeweb FTP
+- [ ] GitHub Secrets для CI/CD (настраивает Сергей вручную)
 
-### Страницы
-- [x] `index.astro` — 8 секций (Hero, Trust, Каталог, Как работаем, Преимущества, Бренды, Отзывы, CTA) ← **нужна сверка с Figma**
-- [x] `catalog/index.astro` — Каталог с BreadcrumbList и CTA-блоком ← **нужна сверка с Figma**
-- [x] `catalog/[category].astro` — Страница раздела ← **нужна сверка с Figma**
-- [ ] `tovar/[slug].astro` — Карточка товара (не начата)
+### Дизайн-токены
+- [x] `global.css` — `@theme` с `--color-brand: #FFAE01` (из Figma)
+- [x] Все `orange-*` заменены на `brand`/`brand-hover` во всех файлах
+- [x] Figma file ID исправлен в SKILL.md: `oDJHXHAXqP0DDMM988Dian`
+- [x] Node IDs всех экранов сохранены в `figma-tokens.json`
+
+### Страницы (текущее состояние: 33 страницы)
+- [x] `/` — Hero 2-колонки + форма-калькулятор + Trust + Каталог + Как работаем + Преимущества + Бренды + Отзывы + CTA ← обновлён 2026-05-24
+- [x] `/catalog/` — Каталог с BreadcrumbList, JSON-LD CollectionPage
+- [x] `/catalog/[category]/` — 8 страниц разделов
+- [x] `/catalog/[category]/[subcategory]/` — 18 страниц подразделов ← создан 2026-05-24
+- [x] `/raschet/` — Форма получения счёта ← создан 2026-05-24
+- [x] `/kontakty/` — Контакты + форма обратной связи ← создан 2026-05-24
+- [x] `/o-kompanii/` — О компании + статистика + бренды ← создан 2026-05-24
+- [x] `/404` — Страница 404 ← создан 2026-05-24
+- [x] `/politika-konfidentsialnosti/` — Политика конфиденциальности ← создан 2026-05-24
+- [ ] `/tovar/[slug]/` — Карточка товара (нужна API интеграция)
+- [ ] `/otzyvy/` — Страница отзывов (нужна выгрузка из Bitrix)
+- [ ] `/montazh/` — Страница монтажа
+- [ ] `/spetspredlozheniya/` — Спецпредложения
+
+### Компоненты
+- [x] `CategoryCard` — SVG-иконки по категориям, без emoji ← обновлён 2026-05-24
+- [x] `Header` — поиск, лого с подписью, "Получить счёт", nav-bar ← обновлён 2026-05-24
+- [x] `FormSuccessToast` — toast при успешной отправке формы ← создан 2026-05-24
 
 ### SEO / JSON-LD
-- [x] JSON-LD Organization + LocalBusiness + WebSite на `index.astro` ← добавлен 2026-05-24
-- [x] JSON-LD CollectionPage + BreadcrumbList на `catalog/index.astro` ← добавлен 2026-05-24
-- [x] JSON-LD CollectionPage + BreadcrumbList на `catalog/[category].astro` ← добавлен 2026-05-24
-- [ ] JSON-LD Product + Offer на `tovar/[slug].astro`
-- [x] Sitemap.xml ← @astrojs/sitemap, 2026-05-24
-- [x] Robots.txt ← 2026-05-24
-
-### Данные
-- [x] `src/data/categories.ts` — 8 разделов каталога
-- [ ] KrovAlians API интеграция (цены/наличие)
+- [x] JSON-LD Organization + LocalBusiness + WebSite → `index.astro`
+- [x] JSON-LD CollectionPage + BreadcrumbList → `catalog/index.astro`
+- [x] JSON-LD CollectionPage + BreadcrumbList → `catalog/[category].astro`
+- [x] JSON-LD CollectionPage + BreadcrumbList → `catalog/[category]/[subcategory].astro`
+- [ ] JSON-LD Product + Offer → `tovar/[slug].astro`
 
 ---
 
-## Фаза 2 — Контент и конверсия
+## Фаза 2 — Контент и данные
 
-- [ ] Страницы услуг (7 услуг из Bitrix IBLOCK 29)
-- [ ] Блог/Статьи (92 из IBLOCK 11)
-- [ ] Отзывы (107 из IBLOCK 13)
-- [ ] FAQ (6 из IBLOCK 12)
-- [ ] Форма обратной связи + WhatsApp кнопка
+### KrovAlians API
+- [ ] Восстановить пароль (nuziL681) — проверить доступ
+- [ ] Загрузить каталог (POST /katalog?katalog=full)
+- [ ] Загрузить цены (POST /price)
+- [ ] Показывать цены на карточке товара
+
+### Bitrix данные
+- [ ] Экспортировать услуги (7 из IBLOCK 29) → страницы /uslugi/
+- [ ] Экспортировать статьи (92 из IBLOCK 11) → блог /blog/
+- [ ] Экспортировать отзывы (107 из IBLOCK 13) → /otzyvy/
+- [ ] Экспортировать FAQ (6 из IBLOCK 12) → /faq/
 
 ---
 
 ## Фаза 3 — SEO и фильтры
 
+- [ ] Карточка товара /tovar/[slug]/ с ценой из API
 - [ ] Фильтрация товаров (цвет, покрытие, бренд)
 - [ ] Акции, Бренды, Сравнение товаров
 
 ---
 
-## Известные проблемы
+## GitHub Secrets (нужно настроить вручную)
 
-| Проблема | Приоритет | Статус |
-|---------|-----------|--------|
-| `index.astro` не соответствует Figma-макету | 🔥 Высокий | В работе |
-| Нет JSON-LD ни на одной странице | 🔥 Высокий | Не начато |
-| Нет favicon | Средний | Не начато |
-| Нет CI/CD пайплайна | Средний | Не начато |
-| `CategoryCard` использует emoji-иконки, не SVG | Низкий | Не начато |
+Добавить в репозиторий → Settings → Secrets → Actions:
+- `TIMEWEB_FTP_SERVER` — адрес FTP сервера Timeweb
+- `TIMEWEB_FTP_USER` — FTP логин
+- `TIMEWEB_FTP_PASSWORD` — FTP пароль
 
 ---
 
 ## Ссылки
 
 - **Репо:** https://github.com/ulokinsergey-beep/ystroika-website
-- **Figma:** https://www.figma.com/design/fpkm2jePqLSf1oKAmGmyA3/Дизайн-У-Стройка
+- **Figma (рабочий):** https://www.figma.com/design/oDJHXHAXqP0DDMM988Dian/Дизайн-У-Стройка-(Оригинал)
+- **Figma node IDs:** `C:\Users\User\.claude\projects\ystroika-website\figma-tokens.json`
 - **Bitrix аудит:** `C:\Users\User\.claude\projects\ystroika-website\bitrix-backup-audit.md`
-- **Контекст проекта:** `C:\Users\User\.claude\skills\ystroika-context\SKILL.md`

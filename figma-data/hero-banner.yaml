@@ -1,0 +1,11 @@
+﻿node.exe : [INFO] Retrieving raw Figma node: 136:672 from fpkm2jePqLSf1oKAmGmyA3 (depth: default)
+C:\Temp\figma-extract.ps1:23 знак:19
++ ...   $output = & node $bin fetch --file-key $fileKey --node-id $nodeId - ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([INFO] Retrievi...depth: default):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[INFO] Calling https://api.figma.com/v1/files/fpkm2jePqLSf1oKAmGmyA3/nodes?ids=136:672
+[INFO] Using Personal Access Token for authentication
+Failed to make request to Figma API endpoint '/files/fpkm2jePqLSf1oKAmGmyA3/nodes?ids=136:672': Fetch failed with statu
+s 429: Too Many Requests
