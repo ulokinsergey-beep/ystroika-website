@@ -42,81 +42,75 @@ const jsonLd = {
   description={`${category.title} — ${category.description} Москва и МО, доставка за 1 день.`}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
-      <a href="/" class="hover:text-brand transition-colors">Главная</a>
-      <span>→</span>
-      <a href="/catalog" class="hover:text-brand transition-colors">Каталог</a>
-      <span>→</span>
-      <span class="text-slate-900 font-medium">{category.title}</span>
-    </nav>
+  <div class="bg-[#f5f5f5] min-h-screen">
 
-    <!-- Header -->
-    <div class="flex items-center gap-4 mb-8">
-      <span class="text-4xl">{category.icon}</span>
-      <div>
-        <h1 class="text-3xl font-bold text-slate-900">{category.title}</h1>
-        <p class="mt-1 text-slate-500">{category.description}</p>
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <a href="/catalog" class="hover:text-[#FFAE01] transition-colors">Каталог</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">{category.title}</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">{category.title}</h1>
+        <p class="mt-2 text-[#898989]">{category.description}</p>
       </div>
     </div>
 
-    <!-- Subcategories -->
-    {category.subcategories && category.subcategories.length > 0 ? (
-      <div>
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Подразделы</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      {category.subcategories && category.subcategories.length > 0 ? (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {category.subcategories.map(sub => (
             <a
               href={`/catalog/${category.slug}/${sub.slug}`}
-              class="group block bg-white border border-slate-200 rounded-xl p-5 hover:border-brand hover:shadow-md transition-all duration-200"
+              class="group bg-white border border-[#e5e5e5] rounded-[10px] p-6 hover:border-[#FFAE01] hover:shadow-sm transition-all"
             >
-              <h3 class="font-semibold text-slate-900 group-hover:text-brand transition-colors">
+              <h3 class="font-bold text-slate-900 group-hover:text-[#FFAE01] transition-colors mb-2">
                 {sub.title}
               </h3>
               {sub.brands && sub.brands.length > 0 && (
-                <p class="mt-1.5 text-xs text-slate-400">
+                <p class="text-xs text-[#898989] mb-3">
                   {sub.brands.join(' · ')}
                 </p>
               )}
-              <div class="mt-3 flex items-center text-sm font-medium text-brand gap-1 group-hover:gap-2 transition-all">
+              <span class="inline-flex items-center gap-1 text-sm font-semibold text-[#FFAE01]">
                 Перейти
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-              </div>
+              </span>
             </a>
           ))}
         </div>
-      </div>
-    ) : (
-      <!-- Placeholder when no subcategories yet -->
-      <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-12 text-center">
-        <p class="text-slate-500 text-lg">Раздел в разработке</p>
-        <p class="mt-2 text-slate-400 text-sm">
-          Ассортимент будет добавлен в ближайшее время
-        </p>
+      ) : (
+        <div class="bg-white border border-dashed border-[#e5e5e5] rounded-[10px] p-12 text-center mb-10">
+          <p class="text-slate-700 text-lg font-semibold">Раздел в разработке</p>
+          <p class="mt-2 text-[#898989] text-sm">Ассортимент будет добавлен в ближайшее время</p>
+          <a
+            href="tel:88003339495"
+            class="mt-6 inline-flex items-center bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-5 py-2.5 rounded-[5px] transition-colors text-sm"
+          >
+            Позвоните — уточним наличие
+          </a>
+        </div>
+      )}
+
+      <!-- CTA -->
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="font-bold text-xl mb-2">Нужна консультация по {category.title.toLowerCase()}?</h2>
+          <p class="text-[#898989] text-sm">Поможем подобрать материал под ваш проект и бюджет</p>
+        </div>
         <a
           href="tel:88003339495"
-          class="mt-6 inline-flex items-center bg-brand hover:bg-brand-hover text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm"
+          class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap"
         >
-          Позвоните — уточним наличие
+          Позвонить
         </a>
       </div>
-    )}
-
-    <!-- CTA block -->
-    <div class="mt-12 bg-slate-900 text-white rounded-xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div>
-        <p class="font-semibold text-lg">Нужна консультация по {category.title.toLowerCase()}?</p>
-        <p class="text-slate-400 text-sm mt-1">Поможем подобрать материал под ваш проект и бюджет</p>
-      </div>
-      <a
-        href="tel:88003339495"
-        class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-6 py-3 rounded-lg transition-colors"
-      >
-        Позвонить
-      </a>
     </div>
   </div>
 </BaseLayout>

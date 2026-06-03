@@ -1,0 +1,184 @@
+---
+/**
+ * Страница «Спецпредложения» — /spetspredlozheniya
+ * Figma node: 422:8130
+ */
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { categories } from '../data/categories';
+
+// Статичные акции (будут заменяться актуальными)
+const promos = [
+  {
+    badge: 'АКЦИЯ',
+    badgeColor: 'bg-red-500',
+    title: 'Бесплатная доставка при заказе от 50 000 ₽',
+    description: 'Доставка по Москве и ближайшему Подмосковью бесплатно при заказе кровельных или фасадных материалов на сумму от 50 000 ₽.',
+    cta: 'Перейти в каталог',
+    ctaUrl: '/catalog',
+    till: 'Постоянная акция',
+  },
+  {
+    badge: 'СКИДКА',
+    badgeColor: 'bg-[#FFAE01]',
+    title: 'Скидка 10% на гибкую черепицу DÖCKE',
+    description: 'При покупке гибкой черепицы DÖCKE от 50 м² — скидка 10% на весь объём заказа. Широкий выбор цветов на складе.',
+    cta: 'Выбрать черепицу',
+    ctaUrl: '/catalog/krovlya/gibkaya-cherepitsa',
+    till: 'Уточните у менеджера',
+  },
+  {
+    badge: 'ХИТ',
+    badgeColor: 'bg-blue-500',
+    title: 'Металлочерепица GrandLine — остатки со склада',
+    description: 'Ограниченное количество металлочерепицы GrandLine Classic по сниженным ценам. Отгрузка со склада в день заказа.',
+    cta: 'Смотреть наличие',
+    ctaUrl: '/catalog/krovlya/metallocherepitsa',
+    till: 'Пока есть на складе',
+  },
+  {
+    badge: 'ДИЛЕР',
+    badgeColor: 'bg-green-600',
+    title: 'Спец. условия для строителей и подрядчиков',
+    description: 'Скидки до 15%, отсрочка платежа до 30 дней, персональный менеджер для строительных бригад и организаций.',
+    cta: 'Узнать условия',
+    ctaUrl: '/spets-usloviya',
+    till: 'Постоянная программа',
+  },
+  {
+    badge: 'АКЦИЯ',
+    badgeColor: 'bg-red-500',
+    title: 'Комплект: профнастил + крепёж в подарок',
+    description: 'При заказе профнастила от 200 м² — крепёжные элементы в подарок. Экономия на комплектации объекта.',
+    cta: 'Перейти к профнастилу',
+    ctaUrl: '/catalog/krovlya/profnastil',
+    till: 'Уточните у менеджера',
+  },
+  {
+    badge: 'СКИДКА',
+    badgeColor: 'bg-[#FFAE01]',
+    title: 'Виниловый сайдинг DÖCKE — скидка 7% на цвета из наличия',
+    description: 'На цвета виниловго сайдинга DÖCKE, представленные на складе, действует дополнительная скидка 7%.',
+    cta: 'К сайдингу',
+    ctaUrl: '/catalog/fasad/vinilovyy-sayding',
+    till: 'Уточните у менеджера',
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная",            "item": "https://ystroika.ru/" },
+    { "@type": "ListItem", "position": 2, "name": "Спецпредложения",    "item": "https://ystroika.ru/spetspredlozheniya/" },
+  ]
+};
+---
+
+<BaseLayout
+  title="Спецпредложения и акции — У-Стройка"
+  description="Актуальные акции, скидки и спецпредложения на кровельные и фасадные материалы. Металлочерепица, профнастил, сайдинг, водосток. Москва и МО. Звоните: 8-800-333-94-95."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Спецпредложения</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Спецпредложения</h1>
+        <p class="mt-2 text-[#898989]">Актуальные акции и скидки на строительные материалы</p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Баннер "Звоните за актуальными ценами" -->
+      <div class="bg-[#333333] text-white rounded-[10px] p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-[#FFAE01]/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-[#FFAE01]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-bold">Уточняйте актуальные акции у менеджера</p>
+            <p class="text-[#898989] text-sm">Цены и условия акций могут меняться — звоните для точной информации</p>
+          </div>
+        </div>
+        <a
+          href="tel:88003339495"
+          class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap"
+        >
+          8-800-333-94-95
+        </a>
+      </div>
+
+      <!-- Сетка акций -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        {promos.map(promo => (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] overflow-hidden hover:border-[#FFAE01] hover:shadow-sm transition-all flex flex-col">
+
+            <!-- Картинка-заглушка с баджем -->
+            <div class="h-36 bg-gradient-to-br from-[#f5f5f5] to-[#e8e8e8] relative flex items-center justify-center">
+              <svg class="w-16 h-16 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+              <span class={`absolute top-3 left-3 ${promo.badgeColor} text-white text-xs font-bold px-2.5 py-1 rounded-[3px]`}>
+                {promo.badge}
+              </span>
+            </div>
+
+            <div class="p-5 flex flex-col flex-1">
+              <h2 class="font-bold text-slate-900 leading-snug mb-2">{promo.title}</h2>
+              <p class="text-sm text-[#898989] leading-relaxed flex-1 mb-4">{promo.description}</p>
+
+              <div class="flex items-center justify-between mt-auto pt-4 border-t border-[#f0f0f0]">
+                <span class="text-xs text-[#898989]">{promo.till}</span>
+                <a
+                  href={promo.ctaUrl}
+                  class="text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity flex items-center gap-1"
+                >
+                  {promo.cta}
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Подписаться на акции -->
+      <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-8 mb-8">
+        <div class="max-w-2xl mx-auto text-center">
+          <h2 class="text-xl font-bold text-slate-900 mb-2">Узнавайте об акциях первым</h2>
+          <p class="text-[#898989] text-sm mb-6">
+            Подпишитесь на e-mail рассылку — присылаем только актуальные спецпредложения и остатки. Не более 1 письма в неделю.
+          </p>
+          <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder="Ваш email"
+              class="flex-1 h-11 px-4 text-sm border border-[#e5e5e5] rounded-[5px] focus:outline-none focus:border-[#FFAE01] transition-colors"
+            />
+            <button
+              type="submit"
+              class="h-11 px-6 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold text-sm rounded-[5px] transition-colors whitespace-nowrap"
+            >
+              Подписаться
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

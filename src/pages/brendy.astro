@@ -1,0 +1,190 @@
+---
+/**
+ * Страница «Бренды» — /brendy
+ * Figma node: 415:9829
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const brands = [
+  {
+    name: 'GrandLine',
+    slug: 'grandline',
+    category: 'Кровля и фасад',
+    description: 'Ведущий российский производитель кровельных материалов, профнастила, металлочерепицы, фасадных систем и водосточных систем. Официальный дилер.',
+    products: ['Металлочерепица', 'Профнастил', 'Фальцевая кровля', 'Виниловый сайдинг', 'Металлический сайдинг', 'Водосток'],
+    catalogUrl: '/catalog/krovlya/metallocherepitsa',
+  },
+  {
+    name: 'DÖCKE',
+    slug: 'docke',
+    category: 'Кровля и фасад',
+    description: 'Немецкое качество, российское производство. Широкий ассортимент гибкой черепицы, виниловых и металлических фасадных систем, водостоков.',
+    products: ['Гибкая черепица', 'Виниловый сайдинг', 'Фасадные панели', 'Водосток'],
+    catalogUrl: '/catalog/krovlya/gibkaya-cherepitsa',
+  },
+  {
+    name: 'Металл Профиль',
+    slug: 'metall-profil',
+    category: 'Кровля',
+    description: 'Крупнейший производитель металлических строительных материалов в России. Металлочерепица, профнастил, фасадные системы с гарантией до 50 лет.',
+    products: ['Металлочерепица', 'Профнастил', 'Металлический сайдинг'],
+    catalogUrl: '/catalog/krovlya/metallocherepitsa',
+  },
+  {
+    name: 'Stynergy',
+    slug: 'stynergy',
+    category: 'Кровля',
+    description: 'Современные кровельные решения с инновационными покрытиями. Металлочерепица и профнастил с расширенной гарантией.',
+    products: ['Металлочерепица', 'Профнастил'],
+    catalogUrl: '/catalog/krovlya/metallocherepitsa',
+  },
+  {
+    name: 'ТЕХНОНИКОЛЬ',
+    slug: 'tehnonikol',
+    category: 'Кровля',
+    description: 'Международная группа компаний, мировой лидер по производству надёжных и эффективных строительных материалов. Рулонные кровельные материалы.',
+    products: ['Гибкая черепица', 'Рулонные материалы'],
+    catalogUrl: '/catalog/krovlya/gibkaya-cherepitsa',
+  },
+  {
+    name: 'Katepal',
+    slug: 'katepal',
+    category: 'Кровля',
+    description: 'Финский производитель высококачественной гибкой черепицы с 75-летней историей. Натуральный базальт в посыпке гарантирует долговечность.',
+    products: ['Гибкая черепица'],
+    catalogUrl: '/catalog/krovlya/gibkaya-cherepitsa',
+  },
+  {
+    name: 'Tegola',
+    slug: 'tegola',
+    category: 'Кровля',
+    description: 'Итальянский производитель мягкой черепицы премиум-класса. Богатая цветовая палитра, уникальные текстуры, гарантия до 50 лет.',
+    products: ['Гибкая черепица'],
+    catalogUrl: '/catalog/krovlya/gibkaya-cherepitsa',
+  },
+  {
+    name: 'АльтаПрофиль',
+    slug: 'alta-profil',
+    category: 'Фасад',
+    description: 'Российский производитель виниловых фасадных систем. Широкий выбор сайдинга, софита и доборных элементов для облицовки фасадов.',
+    products: ['Виниловый сайдинг', 'Фасадные панели'],
+    catalogUrl: '/catalog/fasad/vinilovyy-sayding',
+  },
+  {
+    name: 'Metrotile',
+    slug: 'metrotile',
+    category: 'Кровля',
+    description: 'Новозеландский производитель лёгкой металлической черепицы. Имитация различных кровельных материалов при весе в 5 раз меньше традиционных.',
+    products: ['Композитная черепица'],
+    catalogUrl: '/catalog/krovlya/kompozitnaya-cherepitsa',
+  },
+  {
+    name: 'Braas',
+    slug: 'braas',
+    category: 'Кровля',
+    description: 'Немецкий производитель керамической и цементно-песчаной черепицы. Более 70 лет на рынке, производство в Европе и России.',
+    products: ['Керамическая черепица'],
+    catalogUrl: '/catalog/krovlya/cherepitsa-braas',
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ystroika.ru/" },
+    { "@type": "ListItem", "position": 2, "name": "Бренды",  "item": "https://ystroika.ru/brendy/" },
+  ]
+};
+---
+
+<BaseLayout
+  title="Бренды строительных материалов — У-Стройка"
+  description="Официальный дилер ведущих производителей кровельных и фасадных материалов: GrandLine, DÖCKE, Металл Профиль, ТЕХНОНИКОЛЬ, Katepal, Tegola и других. Москва и МО."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Бренды</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Бренды</h1>
+        <p class="mt-2 text-[#898989]">
+          Официальный дилер {brands.length} ведущих производителей кровельных и фасадных материалов
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Сетка брендов -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        {brands.map(brand => (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 hover:border-[#FFAE01] hover:shadow-sm transition-all group">
+
+            <!-- Название + категория -->
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h2 class="text-xl font-bold text-slate-900 group-hover:text-[#FFAE01] transition-colors">
+                  {brand.name}
+                </h2>
+                <span class="inline-block mt-1 text-xs font-medium text-[#898989] bg-[#f5f5f5] px-2 py-0.5 rounded-[3px]">
+                  {brand.category}
+                </span>
+              </div>
+              <!-- Логотип-заглушка -->
+              <div class="w-12 h-12 rounded-[8px] bg-[#f5f5f5] flex items-center justify-center shrink-0">
+                <span class="text-lg font-black text-[#d0d0d0]">{brand.name[0]}</span>
+              </div>
+            </div>
+
+            <p class="text-sm text-[#898989] leading-relaxed mb-4">{brand.description}</p>
+
+            <!-- Продукты -->
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              {brand.products.map(p => (
+                <span class="text-xs text-[#898989] bg-[#f5f5f5] border border-[#e5e5e5] px-2 py-0.5 rounded-[3px]">
+                  {p}
+                </span>
+              ))}
+            </div>
+
+            <a
+              href={brand.catalogUrl}
+              class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity"
+            >
+              Смотреть каталог
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        ))}
+      </div>
+
+      <!-- Стать официальным дилером -->
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Официальный дилер — лучшие условия</h2>
+          <p class="text-[#898989] text-sm max-w-lg">
+            Как официальный дилер мы получаем продукцию напрямую от производителей, что гарантирует
+            подлинность материалов, актуальные цены и прямую заводскую гарантию.
+          </p>
+        </div>
+        <a
+          href="tel:88003339495"
+          class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-8 py-3 rounded-[5px] transition-colors whitespace-nowrap"
+        >
+          Позвонить
+        </a>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

@@ -22,61 +22,64 @@ const dateFmt = (d: Date | string) => {
   title="Блог о кровле, фасадах и водостоке — У-Стройка"
   description="Полезные статьи о выборе кровельных материалов, монтаже водосточных систем, отделке фасадов. Советы специалистов У-Стройка."
 >
-  <div class="bg-slate-50 min-h-screen">
+  <div class="bg-[#f5f5f5] min-h-screen">
 
     <!-- Шапка -->
-    <div class="bg-white border-b border-slate-200">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-4">
-          <a href="/" class="hover:text-brand transition-colors">Главная</a>
-          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           <span class="text-slate-900 font-medium">Блог</span>
         </nav>
-        <h1 class="text-3xl font-bold text-slate-900">Блог</h1>
-        <p class="mt-2 text-slate-500">Полезные статьи о строительстве и отделке</p>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Блог</h1>
+        <p class="mt-2 text-[#898989]">Полезные статьи о строительстве и отделке</p>
       </div>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
 
       {articles.length === 0 ? (
-        <div class="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center">
-          <p class="text-slate-500 font-semibold text-lg">Статьи скоро появятся</p>
-          <p class="mt-2 text-slate-400 text-sm">Мы публикуем полезные материалы о кровле, фасадах и водостоке</p>
+        <div class="bg-white border border-dashed border-[#e5e5e5] rounded-[10px] p-12 text-center">
+          <p class="text-slate-700 font-semibold text-lg">Статьи скоро появятся</p>
+          <p class="mt-2 text-[#898989] text-sm">Мы публикуем полезные материалы о кровле, фасадах и водостоке</p>
         </div>
       ) : (
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {articles.map((article) => {
             const slug = article.id.replace(/\.mdx?$/, '');
             return (
               <a
                 href={`/blog/${slug}`}
-                class="group bg-white rounded-2xl border border-slate-200 hover:border-brand hover:shadow-md transition-all overflow-hidden"
+                class="group bg-white rounded-[10px] border border-[#e5e5e5] hover:border-[#FFAE01] hover:shadow-sm transition-all overflow-hidden flex flex-col"
               >
-                <!-- Превью-картинка -->
-                <div class="aspect-video bg-slate-100 flex items-center justify-center">
+                <div class="h-40 bg-gradient-to-br from-[#f5f5f5] to-[#e0e0e0] flex items-center justify-center shrink-0">
                   {article.data.coverImage ? (
                     <img src={article.data.coverImage} alt={article.data.title} class="w-full h-full object-cover" />
                   ) : (
-                    <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-10 h-10 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
                     </svg>
                   )}
                 </div>
 
-                <div class="p-5">
-                  <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                <div class="p-5 flex flex-col flex-1">
+                  <div class="flex items-center gap-2 text-xs text-[#898989] mb-2">
                     <span>{dateFmt(article.data.publishDate)}</span>
                     {article.data.readingTime && <span>· {article.data.readingTime} мин</span>}
                   </div>
-                  <h2 class="text-base font-semibold text-slate-900 group-hover:text-brand transition-colors leading-snug">
+                  <h2 class="font-bold text-slate-900 group-hover:text-[#FFAE01] transition-colors leading-snug mb-2 flex-1">
                     {article.data.title}
                   </h2>
                   {article.data.excerpt && (
-                    <p class="mt-2 text-sm text-slate-500 line-clamp-2">{article.data.excerpt}</p>
+                    <p class="text-sm text-[#898989] line-clamp-2 leading-relaxed mb-4">{article.data.excerpt}</p>
                   )}
+                  <span class="text-sm font-semibold text-[#FFAE01] flex items-center gap-1 mt-auto">
+                    Читать
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </span>
                 </div>
               </a>
             );

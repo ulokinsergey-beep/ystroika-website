@@ -1,0 +1,144 @@
+---
+/**
+ * Страница «Сертификаты» — /sertifikaty
+ * Figma node: 435:17493
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const certificates = [
+  {
+    title: 'Сертификат дилера GrandLine',
+    description: 'Официальный дилер продукции GrandLine (Металлист). Металлочерепица, профнастил, водосточные системы, фасадные материалы.',
+    year: '2024',
+    category: 'Дилерский сертификат',
+  },
+  {
+    title: 'Сертификат дилера DÖCKE',
+    description: 'Авторизованный дилер торговой марки DÖCKE. Гибкая черепица, виниловый сайдинг, фасадные панели.',
+    year: '2024',
+    category: 'Дилерский сертификат',
+  },
+  {
+    title: 'Сертификат дилера Металл Профиль',
+    description: 'Официальный партнёр и дилер ГК «Металл Профиль». Кровельные и фасадные материалы.',
+    year: '2024',
+    category: 'Дилерский сертификат',
+  },
+  {
+    title: 'ИСО 9001:2015',
+    description: 'Система менеджмента качества соответствует требованиям международного стандарта ISO 9001:2015.',
+    year: '2023',
+    category: 'Качество',
+  },
+  {
+    title: 'Сертификат соответствия — металлочерепица',
+    description: 'Сертификат соответствия на металлочерепицу ГОСТ Р. Подтверждает качество и безопасность продукции.',
+    year: '2024',
+    category: 'Соответствие ГОСТ',
+  },
+  {
+    title: 'Сертификат соответствия — гибкая черепица',
+    description: 'Сертификат соответствия на гибкую черепицу. Продукция прошла испытания в аккредитованной лаборатории.',
+    year: '2024',
+    category: 'Соответствие ГОСТ',
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная",      "item": "https://ystroika.ru/" },
+    { "@type": "ListItem", "position": 2, "name": "Сертификаты",  "item": "https://ystroika.ru/sertifikaty/" },
+  ]
+};
+---
+
+<BaseLayout
+  title="Сертификаты и лицензии — У-Стройка"
+  description="Сертификаты соответствия, дилерские сертификаты GrandLine, DÖCKE, Металл Профиль. Вся документация подтверждает качество и подлинность материалов."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Сертификаты</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Сертификаты</h1>
+        <p class="mt-2 text-[#898989]">Документы, подтверждающие качество продукции и статус официального дилера</p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Важное уведомление -->
+      <div class="bg-[#FFAE01]/10 border border-[#FFAE01]/30 rounded-[10px] p-5 mb-8 flex items-start gap-4">
+        <svg class="w-5 h-5 text-[#FFAE01] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-sm text-slate-700">
+          Все сертификаты актуальны и доступны для ознакомления в офисе компании.
+          Оригиналы предоставляются по запросу при заключении договора.
+          <strong class="text-slate-900">Звоните: 8-800-333-94-95</strong>
+        </p>
+      </div>
+
+      <!-- Сетка сертификатов -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        {certificates.map(cert => (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 flex flex-col">
+
+            <!-- Иконка документа -->
+            <div class="w-12 h-14 mb-4 flex items-center justify-center">
+              <svg class="w-12 h-14 text-[#e5e5e5]" fill="none" stroke="currentColor" viewBox="0 0 40 48">
+                <rect x="2" y="2" width="36" height="44" rx="3" stroke-width="1.5"/>
+                <path d="M10 14h20M10 20h20M10 26h14" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M26 34l3 3 5-5" stroke="#FFAE01" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Категория -->
+            <span class="inline-block text-xs font-medium text-[#898989] bg-[#f5f5f5] px-2 py-0.5 rounded-[3px] w-fit mb-2">
+              {cert.category}
+            </span>
+
+            <h2 class="font-bold text-slate-900 mb-2 leading-snug">{cert.title}</h2>
+            <p class="text-sm text-[#898989] leading-relaxed flex-1 mb-4">{cert.description}</p>
+
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-[#f0f0f0]">
+              <span class="text-xs text-[#898989]">Год: {cert.year}</span>
+              <button
+                type="button"
+                onclick="alert('Свяжитесь с нами для получения копии сертификата: 8-800-333-94-95')"
+                class="text-xs font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity"
+              >
+                Запросить копию
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Нужны оригиналы документов?</h2>
+          <p class="text-[#898989] text-sm">Предоставим все сертификаты при заключении договора или для тендера</p>
+        </div>
+        <a
+          href="tel:88003339495"
+          class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-8 py-3 rounded-[5px] transition-colors whitespace-nowrap"
+        >
+          Позвонить
+        </a>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

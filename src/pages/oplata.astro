@@ -9,91 +9,92 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   title="Способы оплаты — У-Стройка"
   description="Удобные способы оплаты заказов в У-Стройка: наличные, банковская карта, безналичный расчёт для юридических лиц. Рассрочка для оптовых клиентов."
 >
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="bg-[#f5f5f5] min-h-screen">
 
-    <nav class="flex items-center gap-1.5 text-sm text-slate-500 mb-6">
-      <a href="/" class="hover:text-brand">Главная</a>
-      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-      </svg>
-      <span class="text-slate-900 font-medium">Оплата</span>
-    </nav>
-
-    <h1 class="text-3xl font-bold text-slate-900 mb-8">Способы оплаты</h1>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-      {[
-        {
-          title: 'Наличными',
-          desc: 'При получении товара на складе или при доставке курьером',
-          icon: '💵',
-        },
-        {
-          title: 'Банковская карта',
-          desc: 'Visa, Mastercard, МИР — на сайте или при получении через терминал',
-          icon: '💳',
-        },
-        {
-          title: 'Безналичный расчёт',
-          desc: 'Для юридических лиц и ИП. Выставляем счёт на любую сумму',
-          icon: '🏢',
-        },
-        {
-          title: 'Рассрочка',
-          desc: 'Для крупных оптовых заказов. Условия обсуждаются индивидуально',
-          icon: '📅',
-        },
-      ].map(item => (
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex gap-4">
-          <span class="text-3xl">{item.icon}</span>
-          <div>
-            <h2 class="font-semibold text-slate-900">{item.title}</h2>
-            <p class="mt-1 text-sm text-slate-500">{item.desc}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    <!-- Юр. лица -->
-    <div class="bg-slate-50 rounded-2xl p-6 mb-10">
-      <h2 class="text-lg font-semibold text-slate-900 mb-3">Для юридических лиц</h2>
-      <ul class="space-y-2 text-sm text-slate-600">
-        <li class="flex items-start gap-2">
-          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          Счёт выставляется в день обращения
-        </li>
-        <li class="flex items-start gap-2">
-          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          Полный пакет закрывающих документов: счёт-фактура, накладная, УПД
-        </li>
-        <li class="flex items-start gap-2">
-          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          Работаем с НДС
-        </li>
-        <li class="flex items-start gap-2">
-          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          Постоплата для проверенных партнёров
-        </li>
-      </ul>
-    </div>
-
-    <div class="bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div>
-        <p class="font-bold text-xl">Есть вопросы по оплате?</p>
-        <p class="text-slate-400 mt-1">Менеджер поможет выбрать удобный вариант</p>
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Оплата</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Способы оплаты</h1>
+        <p class="mt-2 text-[#898989]">Выберите удобный способ расчёта</p>
       </div>
-      <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
-        Позвонить
-      </a>
     </div>
 
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {[
+          {
+            title: 'Наличными',
+            desc: 'При получении товара на складе или при доставке курьером',
+            icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
+          },
+          {
+            title: 'Банковская карта',
+            desc: 'Visa, Mastercard, МИР — на сайте или при получении через терминал',
+            icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+          },
+          {
+            title: 'Безналичный расчёт',
+            desc: 'Для юридических лиц и ИП. Выставляем счёт на любую сумму',
+            icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+          },
+          {
+            title: 'Рассрочка',
+            desc: 'Для крупных оптовых заказов. Условия обсуждаются индивидуально',
+            icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+          },
+        ].map(item => (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-5">
+            <div class="w-10 h-10 rounded-[8px] bg-[#FFAE01]/10 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5 text-[#FFAE01]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d={item.icon}/>
+              </svg>
+            </div>
+            <h2 class="font-semibold text-slate-900 mb-1">{item.title}</h2>
+            <p class="text-sm text-[#898989] leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- Юр. лица -->
+      <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 mb-10">
+        <h2 class="text-lg font-bold text-slate-900 mb-4">Для юридических лиц</h2>
+        <ul class="space-y-2.5">
+          {[
+            'Счёт выставляется в день обращения',
+            'Полный пакет закрывающих документов: счёт-фактура, накладная, УПД',
+            'Работаем с НДС',
+            'Постоплата для проверенных партнёров',
+          ].map(item => (
+            <li class="flex items-start gap-2.5 text-sm text-slate-700">
+              <svg class="w-4 h-4 mt-0.5 text-[#FFAE01] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- CTA -->
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Есть вопросы по оплате?</h2>
+          <p class="text-[#898989] text-sm">Менеджер поможет выбрать удобный вариант</p>
+        </div>
+        <a
+          href="tel:88003339495"
+          class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-8 py-3 rounded-[5px] transition-colors whitespace-nowrap"
+        >
+          Позвонить
+        </a>
+      </div>
+
+    </div>
   </div>
 </BaseLayout>

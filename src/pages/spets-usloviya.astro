@@ -1,0 +1,162 @@
+---
+/**
+ * Страница «Спец. условия для строителей» — /spets-usloviya
+ * Figma node: 433:15247
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const benefits = [
+  {
+    icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    title: 'Оптовые цены',
+    text: 'Специальные закупочные цены для строительных бригад и организаций от 100 000 ₽ в месяц',
+  },
+  {
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+    title: 'Отсрочка платежа',
+    text: 'Отсрочка оплаты до 30 дней для проверенных подрядчиков при наличии договора',
+  },
+  {
+    icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+    title: 'Резервирование товара',
+    text: 'Бронируем нужное количество материала под ваш объект на срок до 14 дней',
+  },
+  {
+    icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
+    title: 'Персональный менеджер',
+    text: 'Закреплённый менеджер для координации поставок и оперативного решения вопросов',
+  },
+  {
+    icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+    title: 'Расчёт материалов',
+    text: 'Бесплатный расчёт необходимого количества материалов по вашим чертежам или обмерам',
+  },
+  {
+    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+    title: 'Гарантия качества',
+    text: 'Вся продукция сертифицирована. Официальная заводская гарантия от 10 до 50 лет',
+  },
+];
+
+const conditions = [
+  { label: 'Объём закупки для скидки', value: 'от 100 000 ₽/мес' },
+  { label: 'Скидка на кровельные материалы', value: 'до 15%' },
+  { label: 'Скидка на доборные элементы', value: 'до 10%' },
+  { label: 'Отсрочка платежа', value: 'до 30 дней' },
+  { label: 'Минимальный срок партнёрства', value: '1 месяц' },
+  { label: 'Договор', value: 'Обязателен' },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная",                    "item": "https://ystroika.ru/" },
+    { "@type": "ListItem", "position": 2, "name": "Спец условия для строителей", "item": "https://ystroika.ru/spets-usloviya/" },
+  ]
+};
+---
+
+<BaseLayout
+  title="Спец условия для строителей и подрядчиков — У-Стройка"
+  description="Оптовые цены, отсрочка платежа до 30 дней, персональный менеджер для строительных бригад и подрядчиков. Скидки до 15% на кровельные и фасадные материалы. Москва."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Спец условия для строителей</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Спец условия для строителей</h1>
+        <p class="mt-2 text-[#898989]">
+          Выгодные условия сотрудничества для строительных бригад, подрядчиков и организаций
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Преимущества -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        {benefits.map(b => (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6">
+            <div class="w-11 h-11 rounded-[8px] bg-[#FFAE01]/10 flex items-center justify-center mb-4">
+              <svg class="w-5 h-5 text-[#FFAE01]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d={b.icon}/>
+              </svg>
+            </div>
+            <h3 class="font-bold text-slate-900 mb-2">{b.title}</h3>
+            <p class="text-sm text-[#898989] leading-relaxed">{b.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- Условия в таблице -->
+      <div class="bg-white rounded-[10px] border border-[#e5e5e5] overflow-hidden mb-10">
+        <div class="px-6 py-4 border-b border-[#e5e5e5] bg-[#f5f5f5]">
+          <h2 class="font-bold text-slate-900 text-lg">Условия партнёрства</h2>
+        </div>
+        <table class="w-full">
+          <tbody>
+            {conditions.map((c, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white' : 'bg-[#fafafa]'}>
+                <td class="px-6 py-3.5 text-sm text-[#898989] border-b border-[#f0f0f0]">{c.label}</td>
+                <td class="px-6 py-3.5 text-sm font-semibold text-slate-900 border-b border-[#f0f0f0] text-right">{c.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Как стать партнёром -->
+      <div class="mb-10">
+        <h2 class="text-xl font-bold text-slate-900 mb-6">Как стать партнёром</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {[
+            { num: '1', title: 'Позвоните', text: 'Свяжитесь с нами по телефону 8-800-333-94-95 и сообщите о желании сотрудничать' },
+            { num: '2', title: 'Заключите договор', text: 'Подпишем договор поставки с индивидуальными условиями для вашей компании' },
+            { num: '3', title: 'Получайте скидки', text: 'С первого заказа получайте цены ниже рыночных и персональную поддержку' },
+          ].map(s => (
+            <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 relative overflow-hidden">
+              <span class="absolute top-4 right-4 text-6xl font-black text-[#f0f0f0] leading-none">{s.num}</span>
+              <h3 class="font-bold text-slate-900 mb-2 relative z-10">{s.title}</h3>
+              <p class="text-sm text-[#898989] leading-relaxed relative z-10">{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="bg-[#333333] text-white rounded-[10px] p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Готовы обсудить условия?</h2>
+          <p class="text-[#898989] text-sm max-w-lg">
+            Оставьте заявку — менеджер свяжется с вами в течение 30 минут и подберёт
+            индивидуальные условия под объём ваших закупок
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+          <a
+            href="tel:88003339495"
+            class="bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors text-center whitespace-nowrap"
+          >
+            Позвонить
+          </a>
+          <a
+            href="/raschet"
+            class="bg-[#464646] hover:bg-[#555] text-white font-semibold px-6 py-3 rounded-[5px] transition-colors text-center whitespace-nowrap"
+          >
+            Оставить заявку
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

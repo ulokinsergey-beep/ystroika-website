@@ -1,0 +1,219 @@
+---
+/**
+ * Страница «Новости» — /novosti
+ * Figma node: 439:17203
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Заглушки новостей (в будущем — из Bitrix или CMS)
+const news = [
+  {
+    slug: 'grandline-novye-cveta-2024',
+    title: 'GrandLine представил новые цвета металлочерепицы для сезона 2024',
+    excerpt: 'Линейка пополнилась 6 новыми оттенками. Особой популярностью уже пользуется «Графит матовый» и «Антрацит».',
+    date: '2024-03-15',
+    dateFormatted: '15 марта 2024',
+    category: 'Производители',
+    image: null,
+  },
+  {
+    slug: 'besplatnaya-dostavka-ot-50000',
+    title: 'Бесплатная доставка при заказе от 50 000 ₽ — теперь постоянно',
+    excerpt: 'Мы сделали бесплатную доставку постоянным условием. Заказывайте от 50 000 ₽ — привезём в день готовности.',
+    date: '2024-02-20',
+    dateFormatted: '20 февраля 2024',
+    category: 'Акции',
+    image: null,
+  },
+  {
+    slug: 'novyy-sklad-komplektuyushchikh',
+    title: 'Открыт новый склад комплектующих для кровли',
+    excerpt: 'Увеличили площадь хранения крепежа, доборных элементов и плёнок — теперь отгружаем комплекты ещё быстрее.',
+    date: '2024-01-10',
+    dateFormatted: '10 января 2024',
+    category: 'Компания',
+    image: null,
+  },
+  {
+    slug: 'docke-gibkaya-cherepitsa-premium',
+    title: 'Новая коллекция гибкой черепицы DÖCKE Premium уже в наличии',
+    excerpt: 'Поступила новинка сезона — гибкая черепица DÖCKE Premium с усиленным стеклохолстом и увеличенной насыпкой базальта.',
+    date: '2023-11-05',
+    dateFormatted: '5 ноября 2023',
+    category: 'Ассортимент',
+    image: null,
+  },
+  {
+    slug: 'specialnye-usloviya-dlya-strojtelej',
+    title: 'Запускаем программу спец. условий для строительных бригад',
+    excerpt: 'Официально открываем партнёрскую программу с оптовыми ценами, персональным менеджером и отсрочкой платежа.',
+    date: '2023-09-18',
+    dateFormatted: '18 сентября 2023',
+    category: 'Партнёрам',
+    image: null,
+  },
+  {
+    slug: 'novyj-sezom-montazha-2023',
+    title: 'Сезон монтажа 2023 открыт — запись на замер',
+    excerpt: 'Принимаем заявки на бесплатный замер и расчёт материалов. Бригады монтажников работают по Москве и МО.',
+    date: '2023-04-03',
+    dateFormatted: '3 апреля 2023',
+    category: 'Услуги',
+    image: null,
+  },
+];
+
+const categories = ['Все', 'Компания', 'Ассортимент', 'Акции', 'Производители', 'Услуги', 'Партнёрам'];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Главная",  "item": "https://ystroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Новости",  "item": "https://ystroika.ru/novosti/" },
+      ]
+    },
+    {
+      "@type": "Blog",
+      "@id": "https://ystroika.ru/novosti/",
+      "name": "Новости У-Стройка",
+      "description": "Новости компании У-Стройка: акции, новинки ассортимента, обновления условий работы",
+      "url": "https://ystroika.ru/novosti/",
+    }
+  ]
+};
+---
+
+<BaseLayout
+  title="Новости компании — У-Стройка"
+  description="Новости У-Стройка: акции, новые поступления кровельных и фасадных материалов, обновления ассортимента, изменения условий работы. Москва и МО."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Новости</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Новости</h1>
+        <p class="mt-2 text-[#898989]">Актуальная информация о компании, ассортименте и акциях</p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Фильтр по категориям -->
+      <div class="flex flex-wrap gap-2 mb-8">
+        {categories.map((cat, i) => (
+          <button
+            type="button"
+            class={`px-4 py-1.5 rounded-[5px] text-sm font-medium transition-colors ${
+              i === 0
+                ? 'bg-[#FFAE01] text-black'
+                : 'bg-white border border-[#e5e5e5] text-[#898989] hover:border-[#FFAE01] hover:text-[#FFAE01]'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      <!-- Главная новость -->
+      <div class="bg-white rounded-[10px] border border-[#e5e5e5] overflow-hidden mb-6 hover:border-[#FFAE01] transition-colors group">
+        <div class="flex flex-col lg:flex-row">
+          <!-- Картинка-заглушка -->
+          <div class="lg:w-80 xl:w-96 h-48 lg:h-auto bg-gradient-to-br from-[#f5f5f5] to-[#e0e0e0] shrink-0 flex items-center justify-center">
+            <svg class="w-16 h-16 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+            </svg>
+          </div>
+          <div class="p-6 lg:p-8 flex flex-col justify-center">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-xs font-semibold text-[#FFAE01] bg-[#FFAE01]/10 px-2.5 py-1 rounded-[3px]">
+                {news[0].category}
+              </span>
+              <span class="text-xs text-[#898989]">{news[0].dateFormatted}</span>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900 mb-3 leading-snug group-hover:text-[#FFAE01] transition-colors">
+              <a href={`/novosti/${news[0].slug}`}>{news[0].title}</a>
+            </h2>
+            <p class="text-[#898989] text-sm leading-relaxed mb-4">{news[0].excerpt}</p>
+            <a
+              href={`/novosti/${news[0].slug}`}
+              class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity w-fit"
+            >
+              Читать полностью
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Остальные новости -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        {news.slice(1).map(item => (
+          <article class="bg-white rounded-[10px] border border-[#e5e5e5] overflow-hidden hover:border-[#FFAE01] hover:shadow-sm transition-all group flex flex-col">
+
+            <!-- Картинка-заглушка -->
+            <div class="h-36 bg-gradient-to-br from-[#f5f5f5] to-[#e0e0e0] flex items-center justify-center">
+              <svg class="w-10 h-10 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+              </svg>
+            </div>
+
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-semibold text-[#FFAE01] bg-[#FFAE01]/10 px-2 py-0.5 rounded-[3px]">{item.category}</span>
+                <span class="text-xs text-[#898989]">{item.dateFormatted}</span>
+              </div>
+              <h2 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-[#FFAE01] transition-colors flex-1">
+                <a href={`/novosti/${item.slug}`}>{item.title}</a>
+              </h2>
+              <p class="text-sm text-[#898989] leading-relaxed mb-4 line-clamp-2">{item.excerpt}</p>
+              <a
+                href={`/novosti/${item.slug}`}
+                class="text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity flex items-center gap-1 w-fit"
+              >
+                Читать
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Подпишитесь на новости</h2>
+          <p class="text-[#898989] text-sm">Рассылка не чаще 1 раза в неделю. Только актуальная информация.</p>
+        </div>
+        <form class="flex gap-3 shrink-0">
+          <input
+            type="email"
+            placeholder="Ваш email"
+            class="w-52 h-11 px-4 text-sm bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]"
+          />
+          <button
+            type="submit"
+            class="h-11 px-5 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold text-sm rounded-[5px] transition-colors whitespace-nowrap"
+          >
+            Подписаться
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

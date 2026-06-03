@@ -1,0 +1,226 @@
+---
+/**
+ * Страница «Обмен и возврат» — /vozvrat-obmen
+ * Figma node: 426:8637
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Главная",         "item": "https://ystroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Обмен / возврат", "item": "https://ystroika.ru/vozvrat-obmen/" },
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "В течение какого срока можно вернуть товар?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Возврат товара надлежащего качества возможен в течение 14 дней с момента покупки при сохранении товарного вида и упаковки."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как обменять товар?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Свяжитесь с нашим менеджером по телефону 8-800-333-94-95 или посетите офис на ул. Советская 1а. Приготовьте чек и товар в оригинальной упаковке."
+          }
+        }
+      ]
+    }
+  ]
+};
+
+const returnSteps = [
+  {
+    step: '01',
+    title: 'Позвоните нам',
+    text: 'Сообщите о намерении вернуть или обменять товар по телефону 8-800-333-94-95 или напишите на office@y-stroika.ru',
+  },
+  {
+    step: '02',
+    title: 'Подготовьте документы',
+    text: 'Чек или накладная, паспорт, товар в оригинальной упаковке без следов монтажа',
+  },
+  {
+    step: '03',
+    title: 'Привезите товар',
+    text: 'Доставьте товар в наш офис: ул. Советская 1а. Или оформите самовывоз — мы организуем забор за ваш счёт',
+  },
+  {
+    step: '04',
+    title: 'Получите деньги',
+    text: 'Возврат денежных средств в течение 10 рабочих дней тем же способом, которым была произведена оплата',
+  },
+];
+---
+
+<BaseLayout
+  title="Обмен и возврат товара — У-Стройка"
+  description="Условия обмена и возврата товаров в У-Стройка. Возврат в течение 14 дней, обмен надлежащего качества. Возврат денег в течение 10 рабочих дней. Москва."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Обмен / возврат</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Обмен и возврат</h1>
+        <p class="mt-2 text-[#898989]">Условия возврата и обмена строительных материалов</p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Ключевые условия -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        {[
+          { value: '14 дней', label: 'Срок возврата товара надлежащего качества', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+          { value: '10 дней', label: 'Срок возврата денежных средств', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
+          { value: 'Бесплатно', label: 'Возврат товара ненадлежащего качества', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+        ].map(item => (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 text-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#FFAE01]/10 flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#FFAE01]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d={item.icon}/>
+              </svg>
+            </div>
+            <p class="text-2xl font-bold text-[#FFAE01] mb-1">{item.value}</p>
+            <p class="text-sm text-[#898989]">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- Условия возврата -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+
+        <!-- Товар надлежащего качества -->
+        <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-[8px] bg-green-100 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h2 class="font-bold text-slate-900 text-lg">Товар надлежащего качества</h2>
+          </div>
+          <ul class="space-y-2.5">
+            {[
+              'Возврат в течение 14 дней с даты покупки',
+              'Товар не был в употреблении и смонтирован',
+              'Сохранены товарный вид и оригинальная упаковка',
+              'Имеется чек или накладная',
+              'Возврат за счёт покупателя (доставка)',
+            ].map(item => (
+              <li class="flex items-start gap-2.5 text-sm text-slate-700">
+                <svg class="w-4 h-4 mt-0.5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Товар ненадлежащего качества -->
+        <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-[8px] bg-[#FFAE01]/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-[#FFAE01]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+            </div>
+            <h2 class="font-bold text-slate-900 text-lg">Товар ненадлежащего качества</h2>
+          </div>
+          <ul class="space-y-2.5">
+            {[
+              'Обнаруженный заводской брак — немедленная замена',
+              'Повреждения при транспортировке — замена за наш счёт',
+              'Составьте акт при получении при наличии повреждений',
+              'Бесплатный выезд специалиста для оценки дефекта',
+              'Замена или возврат денег — на выбор покупателя',
+            ].map(item => (
+              <li class="flex items-start gap-2.5 text-sm text-slate-700">
+                <svg class="w-4 h-4 mt-0.5 text-[#FFAE01] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Что нельзя вернуть -->
+      <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 mb-10">
+        <h2 class="font-bold text-slate-900 text-lg mb-4">Товары, не подлежащие обмену и возврату</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            'Товар, изготовленный по индивидуальному заказу (нестандартные длины, цвета под заказ)',
+            'Товар с признаками монтажа или использования',
+            'Товар с нарушенной заводской упаковкой без акта',
+            'Товар с истёкшим сроком хранения',
+          ].map(item => (
+            <div class="flex items-start gap-2.5 text-sm text-[#898989]">
+              <svg class="w-4 h-4 mt-0.5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Шаги возврата -->
+      <div class="mb-10">
+        <h2 class="text-xl font-bold text-slate-900 mb-6">Как вернуть товар — 4 шага</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {returnSteps.map(s => (
+            <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-5 relative">
+              <span class="text-5xl font-black text-[#f0f0f0] leading-none block mb-3">{s.step}</span>
+              <h3 class="font-semibold text-slate-900 mb-2">{s.title}</h3>
+              <p class="text-sm text-[#898989] leading-relaxed">{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Нужно вернуть или обменять товар?</h2>
+          <p class="text-[#898989] text-sm">Позвоните — быстро решим вопрос без лишней бюрократии</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+          <a
+            href="tel:88003339495"
+            class="bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors text-center whitespace-nowrap"
+          >
+            Позвонить
+          </a>
+          <a
+            href="mailto:office@y-stroika.ru"
+            class="bg-[#464646] hover:bg-[#555] text-white font-semibold px-6 py-3 rounded-[5px] transition-colors text-center whitespace-nowrap"
+          >
+            Написать
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

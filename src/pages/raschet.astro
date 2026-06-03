@@ -18,26 +18,27 @@ const jsonLd = {
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
-  <div class="bg-slate-50 min-h-screen py-12">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-[#f5f5f5] min-h-screen">
 
-      <!-- Заголовок -->
-      <div class="text-center mb-10">
-        <div class="inline-flex items-center gap-2 bg-brand/10 text-brand text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-          Бесплатно · Без обязательств
-        </div>
-        <h1 class="text-3xl lg:text-4xl font-bold text-slate-900">Получить счёт на материалы</h1>
-        <p class="mt-3 text-slate-500 text-lg max-w-lg mx-auto">
-          Оставьте заявку — специалист перезвонит в течение 15 минут и рассчитает точную стоимость
-        </p>
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium">Расчёт материалов</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Получить счёт на материалы</h1>
+        <p class="mt-2 text-[#898989]">Бесплатно · Без обязательств · Ответ за 15 минут</p>
       </div>
+    </div>
 
-      <!-- Форма + контакты -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-4xl">
 
         <!-- Форма (2/3) -->
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:p-8">
-          <h2 class="text-lg font-semibold text-slate-900 mb-6">Заполните форму</h2>
+        <div class="lg:col-span-2 bg-white rounded-[10px] border border-[#e5e5e5] p-6 lg:p-8">
+          <h2 class="text-lg font-bold text-slate-900 mb-6">Заполните форму</h2>
 
           <form id="quote-form" class="space-y-5">
             <!-- Тип работ -->
@@ -50,8 +51,8 @@ const jsonLd = {
                   { value: 'vodostok', label: 'Водосток' },
                   { value: 'kompleks', label: 'Комплекс работ' },
                 ].map((item, i) => (
-                  <label class="flex items-center gap-2.5 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-brand transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand/5">
-                    <input type="radio" name="work_type" value={item.value} class="w-4 h-4 accent-brand" checked={i === 0} />
+                  <label class="flex items-center gap-2.5 p-3 border border-[#e5e5e5] rounded-[5px] cursor-pointer hover:border-[#FFAE01] transition-colors has-[:checked]:border-[#FFAE01] has-[:checked]:bg-[#FFAE01]/5">
+                    <input type="radio" name="work_type" value={item.value} class="w-4 h-4 accent-[#FFAE01]" checked={i === 0} />
                     <span class="text-sm font-medium text-slate-700">{item.label}</span>
                   </label>
                 ))}
@@ -68,7 +69,7 @@ const jsonLd = {
                   name="area"
                   placeholder="Например, 120"
                   min="1"
-                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                  class="w-full h-11 px-4 border border-[#e5e5e5] rounded-[5px] text-sm placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01] focus:ring-1 focus:ring-[#FFAE01]"
                 />
               </div>
               <div>
@@ -76,7 +77,7 @@ const jsonLd = {
                 <select
                   id="budget"
                   name="budget"
-                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white"
+                  class="w-full h-11 px-4 border border-[#e5e5e5] rounded-[5px] text-sm text-slate-700 focus:outline-none focus:border-[#FFAE01] focus:ring-1 focus:ring-[#FFAE01] bg-white"
                 >
                   <option value="">Не указывать</option>
                   <option value="50k">До 50 000 ₽</option>
@@ -96,7 +97,7 @@ const jsonLd = {
                 name="comment"
                 rows="3"
                 placeholder="Тип кровли, материал, особые требования..."
-                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+                class="w-full px-4 py-3 border border-[#e5e5e5] rounded-[5px] text-sm placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01] focus:ring-1 focus:ring-[#FFAE01] resize-none"
               ></textarea>
             </div>
 
@@ -109,7 +110,7 @@ const jsonLd = {
                   type="text"
                   name="name"
                   placeholder="Иван"
-                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                  class="w-full h-11 px-4 border border-[#e5e5e5] rounded-[5px] text-sm placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01] focus:ring-1 focus:ring-[#FFAE01]"
                 />
               </div>
               <div>
@@ -120,7 +121,7 @@ const jsonLd = {
                   name="phone"
                   placeholder="+7 (___) ___-__-__"
                   required
-                  class="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                  class="w-full h-11 px-4 border border-[#e5e5e5] rounded-[5px] text-sm placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01] focus:ring-1 focus:ring-[#FFAE01]"
                 />
               </div>
             </div>
@@ -128,7 +129,7 @@ const jsonLd = {
             <!-- Submit -->
             <button
               type="submit"
-              class="w-full h-12 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+              class="w-full h-12 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-bold rounded-[5px] transition-colors flex items-center justify-center gap-2"
             >
               Получить расчёт бесплатно
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,9 +137,9 @@ const jsonLd = {
               </svg>
             </button>
 
-            <p class="text-center text-xs text-slate-400">
+            <p class="text-center text-xs text-[#898989]">
               Нажимая кнопку, вы соглашаетесь с
-              <a href="/politika-konfidentsialnosti" class="text-brand hover:underline">политикой конфиденциальности</a>
+              <a href="/politika-konfidentsialnosti" class="text-[#FFAE01] hover:opacity-80">политикой конфиденциальности</a>
             </p>
           </form>
         </div>
@@ -146,17 +147,17 @@ const jsonLd = {
         <!-- Контакты (1/3) -->
         <div class="space-y-4">
           <!-- Телефон -->
-          <div class="bg-white rounded-2xl border border-slate-100 p-5">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Позвонить</p>
-            <a href="tel:88003339495" class="text-xl font-bold text-slate-900 hover:text-brand transition-colors block">
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-5">
+            <p class="text-xs font-semibold text-[#898989] uppercase tracking-wide mb-2">Позвонить</p>
+            <a href="tel:88003339495" class="text-xl font-bold text-slate-900 hover:text-[#FFAE01] transition-colors block">
               8-800-333-94-95
             </a>
-            <p class="text-xs text-slate-400 mt-1">Бесплатно по России<br />Ежедневно 9:00–20:00</p>
+            <p class="text-xs text-[#898989] mt-1">Бесплатно по России<br />Ежедневно 9:00–20:00</p>
           </div>
 
-          <!-- Почему стоит позвонить -->
-          <div class="bg-brand rounded-2xl p-5 text-white">
-            <p class="font-semibold text-sm mb-3">Что вы получите:</p>
+          <!-- Что вы получите -->
+          <div class="bg-[#FFAE01] rounded-[10px] p-5 text-black">
+            <p class="font-bold text-sm mb-3">Что вы получите:</p>
             <ul class="space-y-2 text-sm">
               {[
                 'Точный расчёт количества материала',
@@ -165,7 +166,7 @@ const jsonLd = {
                 'Ответ за 15 минут',
               ].map(item => (
                 <li class="flex items-start gap-2">
-                  <svg class="w-4 h-4 text-white/80 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg class="w-4 h-4 text-black/60 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
                   {item}
@@ -175,15 +176,14 @@ const jsonLd = {
           </div>
 
           <!-- Режим работы -->
-          <div class="bg-slate-800 text-white rounded-2xl p-5">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Режим работы</p>
+          <div class="bg-[#333333] text-white rounded-[10px] p-5">
+            <p class="text-xs font-semibold text-[#898989] uppercase tracking-wide mb-2">Режим работы</p>
             <p class="font-semibold">Ежедневно</p>
-            <p class="text-2xl font-black text-brand">9:00–20:00</p>
-            <p class="text-xs text-slate-400 mt-1">без выходных</p>
+            <p class="text-2xl font-black text-[#FFAE01]">9:00–20:00</p>
+            <p class="text-xs text-[#898989] mt-1">без выходных</p>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </BaseLayout>

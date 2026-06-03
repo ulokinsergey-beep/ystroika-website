@@ -23,93 +23,96 @@ const canonicalURL = `https://ystroika.ru/proekty/${project.slug}/`;
   title={`${project.title} — У-Стройка`}
   description={`${project.title}. ${project.description?.slice(0, 150) ?? ''} Посмотрите фотоотчёт проекта.`}
 >
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="bg-[#f5f5f5] min-h-screen">
 
-    <!-- Хлебные крошки -->
-    <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-6">
-      <a href="/" class="hover:text-brand">Главная</a>
-      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-      </svg>
-      <a href="/proekty" class="hover:text-brand">Проекты</a>
-      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-      </svg>
-      <span class="text-slate-900 font-medium truncate max-w-xs">{project.title}</span>
-    </nav>
-
-    <h1 class="text-3xl font-bold text-slate-900 mb-4">{project.title}</h1>
-
-    <!-- Мета-данные -->
-    <div class="flex flex-wrap gap-4 text-sm text-slate-500 mb-8">
-      {project.location && (
-        <span class="flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-          </svg>
-          {project.location}
-        </span>
-      )}
-      {project.area && <span>Площадь: {project.area}</span>}
-      {project.completionDate && (
-        <span>Год: {new Date(project.completionDate).getFullYear()}</span>
-      )}
-    </div>
-
-    <!-- Фото-заглушка (галерея) -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-      {[1,2,3].map(() => (
-        <div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center">
-          <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-        </div>
-      ))}
-    </div>
-
-    <!-- Описание из markdown -->
-    {entry.body && entry.body.trim() && (
-      <div class="prose prose-slate max-w-none mb-8">
-        <Content />
-      </div>
-    )}
-
-    {!entry.body?.trim() && project.description && (
-      <p class="text-slate-600 leading-relaxed mb-8">{project.description}</p>
-    )}
-
-    <!-- Материалы -->
-    {project.materials && project.materials.length > 0 && (
-      <div class="bg-slate-50 rounded-2xl p-6 mb-8">
-        <h2 class="text-base font-semibold text-slate-900 mb-3">Использованные материалы</h2>
-        <div class="flex flex-wrap gap-2">
-          {project.materials.map(m => (
-            <span class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-700">{m}</span>
-          ))}
+    <!-- Шапка -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <a href="/proekty" class="hover:text-[#FFAE01] transition-colors">Проекты</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-slate-900 font-medium truncate max-w-xs">{project.title}</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900 mb-2">{project.title}</h1>
+        <div class="flex flex-wrap gap-4 text-sm text-[#898989]">
+          {project.location && (
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              {project.location}
+            </span>
+          )}
+          {project.area && <span>Площадь: {project.area}</span>}
+          {project.completionDate && (
+            <span>Год: {new Date(project.completionDate).getFullYear()}</span>
+          )}
         </div>
       </div>
-    )}
+    </div>
 
-    <!-- CTA -->
-    <div class="bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6">
-      <div>
-        <p class="font-bold text-xl">Хотите такой же проект?</p>
-        <p class="text-slate-400 mt-1">Рассчитаем стоимость под ваш объект</p>
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <!-- Фото-заглушка (галерея) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+        {[1,2,3].map(() => (
+          <div class="aspect-video bg-gradient-to-br from-[#f5f5f5] to-[#e0e0e0] rounded-[10px] flex items-center justify-center">
+            <svg class="w-10 h-10 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        ))}
       </div>
-      <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
-        Позвонить
-      </a>
-    </div>
 
-    <!-- Назад -->
-    <div class="mt-8 pt-6 border-t border-slate-200">
-      <a href="/proekty" class="inline-flex items-center gap-2 text-sm font-medium text-brand hover:text-brand-hover">
-        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        Все проекты
-      </a>
-    </div>
+      <div class="max-w-3xl">
 
+        {entry.body && entry.body.trim() && (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 lg:p-8 prose prose-slate max-w-none mb-8">
+            <Content />
+          </div>
+        )}
+
+        {!entry.body?.trim() && project.description && (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 mb-8">
+            <p class="text-slate-700 leading-relaxed">{project.description}</p>
+          </div>
+        )}
+
+        {project.materials && project.materials.length > 0 && (
+          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 mb-8">
+            <h2 class="text-base font-bold text-slate-900 mb-3">Использованные материалы</h2>
+            <div class="flex flex-wrap gap-2">
+              {project.materials.map(m => (
+                <span class="px-3 py-1 bg-[#f5f5f5] border border-[#e5e5e5] rounded-[5px] text-sm text-slate-700">{m}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- CTA -->
+        <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center gap-6 mb-8">
+          <div>
+            <h2 class="font-bold text-xl mb-2">Хотите такой же проект?</h2>
+            <p class="text-[#898989] text-sm">Рассчитаем стоимость под ваш объект</p>
+          </div>
+          <a
+            href="tel:88003339495"
+            class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-8 py-3 rounded-[5px] transition-colors whitespace-nowrap"
+          >
+            Позвонить
+          </a>
+        </div>
+
+        <a href="/proekty" class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
+          <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          Все проекты
+        </a>
+
+      </div>
+    </div>
   </div>
 </BaseLayout>
