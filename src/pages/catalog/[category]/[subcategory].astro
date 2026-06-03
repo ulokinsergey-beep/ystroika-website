@@ -2,7 +2,8 @@
 /**
  * Страница подкатегории каталога — SSR, пагинация 60 товаров/страница.
  * Данные: src/data/catalog/[category]/[subcategory].json (из process-catalog.mjs)
- * Цены: подтягиваются клиентским JS через /api/catalog/prices
+ * Цены + наличие: клиентский JS через /api/catalog/prices и /api/catalog/stock
+ * Фильтр: ?brand=GrandLine (URL-параметр, SEO-friendly)
  */
 export const prerender = false;
 
@@ -22,26 +23,88 @@ if (!category || !subcategory) {
   return new Response(null, { status: 404 });
 }
 
-// Загрузить данные о товарах из pre-generated JSON
-const PAGE_SIZE = 60;
-const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1'));
+// ─── Вспомогательная: извлечь бренд из товара ──────────────────────────────
+function getBrand(p: any): string {
+  if (p.brand && p.brand.trim()) return p.brand.trim();
+  if (p.priceGroup) {
+    const parts = (p.priceGroup as string).split('/').map((s: string) => s.trim());
+    if (parts.length >= 3) return parts[2];
+    if (parts.length === 2) return parts[1];
+  }
+  return '';
+}
 
-let products: any[] = [];
-let totalCount = 0;
+// ─── Загрузить данные о товарах из pre-generated JSON ───────────────────────
+let allProducts: any[] = [];
 
-const dataPath = resolve('src/data/catalog', categorySlug, `${subcategorySlug}.json`);
+const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
 if (existsSync(dataPath)) {
   try {
     const raw = readFileSync(dataPath, 'utf-8');
     const data = JSON.parse(raw);
-    products = data.products ?? [];
-    totalCount = data.count ?? products.length;
+    allProducts = data.products ?? [];
   } catch {}
 }
 
+// ─── Уникальные бренды (по убыванию количества товаров) ─────────────────────
+// Служебные группы КА, которые не являются брендами
+const SKIP_BRANDS = new Set([
+  '-', '--', '...', 'Вся кровля', 'Вся продукция',
+  'Упаковка', 'Доставка товара, Услуги', 'Аренда, хранение',
+  'Бонус(ПАПКА)', 'Распродажи',
+]);
+
+const brandCountMap: Record<string, number> = {};
+for (const p of allProducts) {
+  const b = getBrand(p);
+  if (!b) continue;
+  // Пропускаем названия с нечитаемой кодировкой (непечатные символы)
+  if (/[\x00-\x1f\x7f\uDC00-\uDFFF�]/.test(b)) continue;
+  // Пропускаем служебные группы
+  if (SKIP_BRANDS.has(b)) continue;
+  // Пропускаем слишком общие пути из priceGroup
+  if (b.includes(',') && b.length > 40) continue;
+  brandCountMap[b] = (brandCountMap[b] ?? 0) + 1;
+}
+const availableBrands = Object.entries(brandCountMap)
+  .filter(([, count]) => count >= 5)  // Не показываем бренды с < 5 товарами
+  .sort((a, b) => b[1] - a[1])
+  .map(([name, count]) => ({ name, count }));
+
+// ─── Активный фильтр бренда ─────────────────────────────────────────────────
+const selectedBrand = Astro.url.searchParams.get('brand') ?? '';
+
+// ─── Применить фильтр ───────────────────────────────────────────────────────
+const products = selectedBrand
+  ? allProducts.filter((p: any) => getBrand(p) === selectedBrand)
+  : allProducts;
+
+const totalCount = products.length;
+
+// ─── Пагинация ──────────────────────────────────────────────────────────────
+const PAGE_SIZE = 60;
+const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1'));
 const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 const kodsBatch = pageProducts.map((p: any) => p.kod).filter(Boolean);
+
+// ─── Функция построения URL с сохранением/сменой параметров ─────────────────
+function buildUrl(params: Record<string, string | null>) {
+  const base = `/catalog/${categorySlug}/${subcategorySlug}`;
+  const sp = new URLSearchParams();
+  // Текущие params
+  if (selectedBrand) sp.set('brand', selectedBrand);
+  sp.set('page', String(page));
+  // Overrides
+  for (const [k, v] of Object.entries(params)) {
+    if (v === null) sp.delete(k);
+    else sp.set(k, v);
+  }
+  // Убираем page=1 из URL (не нужен)
+  if (sp.get('page') === '1') sp.delete('page');
+  const qs = sp.toString();
+  return qs ? `${base}?${qs}` : base;
+}
 
 const canonicalURL = new URL(
   `/catalog/${categorySlug}/${subcategorySlug}/`,
@@ -120,20 +183,60 @@ const jsonLd = {
           <div>
             <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">{subcategory.title}</h1>
             <p class="mt-1 text-slate-500 text-sm">
-              {category.title} · {totalCount > 0 ? `${totalCount.toLocaleString('ru-RU')} позиций` : 'нет данных'} · Москва и МО
+              {category.title}
+              {selectedBrand && (
+                <> · <span class="font-medium text-brand">{selectedBrand}</span></>
+              )}
+              {' '}· {totalCount > 0 ? `${totalCount.toLocaleString('ru-RU')} позиций` : 'нет данных'} · Москва и МО
             </p>
           </div>
-          <!-- Бренды -->
-          {subcategory.brands && subcategory.brands.length > 0 && (
-            <div class="flex flex-wrap gap-2">
-              {subcategory.brands.map(brand => (
-                <span class="inline-flex items-center px-3 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
-                  {brand}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
+
+        <!-- ─── Фильтр по бренду ─────────────────────────────────────────────── -->
+        {availableBrands.length > 1 && (
+          <div class="mt-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-4 overflow-x-auto">
+            <div class="flex items-center gap-2 min-w-max">
+              <!-- Кнопка "Все бренды" -->
+              <a
+                href={buildUrl({ brand: null, page: '1' })}
+                class={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  !selectedBrand
+                    ? 'bg-brand text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Все бренды
+                <span class={`text-xs ${!selectedBrand ? 'text-white/70' : 'text-slate-400'}`}>
+                  {allProducts.length.toLocaleString('ru-RU')}
+                </span>
+              </a>
+
+              <!-- Кнопка каждого бренда -->
+              {availableBrands.slice(0, 20).map(b => (
+                <a
+                  href={buildUrl({ brand: b.name, page: '1' })}
+                  class={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                    selectedBrand === b.name
+                      ? 'bg-brand text-white'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:border-brand hover:text-brand'
+                  }`}
+                >
+                  {b.name}
+                  <span class={`text-xs ${selectedBrand === b.name ? 'text-white/70' : 'text-slate-400'}`}>
+                    {b.count.toLocaleString('ru-RU')}
+                  </span>
+                </a>
+              ))}
+
+              {/* Если брендов > 20, показываем сколько скрыто */}
+              {availableBrands.length > 20 && (
+                <span class="text-xs text-slate-400 pl-1">
+                  +{availableBrands.length - 20} ещё
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
 
@@ -153,15 +256,18 @@ const jsonLd = {
       ) : (
         <>
           <!-- Верхняя панель: счёт + пагинация -->
-          <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
             <p class="text-sm text-slate-500">
-              Показано {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE, totalCount)} из {totalCount.toLocaleString('ru-RU')}
+              {selectedBrand
+                ? <>Бренд: <strong class="text-slate-700">{selectedBrand}</strong> · {totalCount.toLocaleString('ru-RU')} позиций</>
+                : <>Показано {((page-1)*PAGE_SIZE+1).toLocaleString('ru-RU')}–{Math.min(page*PAGE_SIZE, totalCount).toLocaleString('ru-RU')} из {totalCount.toLocaleString('ru-RU')}</>
+              }
             </p>
             {totalPages > 1 && (
               <div class="flex items-center gap-1">
                 {page > 1 && (
                   <a
-                    href={`?page=${page-1}`}
+                    href={buildUrl({ page: String(page - 1) })}
                     class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-brand hover:text-brand transition-colors"
                   >
                     ← Назад
@@ -172,7 +278,7 @@ const jsonLd = {
                 </span>
                 {page < totalPages && (
                   <a
-                    href={`?page=${page+1}`}
+                    href={buildUrl({ page: String(page + 1) })}
                     class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-brand hover:text-brand transition-colors"
                   >
                     Вперёд →
@@ -191,6 +297,7 @@ const jsonLd = {
                 artikul={p.artikul}
                 unit={p.unit}
                 brand={p.brand}
+                priceGroup={p.priceGroup}
                 categorySlug={categorySlug!}
                 subcategorySlug={subcategorySlug!}
               />
@@ -201,7 +308,7 @@ const jsonLd = {
           {totalPages > 1 && (
             <div class="flex items-center justify-center gap-2 mt-10">
               {page > 1 && (
-                <a href={`?page=${page-1}`} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
+                <a href={buildUrl({ page: String(page - 1) })} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
                   ← Назад
                 </a>
               )}
@@ -210,7 +317,7 @@ const jsonLd = {
                 if (p2 > totalPages) return null;
                 return (
                   <a
-                    href={`?page=${p2}`}
+                    href={buildUrl({ page: String(p2) })}
                     class={`px-3.5 py-2 text-sm rounded-xl transition-colors ${p2 === page ? 'bg-brand text-white font-semibold' : 'border border-slate-200 hover:border-brand hover:text-brand'}`}
                   >
                     {p2}
@@ -218,7 +325,7 @@ const jsonLd = {
                 );
               })}
               {page < totalPages && (
-                <a href={`?page=${page+1}`} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
+                <a href={buildUrl({ page: String(page + 1) })} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
                   Вперёд →
                 </a>
               )}
@@ -261,33 +368,100 @@ const jsonLd = {
     </div>
   </div>
 
-  <!-- Скрипт: подгружаем цены после рендера -->
+  <!-- Скрипт: подгружаем цены и наличие после рендера -->
   <script define:vars={{ kodsBatch }}>
+    function fmt(n) {
+      return n.toLocaleString('ru-RU') + ' ₽';
+    }
+
+    function fillCard(card, priceData, stockQty) {
+      const skeleton  = card.querySelector('.price-skeleton');
+      const loaded    = card.querySelector('.price-loaded');
+      const noPrice   = card.querySelector('.no-price');
+      const origEl    = card.querySelector('.original-price');
+      const dispEl    = card.querySelector('.price-display');
+      const discBadge = card.querySelector('.discount-badge');
+      const stockBadge= card.querySelector('.stock-badge');
+
+      // ── Цены ───────────────────────────────────────────────
+      if (skeleton) skeleton.classList.add('hidden');
+
+      if (priceData && (priceData.price > 0 || priceData.discounted_price > 0)) {
+        if (loaded) loaded.classList.remove('hidden');
+
+        const hasDiscount = priceData.discounted_price > 0 && priceData.discounted_price < priceData.price;
+
+        if (hasDiscount) {
+          // Зачёркнутая старая цена
+          if (origEl) {
+            origEl.textContent = fmt(priceData.price);
+            origEl.classList.remove('hidden');
+          }
+          // Цена со скидкой — выделяем оранжевым
+          if (dispEl) {
+            dispEl.textContent = fmt(priceData.discounted_price);
+            dispEl.classList.add('text-brand');
+            dispEl.classList.remove('text-slate-900');
+          }
+          // Бейдж "АКЦИЯ"
+          if (discBadge) discBadge.classList.remove('hidden');
+        } else {
+          // Только базовая цена
+          const price = priceData.discounted_price > 0 ? priceData.discounted_price : priceData.price;
+          if (dispEl) dispEl.textContent = fmt(price);
+        }
+      } else {
+        // Нет данных о цене
+        if (noPrice) noPrice.classList.remove('hidden');
+      }
+
+      // ── Наличие ─────────────────────────────────────────────
+      if (stockQty !== undefined && stockBadge) {
+        stockBadge.classList.remove('hidden');
+        if (stockQty > 0) {
+          stockBadge.textContent = 'В наличии';
+          stockBadge.className = stockBadge.className.replace(/bg-\S+|text-\S+/g, '');
+          stockBadge.classList.add(
+            'stock-badge', 'absolute', 'top-2', 'right-2',
+            'text-[10px]', 'font-semibold', 'px-1.5', 'py-0.5', 'rounded-md',
+            'bg-green-100', 'text-green-700'
+          );
+        } else {
+          stockBadge.textContent = 'Под заказ';
+          stockBadge.classList.add(
+            'stock-badge', 'absolute', 'top-2', 'right-2',
+            'text-[10px]', 'font-semibold', 'px-1.5', 'py-0.5', 'rounded-md',
+            'bg-slate-100', 'text-slate-500'
+          );
+        }
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       if (!kodsBatch || kodsBatch.length === 0) return;
-      try {
-        const resp = await fetch('/api/catalog/prices', {
+
+      // Грузим цены и наличие параллельно
+      const [pricesRes, stockRes] = await Promise.allSettled([
+        fetch('/api/catalog/prices', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ kods: kodsBatch }),
-        });
-        if (!resp.ok) return;
-        const { prices } = await resp.json();
-        document.querySelectorAll('[data-product-kod]').forEach(card => {
-          const kod = card.getAttribute('data-product-kod');
-          const priceEl = card.querySelector('.price-value');
-          if (!priceEl) return;
-          const p = prices[kod];
-          if (p && (p.discounted_price > 0 || p.price > 0)) {
-            const displayPrice = p.discounted_price > 0 ? p.discounted_price : p.price;
-            priceEl.textContent = displayPrice.toLocaleString('ru-RU') + ' ₽';
-          } else {
-            priceEl.textContent = 'Цена по запросу';
-            priceEl.classList.add('text-sm', 'text-slate-500');
-            priceEl.classList.remove('text-lg', 'font-bold', 'text-slate-900');
-          }
-        });
-      } catch {}
+        }).then(r => r.ok ? r.json() : { prices: {} }),
+        fetch('/api/catalog/stock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kods: kodsBatch }),
+        }).then(r => r.ok ? r.json() : { stock: {} }),
+      ]);
+
+      const prices = pricesRes.status === 'fulfilled' ? (pricesRes.value?.prices ?? {}) : {};
+      const stock  = stockRes.status === 'fulfilled'  ? (stockRes.value?.stock  ?? {}) : {};
+
+      document.querySelectorAll('[data-product-kod]').forEach(card => {
+        const kod = card.getAttribute('data-product-kod');
+        if (!kod) return;
+        fillCard(card, prices[kod], stock[kod]);
+      });
     });
   </script>
 </BaseLayout>

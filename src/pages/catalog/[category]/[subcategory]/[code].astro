@@ -153,11 +153,24 @@ const jsonLd = {
         <!-- Цена и наличие -->
         <div class="mt-6 p-5 bg-slate-50 rounded-xl">
           {displayPrice ? (
-            <div class="flex items-end gap-3">
-              <p class="text-3xl font-bold text-slate-900">
-                {displayPrice.toLocaleString('ru-RU')} ₽
-              </p>
-              <p class="text-slate-500 text-sm mb-1">за {product.unit}</p>
+            <div>
+              {/* Если есть скидка — показываем зачёркнутую старую цену */}
+              {priceData && priceData.discounted_price > 0 && priceData.discounted_price < priceData.price && (
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="inline-flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                    АКЦИЯ
+                  </span>
+                  <span class="text-slate-400 text-sm line-through">
+                    {priceData.price.toLocaleString('ru-RU')} ₽
+                  </span>
+                </div>
+              )}
+              <div class="flex items-end gap-3">
+                <p class={`text-3xl font-bold ${priceData && priceData.discounted_price > 0 ? 'text-brand' : 'text-slate-900'}`}>
+                  {displayPrice.toLocaleString('ru-RU')} ₽
+                </p>
+                <p class="text-slate-500 text-sm mb-1">за {product.unit}</p>
+              </div>
             </div>
           ) : (
             <p class="text-slate-500 font-medium">Цена по запросу</p>
