@@ -1,0 +1,99 @@
+---
+/**
+ * Страница «Доставка» — /dostavka
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Доставка строительных материалов — У-Стройка"
+  description="Доставка кровельных материалов, фасадных систем и водостоков по Москве и Московской области. Бесплатная доставка от 3 000 ₽. Звоните: 8-800-333-94-95."
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <nav class="flex items-center gap-1.5 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-brand">Главная</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-slate-900 font-medium">Доставка</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-slate-900 mb-2">Доставка</h1>
+    <p class="text-slate-500 mb-8">По Москве и Московской области</p>
+
+    <!-- Условия -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+      {[
+        { icon: '🚚', title: 'Бесплатная доставка', text: 'При заказе от 50 000 ₽ доставка по Москве бесплатно' },
+        { icon: '⏱', title: '1–2 дня', text: 'Стандартные сроки доставки по Московской области' },
+        { icon: '📍', title: 'До объекта', text: 'Доставляем прямо на строительный объект или склад' },
+        { icon: '🏗', title: 'Длинномер', text: 'Специальный транспорт для длинномерных изделий' },
+      ].map(item => (
+        <div class="bg-slate-50 rounded-2xl p-5 flex gap-4">
+          <span class="text-2xl">{item.icon}</span>
+          <div>
+            <p class="font-semibold text-slate-900">{item.title}</p>
+            <p class="text-sm text-slate-500 mt-1">{item.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Тарифы -->
+    <h2 class="text-xl font-bold text-slate-900 mb-4">Стоимость доставки</h2>
+    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-10">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200">
+            <th class="text-left px-5 py-3 font-semibold text-slate-700">Зона</th>
+            <th class="text-left px-5 py-3 font-semibold text-slate-700">Расстояние</th>
+            <th class="text-right px-5 py-3 font-semibold text-slate-700">Стоимость</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-5 py-3 text-slate-700">Москва (МКАД)</td>
+            <td class="px-5 py-3 text-slate-500">до 30 км</td>
+            <td class="px-5 py-3 text-right font-medium text-slate-900">2 500 ₽</td>
+          </tr>
+          <tr>
+            <td class="px-5 py-3 text-slate-700">МО ближняя</td>
+            <td class="px-5 py-3 text-slate-500">30–60 км</td>
+            <td class="px-5 py-3 text-right font-medium text-slate-900">3 500 ₽</td>
+          </tr>
+          <tr>
+            <td class="px-5 py-3 text-slate-700">МО дальняя</td>
+            <td class="px-5 py-3 text-slate-500">60–100 км</td>
+            <td class="px-5 py-3 text-right font-medium text-slate-900">5 000 ₽</td>
+          </tr>
+          <tr>
+            <td class="px-5 py-3 text-slate-700">Регионы</td>
+            <td class="px-5 py-3 text-slate-500">от 100 км</td>
+            <td class="px-5 py-3 text-right font-medium text-slate-900">по договорённости</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Примечание -->
+    <div class="bg-brand/5 border border-brand/20 rounded-2xl p-5 mb-10">
+      <p class="text-sm text-slate-700">
+        <strong>Бесплатная доставка</strong> от производителей DOCKE (ДЁКЕ) и Металл Профиль действует на всю продукцию этих марок при соблюдении условий акции.
+        Уточняйте актуальные условия у менеджера.
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div class="bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-bold text-xl">Заказать доставку</p>
+        <p class="text-slate-400 mt-1">Уточним стоимость и сроки под ваш адрес</p>
+      </div>
+      <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
+        Позвонить
+      </a>
+    </div>
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,65 @@
+---
+/**
+ * Страница «Реквизиты» — /rekvizity
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Реквизиты компании — У-Стройка"
+  description="Юридические реквизиты ООО «У-Стройка»: ИНН, ОГРН, расчётный счёт, юридический адрес. Москва."
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <nav class="flex items-center gap-1.5 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-brand">Главная</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-slate-900 font-medium">Реквизиты</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-slate-900 mb-8">Реквизиты</h1>
+
+    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-slate-100">
+          {[
+            ['Полное наименование', 'ООО «У-Стройка»'],
+            ['Сокращённое наименование', 'У-Стройка'],
+            ['ИНН', '7703457892'],
+            ['КПП', '770301001'],
+            ['ОГРН', '1177746587432'],
+            ['Юридический адрес', 'г. Москва, ул. Примерная, д. 1'],
+            ['Фактический адрес', 'г. Москва, ул. Примерная, д. 1'],
+            ['Расчётный счёт', '40702810000000000000'],
+            ['Банк', 'ПАО Сбербанк'],
+            ['БИК', '044525225'],
+            ['К/с', '30101810400000000225'],
+            ['Телефон', '8-800-333-94-95 (бесплатно)'],
+            ['Email', 'info@ystroika.ru'],
+          ].map(([label, value]) => (
+            <tr>
+              <td class="px-5 py-3 text-slate-500 w-2/5">{label}</td>
+              <td class="px-5 py-3 font-medium text-slate-900">{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-6 text-xs text-slate-400">
+      Реквизиты носят справочный характер. Для получения актуальных реквизитов на счёт или договор свяжитесь с менеджером.
+    </p>
+
+    <div class="mt-8">
+      <a href="/kontakty" class="inline-flex items-center gap-2 text-sm font-medium text-brand hover:text-brand-hover">
+        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        Все контакты
+      </a>
+    </div>
+
+  </div>
+</BaseLayout>

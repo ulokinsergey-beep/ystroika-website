@@ -1,0 +1,99 @@
+---
+/**
+ * Страница «Оплата» — /oplata
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Способы оплаты — У-Стройка"
+  description="Удобные способы оплаты заказов в У-Стройка: наличные, банковская карта, безналичный расчёт для юридических лиц. Рассрочка для оптовых клиентов."
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <nav class="flex items-center gap-1.5 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-brand">Главная</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-slate-900 font-medium">Оплата</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-slate-900 mb-8">Способы оплаты</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+      {[
+        {
+          title: 'Наличными',
+          desc: 'При получении товара на складе или при доставке курьером',
+          icon: '💵',
+        },
+        {
+          title: 'Банковская карта',
+          desc: 'Visa, Mastercard, МИР — на сайте или при получении через терминал',
+          icon: '💳',
+        },
+        {
+          title: 'Безналичный расчёт',
+          desc: 'Для юридических лиц и ИП. Выставляем счёт на любую сумму',
+          icon: '🏢',
+        },
+        {
+          title: 'Рассрочка',
+          desc: 'Для крупных оптовых заказов. Условия обсуждаются индивидуально',
+          icon: '📅',
+        },
+      ].map(item => (
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex gap-4">
+          <span class="text-3xl">{item.icon}</span>
+          <div>
+            <h2 class="font-semibold text-slate-900">{item.title}</h2>
+            <p class="mt-1 text-sm text-slate-500">{item.desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Юр. лица -->
+    <div class="bg-slate-50 rounded-2xl p-6 mb-10">
+      <h2 class="text-lg font-semibold text-slate-900 mb-3">Для юридических лиц</h2>
+      <ul class="space-y-2 text-sm text-slate-600">
+        <li class="flex items-start gap-2">
+          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Счёт выставляется в день обращения
+        </li>
+        <li class="flex items-start gap-2">
+          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Полный пакет закрывающих документов: счёт-фактура, накладная, УПД
+        </li>
+        <li class="flex items-start gap-2">
+          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Работаем с НДС
+        </li>
+        <li class="flex items-start gap-2">
+          <svg class="w-4 h-4 mt-0.5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Постоплата для проверенных партнёров
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-bold text-xl">Есть вопросы по оплате?</p>
+        <p class="text-slate-400 mt-1">Менеджер поможет выбрать удобный вариант</p>
+      </div>
+      <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
+        Позвонить
+      </a>
+    </div>
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,80 @@
+---
+/**
+ * Страница «Вакансии» — /vakansii
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const vacancies = [
+  {
+    title: 'Кровельщик',
+    salary: 'от 80 000 ₽',
+    type: 'Полная занятость',
+    description: 'Монтаж металлочерепицы, профнастила, мягкой кровли. Опыт от 1 года.',
+  },
+  {
+    title: 'Монтажник фасадных систем',
+    salary: 'от 75 000 ₽',
+    type: 'Полная занятость',
+    description: 'Монтаж виниловый и металлического сайдинга, фасадных панелей. Опыт приветствуется.',
+  },
+  {
+    title: 'Менеджер по продажам',
+    salary: 'от 60 000 ₽ + %',
+    type: 'Полная занятость',
+    description: 'Консультации клиентов, подготовка коммерческих предложений, работа с базой CRM.',
+  },
+];
+---
+
+<BaseLayout
+  title="Вакансии — У-Стройка"
+  description="Открытые вакансии в компании У-Стройка: кровельщики, монтажники, менеджеры по продажам. Москва и МО. Звоните: 8-800-333-94-95."
+>
+  <div class="bg-slate-50 min-h-screen">
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <nav class="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+          <a href="/" class="hover:text-brand">Главная</a>
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-slate-900 font-medium">Вакансии</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-slate-900">Вакансии</h1>
+        <p class="mt-2 text-slate-500">Приглашаем в команду специалистов по кровле и фасадам</p>
+      </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="space-y-4">
+        {vacancies.map((v) => (
+          <div class="bg-white rounded-2xl border border-slate-200 p-6">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">{v.title}</h2>
+                <p class="mt-1 text-sm text-slate-500">{v.description}</p>
+              </div>
+              <div class="shrink-0 text-right">
+                <p class="text-lg font-bold text-brand">{v.salary}</p>
+                <p class="text-xs text-slate-400">{v.type}</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <a href="tel:88003339495" class="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors">
+                Откликнуться
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-10 bg-slate-900 text-white rounded-2xl p-8 text-center">
+        <p class="font-bold text-xl mb-2">Не нашли подходящую вакансию?</p>
+        <p class="text-slate-400 mb-6">Отправьте резюме — мы свяжемся, когда откроется подходящая позиция</p>
+        <a href="tel:88003339495" class="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
+          Позвонить
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
