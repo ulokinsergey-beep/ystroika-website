@@ -1,0 +1,100 @@
+---
+/**
+ * Страница «Услуги» — /uslugi
+ * Контент: src/content/services/ (из Bitrix IBLOCK 29)
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allServices = await getCollection('services', ({ data }) => data.published !== false);
+const services = allServices.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
+
+const canonicalURL = 'https://ystroika.ru/uslugi/';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  'name': 'Монтажные услуги — У-Стройка',
+  'url': canonicalURL,
+  'provider': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://ystroika.ru' },
+};
+---
+
+<BaseLayout
+  title="Монтажные услуги кровли, фасада и водосточных систем — У-Стройка"
+  description="Профессиональный монтаж кровельного покрытия, водосточных систем, фасадов. Бесплатный выезд замерщика, гарантия на работы. Звоните: 8-800-333-94-95."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-slate-50 min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-4">
+          <a href="/" class="hover:text-brand transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-slate-900 font-medium">Услуги</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-slate-900">Наши услуги</h1>
+        <p class="mt-2 text-slate-500">Монтаж кровли, фасада и водосточных систем в Москве и МО</p>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      <!-- Сетка услуг -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {services.map((service) => (
+          <a
+            href={`/uslugi/${service.id.replace(/\.mdx?$/, '')}`}
+            class="group bg-white rounded-2xl border border-slate-200 hover:border-brand hover:shadow-md transition-all p-6 flex flex-col"
+          >
+            <!-- Иконка заглушка -->
+            <div class="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-900 group-hover:text-brand transition-colors">
+              {service.data.title}
+            </h2>
+
+            {service.data.shortDescription && (
+              <p class="mt-2 text-sm text-slate-500 flex-1 line-clamp-3">
+                {service.data.shortDescription}
+              </p>
+            )}
+
+            <div class="mt-4 flex items-center justify-between">
+              {service.data.priceFrom && (
+                <span class="text-sm font-semibold text-brand">{service.data.priceFrom}</span>
+              )}
+              <span class="ml-auto text-sm font-medium text-brand flex items-center gap-1 group-hover:gap-2 transition-all">
+                Подробнее
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- CTA блок -->
+      <div class="mt-12 bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <p class="font-bold text-xl">Нужна консультация?</p>
+          <p class="text-slate-400 mt-1">Бесплатно выедем для замера и расчёта стоимости работ</p>
+        </div>
+        <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
+          Позвонить
+        </a>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,113 @@
+---
+/**
+ * Страница «Вопросы и ответы» — /voprosy-otvety
+ * Контент: src/content/faq/ (из Bitrix IBLOCK 12)
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allFaq = await getCollection('faq', ({ data }) => data.published !== false);
+const faqs = allFaq.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
+
+const canonicalURL = 'https://ystroika.ru/voprosy-otvety/';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': faqs.map((faq) => ({
+    '@type': 'Question',
+    'name': faq.data.question,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': faq.body?.replace(/\s+/g, ' ').trim().slice(0, 500) ?? '',
+    },
+  })),
+};
+---
+
+<BaseLayout
+  title="Вопросы и ответы — У-Стройка"
+  description="Ответы на частые вопросы: выбор кровельного материала, сроки доставки, монтаж водостока, сравнение материалов. У-Стройка, Москва."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-slate-50 min-h-screen">
+
+    <!-- Шапка -->
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-4">
+          <a href="/" class="hover:text-brand transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-slate-900 font-medium">Вопросы и ответы</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-slate-900">Вопросы и ответы</h1>
+        <p class="mt-2 text-slate-500">{faqs.length} вопроса · кровля, фасад, водосток</p>
+      </div>
+    </div>
+
+    <!-- FAQ аккордеон -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      <div class="space-y-3" id="faq-list">
+        {faqs.map((faq, i) => (
+          <div
+            class="bg-white border border-slate-200 rounded-2xl overflow-hidden"
+            data-faq={i}
+          >
+            <button
+              class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors"
+              aria-expanded="false"
+              onclick={`toggleFaq(${i})`}
+            >
+              <span class="font-semibold text-slate-900 pr-4">{faq.data.question}</span>
+              <svg
+                class="w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200"
+                id={`faq-icon-${i}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div
+              class="hidden px-6 pb-5 text-slate-600 leading-relaxed text-sm prose prose-sm max-w-none"
+              id={`faq-body-${i}`}
+            >
+              {faq.body ?? ''}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div class="mt-12 bg-slate-900 text-white rounded-2xl p-8 text-center">
+        <p class="font-bold text-xl mb-2">Не нашли ответ на свой вопрос?</p>
+        <p class="text-slate-400 mb-6">Наши специалисты помогут с любым вопросом по кровле, фасаду и водостоку</p>
+        <a href="tel:88003339495" class="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          Позвонить: 8-800-333-94-95
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleFaq(index: number) {
+      const body = document.getElementById(`faq-body-${index}`);
+      const icon = document.getElementById(`faq-icon-${index}`);
+      if (!body || !icon) return;
+      const isOpen = !body.classList.contains('hidden');
+      body.classList.toggle('hidden', isOpen);
+      icon.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+    // Make toggleFaq available globally
+    (window as any).toggleFaq = toggleFaq;
+  </script>
+</BaseLayout>

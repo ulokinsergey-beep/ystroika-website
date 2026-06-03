@@ -1,0 +1,105 @@
+---
+/**
+ * Страница статьи блога — /blog/[slug]
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles', ({ data }) => data.published !== false);
+  return articles.map((entry) => ({
+    params: { slug: entry.id.replace(/\.mdx?$/, '') },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const article = entry.data;
+
+const dateFmt = (d: Date | string) => {
+  const dt = new Date(d);
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+};
+
+const articleSlug = entry.id.replace(/\.mdx?$/, '');
+const canonicalURL = `https://ystroika.ru/blog/${articleSlug}/`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  'headline': article.title,
+  'datePublished': new Date(article.publishDate).toISOString(),
+  'dateModified': article.updatedDate ? new Date(article.updatedDate).toISOString() : new Date(article.publishDate).toISOString(),
+  'author': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://ystroika.ru' },
+  'publisher': { '@type': 'Organization', 'name': 'У-Стройка', 'logo': { '@type': 'ImageObject', 'url': 'https://ystroika.ru/images/logo.svg' } },
+  'url': canonicalURL,
+  'description': article.excerpt ?? article.seoDescription,
+};
+---
+
+<BaseLayout
+  title={article.seoTitle ?? `${article.title} — У-Стройка`}
+  description={article.seoDescription ?? article.excerpt ?? `${article.title}. Читайте на сайте У-Стройка.`}
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Хлебные крошки -->
+    <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-brand">Главная</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <a href="/blog" class="hover:text-brand">Блог</a>
+      <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-slate-900 font-medium truncate max-w-xs">{article.title}</span>
+    </nav>
+
+    <!-- Мета -->
+    <div class="flex flex-wrap items-center gap-3 text-sm text-slate-400 mb-4">
+      <span>{dateFmt(article.publishDate)}</span>
+      {article.readingTime && <span>· {article.readingTime} мин чтения</span>}
+      {article.author && <span>· {article.author}</span>}
+    </div>
+
+    <h1 class="text-3xl font-bold text-slate-900 mb-6 leading-snug">{article.title}</h1>
+
+    {article.coverImage && (
+      <div class="mb-8 rounded-2xl overflow-hidden">
+        <img src={article.coverImage} alt={article.title} class="w-full" loading="lazy" />
+      </div>
+    )}
+
+    <!-- Статья -->
+    <div class="prose prose-slate max-w-none">
+      <Content />
+    </div>
+
+    <!-- Теги -->
+    {article.tags && article.tags.length > 0 && (
+      <div class="mt-8 pt-6 border-t border-slate-200">
+        <div class="flex flex-wrap gap-2">
+          {article.tags.map(tag => (
+            <span class="px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">{tag}</span>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Назад -->
+    <div class="mt-8 pt-6 border-t border-slate-200">
+      <a href="/blog" class="inline-flex items-center gap-2 text-sm font-medium text-brand hover:text-brand-hover">
+        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        Все статьи
+      </a>
+    </div>
+
+  </div>
+</BaseLayout>

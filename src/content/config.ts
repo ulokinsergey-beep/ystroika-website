@@ -51,7 +51,7 @@ const brands = defineCollection({
   schema: z.object({
     bitrixId: z.number().optional(),
     name: z.string(),
-    slug: z.string(),
+    slug: z.string().optional(),
     logo: z.string().optional(),
     description: z.string().optional(),
     website: z.string().url().optional(),
@@ -67,7 +67,7 @@ const projects = defineCollection({
   schema: z.object({
     bitrixId: z.number().optional(),
     title: z.string(),
-    slug: z.string(),
+    slug: z.string().optional(),
     coverImage: z.string().optional(),
     gallery: z.array(z.string()).default([]),
     location: z.string().optional(),
@@ -85,7 +85,7 @@ const vacancies = defineCollection({
   schema: z.object({
     bitrixId: z.number().optional(),
     title: z.string(),
-    slug: z.string(),
+    slug: z.string().optional(),
     salary: z.string().optional(),
     location: z.string().default('Москва'),
     employmentType: z.enum(['full-time', 'part-time', 'contract']).default('full-time'),
@@ -100,7 +100,7 @@ const services = defineCollection({
   schema: z.object({
     bitrixId: z.number().optional(),
     title: z.string(),
-    slug: z.string(),
+    slug: z.string().optional(),
     icon: z.string().optional(),
     coverImage: z.string().optional(),
     shortDescription: z.string(),
@@ -118,7 +118,7 @@ const calculators = defineCollection({
   schema: z.object({
     bitrixId: z.number().optional(),
     title: z.string(),
-    slug: z.string(),
+    slug: z.string().optional(),
     description: z.string(),
     category: z.enum(['krovlya', 'fasad', 'vodostok', 'drugoe']).default('krovlya'),
     inputs: z.array(z.object({
