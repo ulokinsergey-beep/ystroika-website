@@ -173,11 +173,17 @@ const jsonLd = {
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] pb-5">
       <div class="flex min-h-[210px] rounded-[5px] overflow-hidden">
 
-        <!-- Левая часть — фото / плейсхолдер -->
+        <!-- Левая часть — фото подкатегории (если есть) или плейсхолдер -->
         <div class="flex-1 bg-[#E9E9E9] relative flex items-center justify-center overflow-hidden">
-          <!-- Декоративный паттерн — иконка категории крупно -->
-          <div class="text-[120px] opacity-20 select-none">{category.icon}</div>
-          <!-- Overlay gradient для глубины -->
+          {subcategory.image ? (
+            <img
+              src={subcategory.image}
+              alt={subcategory.title}
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div class="text-[120px] opacity-20 select-none">{category.icon}</div>
+          )}
           <div class="absolute inset-0 bg-gradient-to-r from-transparent to-[#33333322]"></div>
         </div>
 
