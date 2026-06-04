@@ -951,51 +951,34 @@ const jsonLd = {
   </section>
 
   <!-- ========== 10 ЭКРАН: СЕРТИФИЦИРОВАННЫЕ СПЕЦИАЛИСТЫ (Figma 141:2835) ========== -->
-  <!-- 1801×799. Heading 794×103 + subtitle 714×46 + 3 photos (1042×550 main + 2× 738×265) -->
+  <!-- 1801×799. Heading standalone (no decorative line) + subtitle + 3 clean photos (no overlays) -->
   <!-- Layout math: 1042 + 20 + 738 = 1800 ✓; 265 + 20 + 265 = 550 ✓ -->
+  <!-- TODO: replace photos with actual team/specialist photos (stock photos from Figma) -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex flex-col gap-[40px]">
-      <div class="flex items-end gap-[25px]">
-        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0"
-            style="max-width:794px;">
+      <div class="flex flex-col gap-[15px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22]">
           У&nbsp;нас работают только сертифицированные специалисты с&nbsp;опытом более 8&nbsp;лет
         </h2>
-        <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+        <p class="text-[#333333] text-[18px] leading-[1.3]" style="max-width:714px;">
+          Ежегодно проходят обучение от&nbsp;заводов-производителей, понимают весь технический процесс, прошли аттестацию на&nbsp;знание данной продукции
+        </p>
       </div>
 
-      <p class="text-[#333333] text-[18px] leading-[1.3]" style="max-width:714px;">
-        Ежегодно проходят обучение от&nbsp;заводов-производителей, понимают весь технический процесс, прошли аттестацию на&nbsp;знание данной продукции
-      </p>
-
-      <!-- Photo grid: left big (1042×550) + right column (2× 738×265) -->
+      <!-- Photo grid: left big (1042×550) + right column (2× 738×265). Clean photos, no overlays. -->
       <div class="flex flex-col lg:flex-row gap-[20px]" style="height:550px;">
-        <!-- Left big photo 1042×550 — using krovlya image (installation work) -->
-        <div class="relative rounded-[5px] overflow-hidden bg-[#F5F5F5]" style="flex:1042 1 0%;height:100%;">
-          <img src="/images/categories/krovlya.png" alt="Монтаж кровли"
+        <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="flex:1042 1 0%;height:100%;">
+          <img src="/images/categories/krovlya.png" alt="Специалисты компании"
                class="absolute inset-0 w-full h-full object-cover" />
-          <!-- Caption overlay -->
-          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#333333]/80 to-transparent" style="height:120px;">
-            <div class="absolute bottom-[20px] left-[20px] right-[20px]">
-              <h3 class="text-white text-[20px] font-semibold leading-[1.3]">Монтаж кровельных систем</h3>
-              <p class="text-[#F5F5F5] text-[14px] leading-[1.3]">Опыт более 8 лет, аттестация заводов-производителей</p>
-            </div>
-          </div>
         </div>
-        <!-- Right column: 2 photos 738×265 each, gap 20 -->
         <div class="flex flex-col gap-[20px]" style="flex:738 1 0%;height:100%;">
-          <div class="relative rounded-[5px] overflow-hidden bg-[#F5F5F5]" style="height:265px;">
-            <img src="/images/categories/fasad.png" alt="Монтаж фасадов"
+          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="height:265px;">
+            <img src="/images/categories/fasad.png" alt="Команда специалистов"
                  class="absolute inset-0 w-full h-full object-cover" />
-            <div class="absolute bottom-[15px] left-[15px] right-[15px] z-10">
-              <span class="bg-white/95 backdrop-blur text-[#333333] font-semibold text-[14px] rounded-[5px] inline-block" style="padding:6px 12px;">Монтаж фасадов</span>
-            </div>
           </div>
-          <div class="relative rounded-[5px] overflow-hidden bg-[#F5F5F5]" style="height:265px;">
-            <img src="/images/categories/zabory.png" alt="Установка заборов"
+          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="height:265px;">
+            <img src="/images/categories/zabory.png" alt="Сертифицированные мастера"
                  class="absolute inset-0 w-full h-full object-cover" />
-            <div class="absolute bottom-[15px] left-[15px] right-[15px] z-10">
-              <span class="bg-white/95 backdrop-blur text-[#333333] font-semibold text-[14px] rounded-[5px] inline-block" style="padding:6px 12px;">Заборы и&nbsp;ограждения</span>
-            </div>
           </div>
         </div>
       </div>
