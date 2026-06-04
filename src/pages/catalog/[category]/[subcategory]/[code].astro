@@ -56,14 +56,12 @@ const discountPercent = hasDiscount ? Math.round((1 - discountedPrice! / basePri
 const stockQty = product.kod ? (stockData[product.kod] ?? null) : null;
 const inStock = stockQty !== null ? stockQty > 0 : null;
 
-// Parse characteristics from product name
+// Парсим характеристики из названия
 const widthMatch = product.name?.match(/\(ширина\s+([\d.,]+)м?\)/i);
-const effectiveWidth: number = widthMatch
-  ? parseFloat(widthMatch[1].replace(',', '.'))
-  : 1.19;
+const effectiveWidth: number = widthMatch ? parseFloat(widthMatch[1].replace(',', '.')) : 1.19;
 
-const thicknessMatch = product.name?.match(/\b0[,.](\d{2})\b/);
-const thickness = thicknessMatch ? `0,${thicknessMatch[1]} мм` : null;
+const thicknessMatch = product.name?.match(/\b0[,.](\d{1,2})\b/);
+const thickness = thicknessMatch ? `0,${thicknessMatch[1]}` : null;
 
 const coatings = ['Satin', 'PE', 'Pural', 'Drap', 'Matt', 'PURMAN', 'Colorcoat'];
 const coatingFound = product.name
@@ -76,7 +74,22 @@ const colorRal = ralMatch ? `RAL ${ralMatch[1]}` : null;
 const isByArea = product.unit === 'м2' && product.areaEnabled;
 const isByLength = product.unit === 'м' && product.lengthEnabled;
 
-const standardLengths = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0];
+// Стандартные длины листа в мм (как в Figma — 470мм первым)
+const standardLengths = [
+  { mm: 470, label: '470 мм' },
+  { mm: 500, label: '500 мм' },
+  { mm: 1000, label: '1000 мм' },
+  { mm: 1500, label: '1500 мм' },
+  { mm: 2000, label: '2000 мм' },
+  { mm: 2500, label: '2500 мм' },
+  { mm: 3000, label: '3000 мм' },
+  { mm: 3500, label: '3500 мм' },
+  { mm: 4000, label: '4000 мм' },
+  { mm: 4500, label: '4500 мм' },
+  { mm: 5000, label: '5000 мм' },
+  { mm: 5500, label: '5500 мм' },
+  { mm: 6000, label: '6000 мм' },
+];
 
 const canonicalURL = `https://ystroika.ru/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(code!)}/`;
 
@@ -86,16 +99,14 @@ const jsonLd = {
   'name': product.name,
   'sku': product.kod,
   'mpn': product.artikul || undefined,
-  'description': `${product.name} — купить в Москве и МО. Артикул: ${product.kod}.${product.brand ? ' Производитель: ' + product.brand + '.' : ''}`,
+  'description': `${product.name} — купить в Москве и МО. Код: ${product.kod}.${product.brand ? ' Производитель: ' + product.brand + '.' : ''}`,
   'brand': product.brand ? { '@type': 'Brand', 'name': product.brand } : undefined,
   'offers': {
     '@type': 'Offer',
     'url': canonicalURL,
     'priceCurrency': 'RUB',
     'price': displayPrice ?? undefined,
-    'availability': inStock === false
-      ? 'https://schema.org/OutOfStock'
-      : 'https://schema.org/InStock',
+    'availability': inStock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
     'seller': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://ystroika.ru' },
   },
 };
@@ -103,51 +114,117 @@ const jsonLd = {
 
 <BaseLayout
   title={`${product.name} — купить в Москве`}
-  description={`${product.name}. Артикул ${product.kod}.${product.brand ? ' Производитель: ' + product.brand + '.' : ''} Купить в Москве и МО с доставкой за 1 день. Звоните: 8-800-333-94-95.`}
+  description={`${product.name}. Код ${product.kod}.${product.brand ? ' Производитель: ' + product.brand + '.' : ''} Купить в Москве и МО с доставкой за 1 день. Звоните: 8-800-333-94-95.`}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
-  <div class="bg-[#f5f5f5] min-h-screen">
-
-    <!-- Breadcrumb header -->
-    <div class="bg-white border-b border-[#e5e5e5]">
-      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-4">
-        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989]">
-          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
-          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          <a href="/catalog" class="hover:text-[#FFAE01] transition-colors">Каталог</a>
-          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          <a href={`/catalog/${categorySlug}`} class="hover:text-[#FFAE01] transition-colors">{category.title}</a>
-          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="hover:text-[#FFAE01] transition-colors">{subcategory.title}</a>
-          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          <span class="text-slate-900 font-medium truncate max-w-[240px]">{product.name}</span>
-        </nav>
-      </div>
-    </div>
-
+  <!-- Белый фон как в Figma -->
+  <div class="bg-white min-h-screen">
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
 
-      <!-- Gallery + Purchase panel -->
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5 mb-5">
+      <!-- Хлебные крошки с точками-разделителями (как в Figma) -->
+      <nav class="flex flex-wrap items-center gap-0 text-sm text-[#898989] mb-4">
+        <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+        <span class="mx-2 w-1 h-1 rounded-full bg-[#898989] shrink-0 inline-block"></span>
+        <a href="/catalog" class="hover:text-[#FFAE01] transition-colors">Каталог</a>
+        <span class="mx-2 w-1 h-1 rounded-full bg-[#898989] shrink-0 inline-block"></span>
+        <a href={`/catalog/${categorySlug}`} class="hover:text-[#FFAE01] transition-colors">{category.title}</a>
+        <span class="mx-2 w-1 h-1 rounded-full bg-[#898989] shrink-0 inline-block"></span>
+        <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="hover:text-[#FFAE01] transition-colors">{subcategory.title}</a>
+        {product.brand && (
+          <>
+            <span class="mx-2 w-1 h-1 rounded-full bg-[#898989] shrink-0 inline-block"></span>
+            <span class="text-[#333333]">{product.brand}</span>
+          </>
+        )}
+      </nav>
 
-        <!-- Gallery -->
-        <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4 flex gap-3 min-h-[420px]">
-          <!-- Thumbnails column -->
+      <!-- Заголовок товара (Montserrat SemiBold 30px, как в Figma) -->
+      <h1 style="font-family: var(--font-heading);" class="text-[26px] lg:text-[30px] font-semibold text-[#333333] leading-snug mb-4">
+        {product.name}
+      </h1>
+
+      <!-- Разделительная линия (как в Figma) -->
+      <hr class="border-[#E9E9E9] mb-4" />
+
+      <!-- Инфо-строка: рейтинг + действия | статус + код + цена -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <!-- Левая часть: рейтинг и действия -->
+        <div class="flex flex-wrap items-center gap-4 text-sm text-[#898989]">
+          <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-0.5">
+              {[1,2,3,4,5].map((i) => (
+                <svg class="w-3.5 h-3.5 text-[#FFAE01]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              ))}
+            </div>
+            <span class="text-[#333333] font-semibold text-sm">5.0</span>
+            <span class="text-[#898989]">0 отзывов</span>
+          </div>
+          <button class="flex items-center gap-1.5 hover:text-[#333333] transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            Поделиться
+          </button>
+          <button class="flex items-center gap-1.5 hover:text-[#333333] transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            В избранное
+          </button>
+          <button class="flex items-center gap-1.5 hover:text-[#333333] transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Сравнить
+          </button>
+        </div>
+        <!-- Правая часть: наличие + код + цена -->
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+          <div class={`flex items-center gap-1.5 font-medium ${inStock === false ? 'text-amber-600' : 'text-green-600'}`}>
+            <span class={`w-2 h-2 rounded-full ${inStock === false ? 'bg-amber-500' : 'bg-green-500'}`}></span>
+            {inStock === false ? 'Уточните наличие' : 'В наличии'}
+          </div>
+          {product.kod && (
+            <span class="text-[#898989]">Код товара: <span class="text-[#333333]">{product.kod}</span></span>
+          )}
+          {basePrice && (
+            <div class="flex items-center gap-2">
+              {hasDiscount && (
+                <>
+                  <span class="text-[#898989] line-through text-sm">{basePrice.toLocaleString('ru-RU')} ₽/шт</span>
+                  <span class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">-{discountPercent}%</span>
+                </>
+              )}
+              <span class="text-[18px] font-bold text-[#333333]">{displayPrice!.toLocaleString('ru-RU')} ₽</span>
+            </div>
+          )}
+          {!basePrice && <span class="text-[#898989]">Цена по запросу</span>}
+        </div>
+      </div>
+
+      <!-- Основная двухколоночная сетка: галерея (лево) + правая колонка -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] items-start gap-5 mb-6">
+
+        <!-- Галерея -->
+        <div class="flex gap-3">
+          <!-- Вертикальный ряд превью -->
           <div class="flex flex-col gap-2 shrink-0">
             {[1,2,3,4,5].map((i) => (
-              <div class={`w-[68px] h-[68px] rounded-[5px] border-2 ${i === 1 ? 'border-[#FFAE01]' : 'border-[#e5e5e5]'} bg-[#f5f5f5] flex items-center justify-center cursor-pointer hover:border-[#FFAE01] transition-colors`}>
+              <div class={`w-[68px] h-[68px] rounded-[5px] border-2 cursor-pointer transition-colors ${i === 1 ? 'border-[#FFAE01]' : 'border-[#E9E9E9] hover:border-[#FFAE01]'} bg-[#f5f5f5] flex items-center justify-center`}>
                 <svg class="w-6 h-6 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.75" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
               </div>
             ))}
           </div>
-          <!-- Main image -->
-          <div class="relative flex-1 bg-[#f5f5f5] rounded-[5px] flex items-center justify-center">
+          <!-- Основное фото -->
+          <div class="relative flex-1 min-h-[340px] lg:min-h-[400px] bg-[#f5f5f5] rounded-[5px] flex items-center justify-center">
             {hasDiscount && (
-              <div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-[5px] z-10">
-                -{discountPercent}%
+              <div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-[3px] z-10">
+                Скидка
               </div>
             )}
             <svg class="w-20 h-20 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,372 +233,324 @@ const jsonLd = {
           </div>
         </div>
 
-        <!-- Purchase panel (dark) -->
-        <div class="bg-[#333333] rounded-[10px] p-6 flex flex-col text-white">
+        <!-- Правая колонка: панель + аккордеоны + мини-характеристики (как в Figma) -->
+        <div class="flex flex-col gap-3">
 
-          {product.brand && (
-            <span class="text-[10px] font-bold text-[#FFAE01] uppercase tracking-widest mb-2">{product.brand}</span>
-          )}
+        <!-- Панель покупки (тёмная, как в Figma) -->
+        <div class="relative bg-[#333333] rounded-[5px] p-5 text-white">
 
-          <h1 class="text-base font-bold text-white leading-snug mb-3">{product.name}</h1>
-
-          <!-- Rating row -->
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-0.5">
-              {[1,2,3,4,5].map(() => (
-                <svg class="w-3 h-3 text-[#FFAE01]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              ))}
-              <span class="text-[11px] text-[#898989] ml-1.5">0 отзывов</span>
-            </div>
-            <div class="flex items-center gap-3 text-[#898989]">
-              <button class="hover:text-white transition-colors" title="В избранное">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                </svg>
-              </button>
-              <button class="hover:text-white transition-colors" title="Сравнить">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-              </button>
-            </div>
+          <!-- "%" значок — поверх панели сверху-справа (как в Figma) -->
+          <div class="absolute -top-3 -right-3 w-10 h-10 bg-[#FFAE01] rounded-full flex items-center justify-center shadow-md z-10">
+            <span class="text-[#333333] font-bold text-sm">%</span>
           </div>
 
-          <!-- Stock + code -->
-          <div class="flex items-center justify-between mb-4 pb-4 border-b border-[#464646]">
-            <div class={`flex items-center gap-1.5 text-xs font-semibold ${inStock === false ? 'text-amber-400' : 'text-green-400'}`}>
-              <span class={`w-1.5 h-1.5 rounded-full ${inStock === false ? 'bg-amber-400' : 'bg-green-400'}`}></span>
-              {inStock === false ? 'Уточните наличие' : 'В наличии'}
-            </div>
-            <span class="text-[11px] text-[#898989]">Код: <span class="text-[#d0d0d0]">{product.kod}</span></span>
-          </div>
-
-          <!-- Price -->
-          <div class="mb-5">
-            {displayPrice ? (
-              <div class="flex items-baseline gap-2">
-                {hasDiscount && (
-                  <span class="text-sm text-[#898989] line-through">{basePrice!.toLocaleString('ru-RU')} ₽</span>
-                )}
-                <span class="text-2xl font-bold text-[#FFAE01]">{displayPrice.toLocaleString('ru-RU')} ₽</span>
-                <span class="text-sm text-[#898989]">за {product.unit}</span>
-              </div>
-            ) : (
-              <span class="text-sm text-[#898989]">Цена по запросу</span>
-            )}
-          </div>
-
-          <!-- Area calculator for м2 products -->
+          <!-- Строки выбора длины листа -->
           {isByArea && (
-            <div class="flex flex-col gap-3 mb-5">
-              <div>
-                <label class="text-[11px] text-[#898989] mb-1.5 block">Выберите длину листа</label>
-                <select
-                  id="sheet-length"
-                  class="w-full bg-[#464646] border border-[#565656] text-white rounded-[5px] px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFAE01] cursor-pointer"
-                >
-                  {standardLengths.map(l => (
-                    <option value={l}>{l.toFixed(1).replace('.', ',')} м</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label class="text-[11px] text-[#898989] mb-1.5 block">Количество листов</label>
-                <div class="flex items-stretch">
-                  <button id="qty-minus" class="w-10 bg-[#464646] hover:bg-[#565656] border border-r-0 border-[#565656] rounded-l-[5px] flex items-center justify-center text-white transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                    </svg>
-                  </button>
-                  <input
-                    id="sheet-qty"
-                    type="number"
-                    value="1"
-                    min="1"
-                    class="w-16 h-10 bg-[#464646] border-y border-[#565656] text-white text-center text-sm focus:outline-none focus:border-[#FFAE01] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <button id="qty-plus" class="w-10 bg-[#464646] hover:bg-[#565656] border border-l-0 border-[#565656] rounded-r-[5px] flex items-center justify-center text-white transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                  </button>
+            <div id="length-rows" class="flex flex-col gap-3 mb-3">
+              <!-- Первая строка (шаблон) -->
+              <div class="length-row">
+                <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-end">
+                  <div>
+                    <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Выберите длину листа</label>
+                    <select class="length-select w-full bg-[#464646] border border-[#565656] text-white rounded-[3px] px-2 py-2 text-sm focus:outline-none focus:border-[#FFAE01] cursor-pointer">
+                      {standardLengths.map(l => (
+                        <option value={l.mm}>{l.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Количество листов</label>
+                    <div class="flex items-stretch h-9">
+                      <button class="qty-minus w-8 bg-[#464646] hover:bg-[#565656] border border-r-0 border-[#565656] rounded-l-[3px] flex items-center justify-center text-white transition-colors text-lg leading-none">−</button>
+                      <input type="number" value="1" min="1" class="qty-input w-10 h-full bg-[#464646] border-y border-[#565656] text-white text-center text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                      <button class="qty-plus w-8 bg-[#464646] hover:bg-[#565656] border border-l-0 border-[#565656] rounded-r-[3px] flex items-center justify-center text-white transition-colors text-lg leading-none">+</button>
+                    </div>
+                  </div>
+                  <div class="min-w-[90px]">
+                    <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Итого за <span class="row-area">0,00</span> м²</label>
+                    <div class="h-9 flex items-center">
+                      <span class="row-total text-white font-bold text-sm">—</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="bg-[#464646] rounded-[5px] px-4 py-3 flex items-center justify-between">
-                <span class="text-xs text-[#898989]">Итого за <span id="total-area">0,00</span> м²</span>
-                <span class="text-base font-bold text-white" id="total-price">—</span>
-              </div>
-              <button class="text-xs text-[#FFAE01] hover:opacity-80 text-left transition-opacity">
-                + Добавить лист другой длины
-              </button>
             </div>
           )}
 
-          <!-- Linear length input -->
-          {isByLength && (
-            <div class="mb-5">
-              <label class="text-[11px] text-[#898989] mb-1.5 block">Длина, м</label>
-              <input
-                id="linear-length"
-                type="number"
-                value="1"
-                min="0.1"
-                step="0.1"
-                class="w-full bg-[#464646] border border-[#565656] text-white rounded-[5px] px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFAE01]"
-              />
-            </div>
-          )}
-
-          <!-- Simple quantity for piece products -->
+          <!-- Простой счётчик для штучных товаров -->
           {!isByArea && !isByLength && (
-            <div class="mb-5">
-              <label class="text-[11px] text-[#898989] mb-1.5 block">Количество, {product.unit}</label>
-              <div class="flex items-stretch">
-                <button id="qty-minus-s" class="w-10 bg-[#464646] hover:bg-[#565656] border border-r-0 border-[#565656] rounded-l-[5px] flex items-center justify-center text-white transition-colors">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                  </svg>
-                </button>
-                <input id="qty-simple" type="number" value="1" min="1"
-                  class="w-16 h-10 bg-[#464646] border-y border-[#565656] text-white text-center text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button id="qty-plus-s" class="w-10 bg-[#464646] hover:bg-[#565656] border border-l-0 border-[#565656] rounded-r-[5px] flex items-center justify-center text-white transition-colors">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                  </svg>
-                </button>
+            <div class="mb-4">
+              <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Количество, {product.unit}</label>
+              <div class="flex items-stretch h-9 w-36">
+                <button id="qty-minus-s" class="w-9 bg-[#464646] hover:bg-[#565656] border border-r-0 border-[#565656] rounded-l-[3px] flex items-center justify-center text-white transition-colors text-lg">−</button>
+                <input id="qty-simple" type="number" value="1" min="1" class="w-14 h-full bg-[#464646] border-y border-[#565656] text-white text-center text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <button id="qty-plus-s" class="w-9 bg-[#464646] hover:bg-[#565656] border border-l-0 border-[#565656] rounded-r-[3px] flex items-center justify-center text-white transition-colors text-lg">+</button>
               </div>
             </div>
           )}
 
-          <!-- Action buttons -->
-          <div class="flex flex-col gap-2 mt-auto">
-            <button class="w-full bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors text-sm">
+          <!-- Ввод длины для погонных товаров -->
+          {isByLength && (
+            <div class="mb-4">
+              <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Длина, м</label>
+              <input type="number" value="1" min="0.1" step="0.1" class="w-full bg-[#464646] border border-[#565656] text-white rounded-[3px] px-3 py-2 text-sm focus:outline-none focus:border-[#FFAE01]" />
+            </div>
+          )}
+
+          <!-- Ссылки: добавить строку + калькулятор -->
+          {isByArea && (
+            <div class="flex items-center justify-between mb-4 gap-2">
+              <button id="add-row-btn" class="flex items-center gap-1 text-xs text-[#898989] hover:text-white transition-colors">
+                <span class="text-base leading-none">+</span>
+                Добавить лист другой длины
+              </button>
+              <a href="/raschet" class="flex items-center gap-1 text-xs text-[#FFAE01] hover:opacity-80 transition-opacity whitespace-nowrap">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                Рассчитать в калькуляторе кровли
+              </a>
+            </div>
+          )}
+
+          <!-- Кнопки действий -->
+          <div class="flex gap-2">
+            <button class="flex-1 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold py-3 rounded-[3px] transition-colors text-sm">
               Добавить в корзину
             </button>
-            <a
-              href="tel:88003339495"
-              class="w-full inline-flex items-center justify-center gap-2 border border-[#565656] hover:border-white text-white font-semibold px-6 py-3 rounded-[5px] transition-colors text-sm"
-            >
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
+            <a href="tel:88003339495" class="flex-1 inline-flex items-center justify-center border border-[#565656] hover:border-white text-white font-semibold py-3 rounded-[3px] transition-colors text-sm whitespace-nowrap">
               Получить консультацию
             </a>
           </div>
 
-          <!-- Delivery + Payment accordions -->
-          <div class="mt-5 pt-4 border-t border-[#464646] flex flex-col gap-2">
-            <details class="group">
-              <summary class="flex items-center justify-between cursor-pointer text-sm text-[#d0d0d0] hover:text-white transition-colors list-none py-1">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-[#FFAE01] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-                  </svg>
-                  Информация о доставке
-                </div>
-                <svg class="w-4 h-4 transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </summary>
-              <div class="mt-2 text-xs text-[#898989] leading-relaxed pl-6">
-                Доставка по Москве и МО от 1 дня. Самовывоз со склада. Уточнить сроки и стоимость — по телефону.
-              </div>
-            </details>
-            <details class="group">
-              <summary class="flex items-center justify-between cursor-pointer text-sm text-[#d0d0d0] hover:text-white transition-colors list-none py-1">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-[#FFAE01] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                  </svg>
-                  Варианты оплаты
-                </div>
-                <svg class="w-4 h-4 transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </summary>
-              <div class="mt-2 text-xs text-[#898989] leading-relaxed pl-6">
-                Наличные, безналичный расчёт, банковская карта. Для юридических лиц — по счёту.
-              </div>
-            </details>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Specs grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        {colorRal ? (
-          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4">
-            <div class="text-xs text-[#898989] mb-1">Цвет</div>
-            <div class="font-semibold text-slate-900 text-sm">{colorRal}</div>
-          </div>
-        ) : (
-          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4">
-            <div class="text-xs text-[#898989] mb-1">Единица</div>
-            <div class="font-semibold text-slate-900 text-sm">{product.unit}</div>
-          </div>
-        )}
-        <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4">
-          <div class="text-xs text-[#898989] mb-1">Покрытие</div>
-          <div class="font-semibold text-slate-900 text-sm">{coatingFound ?? '—'}</div>
-        </div>
-        <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4">
-          <div class="text-xs text-[#898989] mb-1">Толщина</div>
-          <div class="font-semibold text-slate-900 text-sm">{thickness ?? '—'}</div>
-        </div>
-        <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4">
-          <div class="text-xs text-[#898989] mb-1">Гарантия</div>
-          <div class="font-semibold text-slate-900 text-sm">до 50 лет</div>
-        </div>
-      </div>
-
-      <!-- Tabs + sidebar -->
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-5">
-
-        <!-- Tabs -->
-        <div class="bg-white rounded-[10px] border border-[#e5e5e5]">
-          <div class="flex border-b border-[#e5e5e5]" id="tabs-nav">
-            {['Описание', 'Характеристики', 'Отзывы'].map((tab, i) => (
-              <button
-                data-tab={String(i)}
-                class={`px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${i === 0 ? 'text-slate-900 border-[#FFAE01]' : 'text-[#898989] border-transparent hover:text-slate-900'}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          <!-- Description tab -->
-          <div data-tab-content="0" class="p-6">
-            <div class="prose prose-sm prose-slate max-w-none">
-              <p>
-                <strong>{product.name}</strong> — профессиональный кровельный материал{product.brand ? ` производства ${product.brand}` : ''}.
-                {isByArea && ` Эффективная ширина листа — ${effectiveWidth} м.`}
-                {coatingFound && ` Покрытие: ${coatingFound}.`}
-                {thickness && ` Толщина металла: ${thickness}.`}
-              </p>
-              <p>Подходит для жилых домов, дач, коттеджей, хозяйственных построек. Монтируется поверх обрешётки.</p>
-              {isByArea && (
-                <p>Продаётся в квадратных метрах. Воспользуйтесь калькулятором выше или свяжитесь с нашими специалистами для расчёта.</p>
-              )}
-            </div>
-            {isByArea && (
-              <div class="mt-5">
-                <a href="/raschet" class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                  </svg>
-                  Рассчитать в калькуляторе кровли
-                </a>
-              </div>
-            )}
-          </div>
-
-          <!-- Characteristics tab -->
-          <div data-tab-content="1" class="p-6 hidden">
-            <table class="w-full text-sm">
-              <tbody>
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989] w-1/2">Код товара</td>
-                  <td class="py-2.5 font-medium text-slate-900 font-mono text-xs">{product.kod}</td>
-                </tr>
-                {product.artikul && (
-                  <tr class="border-b border-[#f5f5f5]">
-                    <td class="py-2.5 pr-4 text-[#898989]">Артикул</td>
-                    <td class="py-2.5 font-medium text-slate-900">{product.artikul}</td>
-                  </tr>
-                )}
-                {product.brand && (
-                  <tr class="border-b border-[#f5f5f5]">
-                    <td class="py-2.5 pr-4 text-[#898989]">Производитель</td>
-                    <td class="py-2.5 font-medium text-slate-900">{product.brand}</td>
-                  </tr>
-                )}
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989]">Единица измерения</td>
-                  <td class="py-2.5 font-medium text-slate-900">{product.unit}</td>
-                </tr>
-                {coatingFound && (
-                  <tr class="border-b border-[#f5f5f5]">
-                    <td class="py-2.5 pr-4 text-[#898989]">Покрытие</td>
-                    <td class="py-2.5 font-medium text-slate-900">{coatingFound}</td>
-                  </tr>
-                )}
-                {thickness && (
-                  <tr class="border-b border-[#f5f5f5]">
-                    <td class="py-2.5 pr-4 text-[#898989]">Толщина металла</td>
-                    <td class="py-2.5 font-medium text-slate-900">{thickness}</td>
-                  </tr>
-                )}
-                {isByArea && (
-                  <tr class="border-b border-[#f5f5f5]">
-                    <td class="py-2.5 pr-4 text-[#898989]">Ширина листа (эфф.)</td>
-                    <td class="py-2.5 font-medium text-slate-900">{effectiveWidth} м</td>
-                  </tr>
-                )}
-                {colorRal && (
-                  <tr class="border-b border-[#f5f5f5]">
-                    <td class="py-2.5 pr-4 text-[#898989]">Цвет</td>
-                    <td class="py-2.5 font-medium text-slate-900">{colorRal}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Reviews tab -->
-          <div data-tab-content="2" class="p-6 hidden">
-            <p class="text-sm text-[#898989]">Отзывов пока нет. Будьте первым!</p>
-          </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="flex flex-col gap-4">
-          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-5">
-            <h3 class="text-sm font-bold text-slate-900 mb-2">Фотокаталог</h3>
-            <p class="text-xs text-[#898989] mb-3">Скачайте PDF-каталог с цветами и образцами покрытий</p>
-            <button class="w-full inline-flex items-center justify-center gap-2 border border-[#e5e5e5] hover:border-[#FFAE01] text-slate-700 hover:text-[#FFAE01] font-semibold px-4 py-2.5 rounded-[5px] transition-colors text-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        <!-- Аккордеоны: доставка и оплата (внутри правой колонки, как в Figma) -->
+        <div class="border border-[#E9E9E9] rounded-[5px] divide-y divide-[#E9E9E9]">
+          <details class="group">
+            <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none text-sm text-[#333333] hover:bg-[#f9f9f9] transition-colors">
+              Информация о доставке
+              <svg class="w-4 h-4 text-[#898989] transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
-              Скачать каталог
+            </summary>
+            <div class="px-5 pb-4 text-sm text-[#898989] leading-relaxed">
+              Доставка по Москве и МО от 1 дня. Самовывоз со склада. Уточнить сроки и стоимость — по телефону.
+            </div>
+          </details>
+          <details class="group">
+            <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none text-sm text-[#333333] hover:bg-[#f9f9f9] transition-colors">
+              Варианты оплаты
+              <svg class="w-4 h-4 text-[#898989] transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="px-5 pb-4 text-sm text-[#898989] leading-relaxed">
+              Наличные, безналичный расчёт, банковская карта. Для юридических лиц — по счёту.
+            </div>
+          </details>
+        </div>
+
+        <!-- Мини-характеристики (2×2, внутри правой колонки, как в Figma) -->
+        <div class="grid grid-cols-2 border border-[#E9E9E9] rounded-[5px]">
+          <div class="px-4 py-3 border-r border-b border-[#E9E9E9]">
+            <div class="text-xs text-[#898989] mb-1">Цвет</div>
+            <div class="font-semibold text-[#333333] text-sm">{colorRal ?? '—'}</div>
+          </div>
+          <div class="px-4 py-3 border-b border-[#E9E9E9]">
+            <div class="text-xs text-[#898989] mb-1">Покрытие</div>
+            <div class="font-semibold text-[#333333] text-sm">{coatingFound ?? '—'}</div>
+          </div>
+          <div class="px-4 py-3 border-r border-[#E9E9E9]">
+            <div class="text-xs text-[#898989] mb-1">Толщина</div>
+            <div class="font-semibold text-[#333333] text-sm">{thickness ? `${thickness} мм` : '—'}</div>
+          </div>
+          <div class="px-4 py-3">
+            <div class="text-xs text-[#898989] mb-1">Гарантия</div>
+            <div class="font-semibold text-[#333333] text-sm">20 лет</div>
+          </div>
+        </div>
+
+        </div>{/* конец правой колонки */}
+      </div>{/* конец основной сетки */}
+
+      <!-- Табы: Описание / Характеристики / Отзывы -->
+      <div class="border border-[#E9E9E9] rounded-[5px] mb-6">
+        <div class="flex border-b border-[#E9E9E9]" id="tabs-nav">
+          {['Описание', 'Характеристики', 'Отзывы'].map((tab, i) => (
+            <button
+              data-tab={String(i)}
+              class={`px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${i === 0 ? 'text-[#333333] border-[#FFAE01]' : 'text-[#898989] border-transparent hover:text-[#333333]'}`}
+            >
+              {tab}
             </button>
-          </div>
+          ))}
+        </div>
 
-          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-5">
-            <h3 class="text-sm font-bold text-slate-900 mb-3">Документы</h3>
-            <ul class="flex flex-col gap-2.5">
-              {['Сертификат соответствия', 'Инструкция по монтажу', 'Гарантийный талон'].map(doc => (
-                <li>
-                  <button class="flex items-center gap-2 text-xs text-[#898989] hover:text-[#FFAE01] transition-colors">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    {doc}
-                  </button>
-                </li>
-              ))}
-            </ul>
+        <!-- Описание -->
+        <div data-tab-content="0" class="p-6">
+          <div class="prose prose-sm max-w-none text-[#333333]">
+            <p>
+              <strong>{product.name}</strong> — профессиональный кровельный материал{product.brand ? ` производства ${product.brand}` : ''}.
+              {isByArea && ` Эффективная ширина листа — ${effectiveWidth} м.`}
+              {coatingFound && ` Покрытие: ${coatingFound}.`}
+              {thickness && ` Толщина металла: ${thickness} мм.`}
+            </p>
+            <p>Подходит для жилых домов, дач, коттеджей, хозяйственных построек.</p>
           </div>
+        </div>
 
-          <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
-            <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-            Назад в «{subcategory.title}»
-          </a>
+        <!-- Характеристики -->
+        <div data-tab-content="1" class="p-6 hidden">
+          <table class="w-full text-sm">
+            <tbody>
+              <tr class="border-b border-[#f5f5f5]">
+                <td class="py-2.5 pr-4 text-[#898989] w-1/2">Код товара</td>
+                <td class="py-2.5 font-medium text-[#333333] font-mono text-xs">{product.kod}</td>
+              </tr>
+              {product.artikul && (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">Артикул</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{product.artikul}</td>
+                </tr>
+              )}
+              {product.brand && (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">Производитель</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{product.brand}</td>
+                </tr>
+              )}
+              <tr class="border-b border-[#f5f5f5]">
+                <td class="py-2.5 pr-4 text-[#898989]">Единица измерения</td>
+                <td class="py-2.5 font-medium text-[#333333]">{product.unit}</td>
+              </tr>
+              {coatingFound && (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">Покрытие</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{coatingFound}</td>
+                </tr>
+              )}
+              {thickness && (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">Толщина металла</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{thickness} мм</td>
+                </tr>
+              )}
+              {isByArea && (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">Ширина листа (эфф.)</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{effectiveWidth} м</td>
+                </tr>
+              )}
+              {colorRal && (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">Цвет</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{colorRal}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Отзывы -->
+        <div data-tab-content="2" class="p-6 hidden">
+          <p class="text-sm text-[#898989]">Отзывов пока нет. Будьте первым!</p>
         </div>
       </div>
+
+      <!-- Назад в раздел -->
+      <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
+        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        Назад в «{subcategory.title}»
+      </a>
 
     </div>
   </div>
 </BaseLayout>
 
-<script define:vars={{ displayPrice, isByArea, effectiveWidth }}>
-// Tabs
+<script define:vars={{ displayPrice, isByArea, effectiveWidth, standardLengths }}>
+
+// ── Вспомогательные функции ─────────────────────────────────────────────────
+function fmtPrice(n) {
+  return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ₽';
+}
+function fmtArea(n) {
+  return n.toFixed(3).replace('.', ',');
+}
+
+// ── Инициализация строки длины ──────────────────────────────────────────────
+function initRow(row, isFirst) {
+  const select = row.querySelector('.length-select');
+  const qtyInput = row.querySelector('.qty-input');
+  const minusBtn = row.querySelector('.qty-minus');
+  const plusBtn = row.querySelector('.qty-plus');
+  const rowAreaEl = row.querySelector('.row-area');
+  const rowTotalEl = row.querySelector('.row-total');
+  const removeBtn = row.querySelector('.remove-row');
+
+  function updateRow() {
+    const lengthM = parseFloat(select?.value || '1000') / 1000;
+    const qty = Math.max(1, parseInt(qtyInput?.value || '1', 10));
+    const area = qty * lengthM * effectiveWidth;
+    if (rowAreaEl) rowAreaEl.textContent = fmtArea(area);
+    if (rowTotalEl) {
+      rowTotalEl.textContent = displayPrice ? fmtPrice(area * displayPrice) : 'по запросу';
+    }
+  }
+
+  select?.addEventListener('change', updateRow);
+  qtyInput?.addEventListener('input', updateRow);
+  minusBtn?.addEventListener('click', () => {
+    const v = parseInt(qtyInput?.value || '1', 10);
+    if (v > 1 && qtyInput) { qtyInput.value = String(v - 1); updateRow(); }
+  });
+  plusBtn?.addEventListener('click', () => {
+    const v = parseInt(qtyInput?.value || '1', 10);
+    if (qtyInput) { qtyInput.value = String(v + 1); updateRow(); }
+  });
+  removeBtn?.addEventListener('click', () => {
+    row.remove();
+  });
+
+  updateRow();
+}
+
+// ── Инициализируем первую строку ────────────────────────────────────────────
+if (isByArea) {
+  const container = document.getElementById('length-rows');
+  const firstRow = container?.querySelector('.length-row');
+  if (firstRow) initRow(firstRow, true);
+
+  // ── Кнопка "+" добавить строку ─────────────────────────────────────────
+  const addBtn = document.getElementById('add-row-btn');
+  addBtn?.addEventListener('click', () => {
+    const template = container?.querySelector('.length-row');
+    if (!template || !container) return;
+
+    const newRow = template.cloneNode(true);
+
+    // Добавить кнопку удаления строки
+    const grid = newRow.querySelector('.grid');
+    if (grid && !newRow.querySelector('.remove-row')) {
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-row self-end pb-2 text-[#898989] hover:text-white transition-colors text-lg leading-none flex-shrink-0';
+      removeBtn.textContent = '×';
+      grid.style.gridTemplateColumns = '1fr auto auto auto';
+      grid.appendChild(removeBtn);
+    }
+
+    // Сбросить значения
+    const qtyInput = newRow.querySelector('.qty-input');
+    if (qtyInput) qtyInput.value = '1';
+
+    container.appendChild(newRow);
+    initRow(newRow, false);
+  });
+}
+
+// ── Табы ────────────────────────────────────────────────────────────────────
 const tabsNav = document.getElementById('tabs-nav');
 if (tabsNav) {
   tabsNav.addEventListener('click', (e) => {
@@ -530,7 +559,7 @@ if (tabsNav) {
     const idx = btn.dataset.tab;
     tabsNav.querySelectorAll('[data-tab]').forEach(b => {
       const active = b.dataset.tab === idx;
-      b.classList.toggle('text-slate-900', active);
+      b.classList.toggle('text-[#333333]', active);
       b.classList.toggle('border-[#FFAE01]', active);
       b.classList.toggle('text-[#898989]', !active);
       b.classList.toggle('border-transparent', !active);
@@ -541,45 +570,7 @@ if (tabsNav) {
   });
 }
 
-// Area calculator
-if (isByArea) {
-  const lengthSel = document.getElementById('sheet-length');
-  const qtyInput = document.getElementById('sheet-qty');
-  const minusBtn = document.getElementById('qty-minus');
-  const plusBtn = document.getElementById('qty-plus');
-  const totalAreaEl = document.getElementById('total-area');
-  const totalPriceEl = document.getElementById('total-price');
-
-  function updateCalc() {
-    const length = parseFloat(lengthSel?.value || '1');
-    const qty = Math.max(1, parseInt(qtyInput?.value || '1', 10));
-    const area = qty * length * effectiveWidth;
-    if (totalAreaEl) totalAreaEl.textContent = area.toFixed(2).replace('.', ',');
-    if (totalPriceEl) {
-      if (displayPrice) {
-        const total = area * displayPrice;
-        totalPriceEl.textContent = total.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) + ' ₽';
-      } else {
-        totalPriceEl.textContent = 'по запросу';
-      }
-    }
-  }
-
-  lengthSel?.addEventListener('change', updateCalc);
-  qtyInput?.addEventListener('input', updateCalc);
-  minusBtn?.addEventListener('click', () => {
-    const v = parseInt(qtyInput?.value || '1', 10);
-    if (v > 1 && qtyInput) { qtyInput.value = String(v - 1); updateCalc(); }
-  });
-  plusBtn?.addEventListener('click', () => {
-    const v = parseInt(qtyInput?.value || '1', 10);
-    if (qtyInput) { qtyInput.value = String(v + 1); updateCalc(); }
-  });
-
-  updateCalc();
-}
-
-// Simple quantity stepper
+// ── Простой счётчик (штучные товары) ────────────────────────────────────────
 const minusS = document.getElementById('qty-minus-s');
 const plusS = document.getElementById('qty-plus-s');
 const qtyS = document.getElementById('qty-simple');
