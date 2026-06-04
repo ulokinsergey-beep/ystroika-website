@@ -1,9 +1,9 @@
 ---
 /**
- * Страница подкатегории каталога — SSR, пагинация 60 товаров/страница.
- * Данные: src/data/catalog/[category]/[subcategory].json (из process-catalog.mjs)
+ * Страница подкатегории каталога — SSR.
+ * Layout: левый сайдбар (разделы, цена, бренды) + правая сетка товаров — по Figma.
+ * Фильтры: ?brand=, ?sort=, ?per_page=, ?page=, ?price_min=, ?price_max=
  * Цены + наличие: клиентский JS через /api/catalog/prices и /api/catalog/stock
- * Фильтр: ?brand=GrandLine (URL-параметр, SEO-friendly)
  */
 export const prerender = false;
 
@@ -15,7 +15,6 @@ import { categories } from '../../../data/categories';
 
 const { category: categorySlug, subcategory: subcategorySlug } = Astro.params;
 
-// Найти категорию и подкатегорию в нашем маппинге
 const category = categories.find(c => c.slug === categorySlug);
 const subcategory = category?.subcategories?.find(s => s.slug === subcategorySlug);
 
@@ -34,9 +33,8 @@ function getBrand(p: any): string {
   return '';
 }
 
-// ─── Загрузить данные о товарах из pre-generated JSON ───────────────────────
+// ─── Загрузить данные из pre-generated JSON ─────────────────────────────────
 let allProducts: any[] = [];
-
 const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
 if (existsSync(dataPath)) {
   try {
@@ -46,8 +44,7 @@ if (existsSync(dataPath)) {
   } catch {}
 }
 
-// ─── Уникальные бренды (по убыванию количества товаров) ─────────────────────
-// Служебные группы КА, которые не являются брендами
+// ─── Уникальные бренды (служебные группы КА отфильтрованы) ─────────────────
 const SKIP_BRANDS = new Set([
   '-', '--', '...', 'Вся кровля', 'Вся продукция',
   'Упаковка', 'Доставка товара, Услуги', 'Аренда, хранение',
@@ -58,53 +55,63 @@ const brandCountMap: Record<string, number> = {};
 for (const p of allProducts) {
   const b = getBrand(p);
   if (!b) continue;
-  // Пропускаем названия с нечитаемой кодировкой (непечатные символы)
   if (/[\x00-\x1f\x7f\uDC00-\uDFFF�]/.test(b)) continue;
-  // Пропускаем служебные группы
   if (SKIP_BRANDS.has(b)) continue;
-  // Пропускаем слишком общие пути из priceGroup
   if (b.includes(',') && b.length > 40) continue;
   brandCountMap[b] = (brandCountMap[b] ?? 0) + 1;
 }
 const availableBrands = Object.entries(brandCountMap)
-  .filter(([, count]) => count >= 5)  // Не показываем бренды с < 5 товарами
+  .filter(([, count]) => count >= 5)
   .sort((a, b) => b[1] - a[1])
   .map(([name, count]) => ({ name, count }));
 
-// ─── Активный фильтр бренда ─────────────────────────────────────────────────
+// ─── URL-параметры ──────────────────────────────────────────────────────────
 const selectedBrand = Astro.url.searchParams.get('brand') ?? '';
+const sortParam     = Astro.url.searchParams.get('sort') ?? 'popular';
+const perPageParam  = parseInt(Astro.url.searchParams.get('per_page') ?? '60');
+const PAGE_SIZE     = [30, 40, 50, 60].includes(perPageParam) ? perPageParam : 60;
+const page          = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1'));
+const priceMin      = Astro.url.searchParams.get('price_min') ?? '';
+const priceMax      = Astro.url.searchParams.get('price_max') ?? '';
 
-// ─── Применить фильтр ───────────────────────────────────────────────────────
-const products = selectedBrand
+// ─── Фильтр по бренду (серверный) ───────────────────────────────────────────
+let products = selectedBrand
   ? allProducts.filter((p: any) => getBrand(p) === selectedBrand)
   : allProducts;
 
-const totalCount = products.length;
+// ─── Серверная сортировка (имя; по цене — клиентская) ───────────────────────
+if (sortParam === 'name_asc') {
+  products = [...products].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+} else if (sortParam === 'name_desc') {
+  products = [...products].sort((a, b) => b.name.localeCompare(a.name, 'ru'));
+}
 
-// ─── Пагинация ──────────────────────────────────────────────────────────────
-const PAGE_SIZE = 60;
-const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1'));
-const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+const totalCount  = products.length;
+const totalPages  = Math.ceil(totalCount / PAGE_SIZE);
 const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-const kodsBatch = pageProducts.map((p: any) => p.kod).filter(Boolean);
+const kodsBatch   = pageProducts.map((p: any) => p.kod).filter(Boolean);
 
-// ─── Функция построения URL с сохранением/сменой параметров ─────────────────
+// ─── Построение URL с сохранением/заменой параметров ────────────────────────
 function buildUrl(params: Record<string, string | null>) {
   const base = `/catalog/${categorySlug}/${subcategorySlug}`;
   const sp = new URLSearchParams();
-  // Текущие params
   if (selectedBrand) sp.set('brand', selectedBrand);
+  if (sortParam && sortParam !== 'popular') sp.set('sort', sortParam);
+  if (PAGE_SIZE !== 60) sp.set('per_page', String(PAGE_SIZE));
+  if (priceMin) sp.set('price_min', priceMin);
+  if (priceMax) sp.set('price_max', priceMax);
   sp.set('page', String(page));
-  // Overrides
   for (const [k, v] of Object.entries(params)) {
     if (v === null) sp.delete(k);
     else sp.set(k, v);
   }
-  // Убираем page=1 из URL (не нужен)
   if (sp.get('page') === '1') sp.delete('page');
   const qs = sp.toString();
   return qs ? `${base}?${qs}` : base;
 }
+
+const allSubcategories = category.subcategories ?? [];
+const hasFilters = !!(selectedBrand || priceMin || priceMax);
 
 const canonicalURL = new URL(
   `/catalog/${categorySlug}/${subcategorySlug}/`,
@@ -117,8 +124,8 @@ const jsonLd = {
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ystroika.ru/" },
-        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://ystroika.ru/catalog/" },
+        { "@type": "ListItem", "position": 1, "name": "Главная",  "item": "https://ystroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Каталог",  "item": "https://ystroika.ru/catalog/" },
         { "@type": "ListItem", "position": 3, "name": category.title, "item": `https://ystroika.ru/catalog/${categorySlug}/` },
         { "@type": "ListItem", "position": 4, "name": subcategory.title, "item": canonicalURL }
       ]
@@ -130,23 +137,7 @@ const jsonLd = {
       "description": `${subcategory.title} в Москве и МО. ${totalCount > 0 ? totalCount + ' позиций' : ''}. Широкий ассортимент, доставка 1 день, гарантия лучшей цены.`,
       "url": canonicalURL,
       "numberOfItems": totalCount,
-    },
-    ...(pageProducts.slice(0, 10).map((p: any, i: number) => ({
-      "@type": "ListItem",
-      "position": (page - 1) * PAGE_SIZE + i + 1,
-      "item": {
-        "@type": "Product",
-        "name": p.name,
-        "sku": p.kod,
-        "brand": p.brand ? { "@type": "Brand", "name": p.brand } : undefined,
-        "offers": {
-          "@type": "Offer",
-          "priceCurrency": "RUB",
-          "availability": "https://schema.org/InStock",
-          "seller": { "@type": "Organization", "name": "У-Стройка" }
-        }
-      }
-    })))
+    }
   ]
 };
 ---
@@ -157,290 +148,498 @@ const jsonLd = {
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
-  <div class="bg-slate-50 min-h-screen">
+  <div class="bg-[#f5f5f5] min-h-screen">
 
-    <!-- Шапка страницы -->
-    <div class="bg-white border-b border-slate-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+    <!-- ══ Шапка + Breadcrumb ══════════════════════════════════════════════ -->
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-5">
+
         <!-- Breadcrumb -->
-        <nav class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 mb-3">
-          <a href="/" class="hover:text-brand transition-colors">Главная</a>
-          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-          <a href="/catalog" class="hover:text-brand transition-colors">Каталог</a>
-          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-          <a href={`/catalog/${categorySlug}`} class="hover:text-brand transition-colors">{category.title}</a>
-          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-3">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <a href="/catalog" class="hover:text-[#FFAE01] transition-colors">Каталог</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <a href={`/catalog/${categorySlug}`} class="hover:text-[#FFAE01] transition-colors">{category.title}</a>
+          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           <span class="text-slate-900 font-medium">{subcategory.title}</span>
         </nav>
 
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">{subcategory.title}</h1>
-            <p class="mt-1 text-slate-500 text-sm">
-              {category.title}
-              {selectedBrand && (
-                <> · <span class="font-medium text-brand">{selectedBrand}</span></>
-              )}
-              {' '}· {totalCount > 0 ? `${totalCount.toLocaleString('ru-RU')} позиций` : 'нет данных'} · Москва и МО
-            </p>
-          </div>
-        </div>
-
-        <!-- ─── Фильтр по бренду ─────────────────────────────────────────────── -->
-        {availableBrands.length > 1 && (
-          <div class="mt-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-4 overflow-x-auto">
-            <div class="flex items-center gap-2 min-w-max">
-              <!-- Кнопка "Все бренды" -->
-              <a
-                href={buildUrl({ brand: null, page: '1' })}
-                class={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  !selectedBrand
-                    ? 'bg-brand text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Все бренды
-                <span class={`text-xs ${!selectedBrand ? 'text-white/70' : 'text-slate-400'}`}>
-                  {allProducts.length.toLocaleString('ru-RU')}
-                </span>
-              </a>
-
-              <!-- Кнопка каждого бренда -->
-              {availableBrands.slice(0, 20).map(b => (
-                <a
-                  href={buildUrl({ brand: b.name, page: '1' })}
-                  class={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                    selectedBrand === b.name
-                      ? 'bg-brand text-white'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:border-brand hover:text-brand'
-                  }`}
-                >
-                  {b.name}
-                  <span class={`text-xs ${selectedBrand === b.name ? 'text-white/70' : 'text-slate-400'}`}>
-                    {b.count.toLocaleString('ru-RU')}
-                  </span>
-                </a>
-              ))}
-
-              {/* Если брендов > 20, показываем сколько скрыто */}
-              {availableBrands.length > 20 && (
-                <span class="text-xs text-slate-400 pl-1">
-                  +{availableBrands.length - 20} ещё
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+        <h1 class="text-2xl lg:text-[28px] font-bold text-slate-900 leading-snug">
+          {subcategory.title}
+        </h1>
+        <p class="mt-1 text-[#898989] text-sm">
+          {totalCount > 0 ? `${totalCount.toLocaleString('ru-RU')} позиций` : 'нет данных'} · Москва и МО
+          {selectedBrand && (
+            <> · бренд: <span class="font-semibold text-slate-700">{selectedBrand}</span></>
+          )}
+        </p>
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
 
-      {totalCount === 0 ? (
-        <!-- Нет данных -->
-        <div class="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center">
-          <p class="text-slate-500 font-semibold text-lg">Товары загружаются</p>
-          <p class="mt-2 text-slate-400 text-sm max-w-sm mx-auto">
-            Ассортимент появится в ближайшее время. Для уточнения — позвоните нам.
-          </p>
-          <a href="tel:88003339495" class="mt-6 inline-flex items-center gap-2 bg-brand text-white font-semibold px-6 py-3 rounded-xl transition-colors">
-            Позвонить
+      <!-- ══ «Часто ищут» — чипы брендов ════════════════════════════════════ -->
+      {availableBrands.length > 1 && (
+        <div class="mb-5 flex flex-wrap items-center gap-2">
+          <span class="text-sm font-medium text-[#898989] shrink-0 mr-1">Часто ищут:</span>
+
+          <!-- «Все» -->
+          <a
+            href={buildUrl({ brand: null, page: '1' })}
+            class={`inline-flex items-center px-3.5 py-1.5 rounded-[5px] text-sm font-medium transition-colors whitespace-nowrap ${
+              !selectedBrand
+                ? 'bg-[#FFAE01] text-black'
+                : 'bg-white border border-[#e5e5e5] text-slate-600 hover:border-[#FFAE01] hover:text-[#FFAE01]'
+            }`}
+          >
+            Все
           </a>
+
+          {availableBrands.slice(0, 7).map(b => (
+            <a
+              href={buildUrl({ brand: selectedBrand === b.name ? null : b.name, page: '1' })}
+              class={`inline-flex items-center px-3.5 py-1.5 rounded-[5px] text-sm font-medium transition-colors whitespace-nowrap ${
+                selectedBrand === b.name
+                  ? 'bg-[#FFAE01] text-black'
+                  : 'bg-white border border-[#e5e5e5] text-slate-600 hover:border-[#FFAE01] hover:text-[#FFAE01]'
+              }`}
+            >
+              {b.name}
+            </a>
+          ))}
         </div>
-      ) : (
-        <>
-          <!-- Верхняя панель: счёт + пагинация -->
-          <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
-            <p class="text-sm text-slate-500">
-              {selectedBrand
-                ? <>Бренд: <strong class="text-slate-700">{selectedBrand}</strong> · {totalCount.toLocaleString('ru-RU')} позиций</>
-                : <>Показано {((page-1)*PAGE_SIZE+1).toLocaleString('ru-RU')}–{Math.min(page*PAGE_SIZE, totalCount).toLocaleString('ru-RU')} из {totalCount.toLocaleString('ru-RU')}</>
-              }
-            </p>
-            {totalPages > 1 && (
-              <div class="flex items-center gap-1">
-                {page > 1 && (
-                  <a
-                    href={buildUrl({ page: String(page - 1) })}
-                    class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-brand hover:text-brand transition-colors"
-                  >
-                    ← Назад
-                  </a>
-                )}
-                <span class="px-3 py-1.5 text-sm font-medium text-brand bg-brand/10 rounded-lg">
-                  {page} / {totalPages}
-                </span>
-                {page < totalPages && (
-                  <a
-                    href={buildUrl({ page: String(page + 1) })}
-                    class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-brand hover:text-brand transition-colors"
-                  >
-                    Вперёд →
-                  </a>
-                )}
+      )}
+
+      <!-- ══ Основная область: сайдбар + контент ══════════════════════════════ -->
+      <div class="flex gap-6 items-start">
+
+        <!-- ┌─ ЛЕВЫЙ САЙДБАР ───────────────────────────────────────────────┐ -->
+        <aside
+          class="w-[260px] shrink-0 hidden lg:block"
+          id="catalog-sidebar"
+        >
+          <form
+            method="get"
+            action={`/catalog/${categorySlug}/${subcategorySlug}`}
+            id="filter-form"
+          >
+
+            <!-- Блок: Подкатегории раздела -->
+            {allSubcategories.length > 1 && (
+              <div class="bg-white rounded-[10px] border border-[#e5e5e5] overflow-hidden mb-4">
+                <div class="px-4 py-3 border-b border-[#f0f0f0]">
+                  <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">{category.title}</h3>
+                </div>
+                <ul>
+                  {allSubcategories.map(s => (
+                    <li>
+                      <a
+                        href={`/catalog/${categorySlug}/${s.slug}`}
+                        class={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors border-b border-[#f8f8f8] last:border-b-0 ${
+                          s.slug === subcategorySlug
+                            ? 'bg-slate-900 text-white font-semibold'
+                            : 'text-slate-600 hover:text-[#FFAE01] hover:bg-orange-50'
+                        }`}
+                      >
+                        <span class="leading-snug">{s.title}</span>
+                        {s.slug !== subcategorySlug && (
+                          <svg class="w-3.5 h-3.5 shrink-0 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                          </svg>
+                        )}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
+            )}
+
+            <!-- Блок: Цена -->
+            <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4 mb-4">
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Цена, ₽</h3>
+
+              <!-- Трек слайдера (визуальный, клиентский) -->
+              <div class="relative h-1 bg-[#e5e5e5] rounded-full mb-4 mx-1">
+                <div
+                  class="absolute inset-y-0 left-0 right-0 bg-[#FFAE01] rounded-full"
+                  id="price-slider-fill"
+                ></div>
+              </div>
+
+              <!-- Поля От / До -->
+              <div class="flex items-center gap-2">
+                <div class="flex-1">
+                  <label class="text-[10px] text-[#898989] uppercase tracking-wide block mb-1">От</label>
+                  <input
+                    type="number"
+                    name="price_min"
+                    value={priceMin}
+                    placeholder="0"
+                    min="0"
+                    class="w-full h-9 px-3 text-sm border border-[#e5e5e5] rounded-[5px] focus:outline-none focus:border-[#FFAE01] transition-colors"
+                    id="price-min-input"
+                  />
+                </div>
+                <span class="text-[#d0d0d0] mt-5 text-lg leading-none">—</span>
+                <div class="flex-1">
+                  <label class="text-[10px] text-[#898989] uppercase tracking-wide block mb-1">До</label>
+                  <input
+                    type="number"
+                    name="price_max"
+                    value={priceMax}
+                    placeholder="∞"
+                    min="0"
+                    class="w-full h-9 px-3 text-sm border border-[#e5e5e5] rounded-[5px] focus:outline-none focus:border-[#FFAE01] transition-colors"
+                    id="price-max-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Блок: Производитель -->
+            {availableBrands.length > 0 && (
+              <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-4 mb-4">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Производитель</h3>
+                <ul class="space-y-2" id="brand-list">
+
+                  <!-- Все производители -->
+                  <li class="flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name="brand"
+                      value=""
+                      id="brand-all"
+                      checked={!selectedBrand}
+                      class="w-4 h-4 accent-[#FFAE01] cursor-pointer"
+                    />
+                    <label for="brand-all" class="flex flex-1 items-center justify-between cursor-pointer">
+                      <span class="text-sm text-slate-700">Все бренды</span>
+                      <span class="text-xs text-[#898989]">{allProducts.length.toLocaleString('ru-RU')}</span>
+                    </label>
+                  </li>
+
+                  {availableBrands.map((b, i) => (
+                    <li class={`flex items-center gap-2.5 ${i >= 8 ? 'brand-extra hidden' : ''}`}>
+                      <input
+                        type="radio"
+                        name="brand"
+                        value={b.name}
+                        id={`brand-${i}`}
+                        checked={selectedBrand === b.name}
+                        class="w-4 h-4 accent-[#FFAE01] cursor-pointer shrink-0"
+                      />
+                      <label for={`brand-${i}`} class="flex flex-1 items-center justify-between cursor-pointer min-w-0">
+                        <span class="text-sm text-slate-700 truncate">{b.name}</span>
+                        <span class="text-xs text-[#898989] shrink-0 ml-1">{b.count.toLocaleString('ru-RU')}</span>
+                      </label>
+                    </li>
+                  ))}
+
+                  {availableBrands.length > 8 && (
+                    <li>
+                      <button
+                        type="button"
+                        id="show-all-brands"
+                        class="text-xs text-[#FFAE01] hover:opacity-80 transition-opacity mt-1"
+                      >
+                        Ещё {availableBrands.length - 8} брендов ▾
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+
+            <!-- Скрытые поля: сохраняем текущие настройки -->
+            {sortParam && sortParam !== 'popular' && (
+              <input type="hidden" name="sort" value={sortParam} />
+            )}
+            {PAGE_SIZE !== 60 && (
+              <input type="hidden" name="per_page" value={String(PAGE_SIZE)} />
+            )}
+
+            <!-- Кнопка «Показать» -->
+            <button
+              type="submit"
+              class="w-full h-11 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold text-sm rounded-[5px] transition-colors mb-2"
+            >
+              Показать {totalCount.toLocaleString('ru-RU')} товаров
+            </button>
+
+            <!-- Сбросить фильтры -->
+            {hasFilters && (
+              <a
+                href={`/catalog/${categorySlug}/${subcategorySlug}`}
+                class="block text-center text-sm text-[#898989] hover:text-slate-700 transition-colors py-1"
+              >
+                Сбросить фильтры
+              </a>
+            )}
+          </form>
+        </aside>
+        <!-- └──────────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ ПРАВАЯ ЧАСТЬ ────────────────────────────────────────────────┐ -->
+        <div class="flex-1 min-w-0">
+
+          <!-- Мобильная кнопка фильтров -->
+          <div class="lg:hidden mb-4 flex items-center gap-3">
+            <button
+              type="button"
+              id="mobile-filter-btn"
+              class="inline-flex items-center gap-2 h-9 px-4 bg-white border border-[#e5e5e5] rounded-[5px] text-sm font-medium text-slate-700 hover:border-[#FFAE01] transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+              </svg>
+              Фильтры
+              {hasFilters && (
+                <span class="inline-flex items-center justify-center w-4 h-4 bg-[#FFAE01] text-black text-[10px] font-bold rounded-full">!</span>
+              )}
+            </button>
+            {selectedBrand && (
+              <span class="text-sm text-slate-500">
+                Бренд: <strong class="text-slate-800">{selectedBrand}</strong>
+              </span>
             )}
           </div>
 
-          <!-- Сетка товаров -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4" id="products-grid">
-            {pageProducts.map((p: any) => (
-              <ProductCard
-                kod={p.kod}
-                name={p.name}
-                artikul={p.artikul}
-                unit={p.unit}
-                brand={p.brand}
-                priceGroup={p.priceGroup}
-                categorySlug={categorySlug!}
-                subcategorySlug={subcategorySlug!}
-              />
-            ))}
-          </div>
-
-          <!-- Нижняя пагинация -->
-          {totalPages > 1 && (
-            <div class="flex items-center justify-center gap-2 mt-10">
-              {page > 1 && (
-                <a href={buildUrl({ page: String(page - 1) })} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
-                  ← Назад
-                </a>
-              )}
-              {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                const p2 = Math.max(1, page - 3) + i;
-                if (p2 > totalPages) return null;
-                return (
-                  <a
-                    href={buildUrl({ page: String(p2) })}
-                    class={`px-3.5 py-2 text-sm rounded-xl transition-colors ${p2 === page ? 'bg-brand text-white font-semibold' : 'border border-slate-200 hover:border-brand hover:text-brand'}`}
-                  >
-                    {p2}
-                  </a>
-                );
-              })}
-              {page < totalPages && (
-                <a href={buildUrl({ page: String(page + 1) })} class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:border-brand hover:text-brand transition-colors">
-                  Вперёд →
-                </a>
-              )}
+          {totalCount === 0 ? (
+            <!-- Нет данных -->
+            <div class="bg-white border border-dashed border-[#e5e5e5] rounded-[10px] p-12 text-center">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[#f5f5f5] flex items-center justify-center">
+                <svg class="w-8 h-8 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <p class="text-slate-700 font-semibold text-lg mb-2">Товары загружаются</p>
+              <p class="text-[#898989] text-sm max-w-xs mx-auto mb-6">
+                Ассортимент появится в ближайшее время. Для уточнения наличия — позвоните нам.
+              </p>
+              <a
+                href="tel:88003339495"
+                class="inline-flex items-center gap-2 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                Позвонить
+              </a>
             </div>
-          )}
+          ) : (
+            <>
+              <!-- ── Панель сортировки ──────────────────────────────────── -->
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-4 bg-white border border-[#e5e5e5] rounded-[5px] px-4 py-2.5">
 
-          <!-- Другие разделы -->
-          {category.subcategories && category.subcategories.filter(s => s.slug !== subcategorySlug).length > 0 && (
-            <div class="mt-12">
-              <h2 class="text-lg font-semibold text-slate-900 mb-4">Другие разделы в «{category.title}»</h2>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {category.subcategories.filter(s => s.slug !== subcategorySlug).map(s => (
+                <!-- Сортировка -->
+                <div class="flex flex-wrap items-center gap-1">
+                  <span class="text-sm text-[#898989] mr-1 hidden sm:block">Сортировка:</span>
+
                   <a
-                    href={`/catalog/${categorySlug}/${s.slug}`}
-                    class="group flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-brand hover:shadow-sm transition-all"
+                    href={buildUrl({ sort: null, page: '1' })}
+                    class={`text-sm px-3 py-1.5 rounded-[5px] transition-colors ${
+                      sortParam === 'popular'
+                        ? 'bg-[#FFAE01] text-black font-semibold'
+                        : 'text-[#898989] hover:text-[#FFAE01]'
+                    }`}
                   >
-                    <span class="text-sm font-medium text-slate-700 group-hover:text-brand">{s.title}</span>
-                    <svg class="w-4 h-4 text-slate-400 group-hover:text-brand flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
+                    По популярности
                   </a>
+
+                  <a
+                    href={buildUrl({ sort: 'name_asc', page: '1' })}
+                    class={`text-sm px-3 py-1.5 rounded-[5px] transition-colors ${
+                      sortParam === 'name_asc'
+                        ? 'bg-[#FFAE01] text-black font-semibold'
+                        : 'text-[#898989] hover:text-[#FFAE01]'
+                    }`}
+                  >
+                    А — Я
+                  </a>
+
+                  <a
+                    href={buildUrl({ sort: 'price_asc', page: '1' })}
+                    class={`text-sm px-3 py-1.5 rounded-[5px] transition-colors ${
+                      sortParam === 'price_asc'
+                        ? 'bg-[#FFAE01] text-black font-semibold'
+                        : 'text-[#898989] hover:text-[#FFAE01]'
+                    }`}
+                    title="Цены загружаются и сортируются на странице"
+                  >
+                    Сначала дешевле
+                  </a>
+                </div>
+
+                <!-- Кол-во на странице + счётчик -->
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm text-[#898989] hidden sm:block">Показать:</span>
+                    {([30, 60] as const).map((n) => (
+                      <a
+                        href={buildUrl({ per_page: String(n), page: '1' })}
+                        class={`text-sm w-9 h-8 flex items-center justify-center rounded-[5px] border transition-colors ${
+                          PAGE_SIZE === n
+                            ? 'border-[#FFAE01] text-[#FFAE01] font-semibold bg-orange-50'
+                            : 'border-[#e5e5e5] text-[#898989] hover:border-[#FFAE01] hover:text-[#FFAE01]'
+                        }`}
+                      >
+                        {n}
+                      </a>
+                    ))}
+                  </div>
+
+                  <span class="text-sm text-[#898989] hidden xl:block whitespace-nowrap">
+                    {((page - 1) * PAGE_SIZE + 1).toLocaleString('ru-RU')}–{Math.min(page * PAGE_SIZE, totalCount).toLocaleString('ru-RU')} из {totalCount.toLocaleString('ru-RU')}
+                  </span>
+                </div>
+              </div>
+
+              <!-- ── Сетка товаров ─────────────────────────────────────── -->
+              <div
+                class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4"
+                id="products-grid"
+              >
+                {pageProducts.map((p: any) => (
+                  <ProductCard
+                    kod={p.kod}
+                    name={p.name}
+                    artikul={p.artikul}
+                    unit={p.unit}
+                    brand={p.brand}
+                    priceGroup={p.priceGroup}
+                    categorySlug={categorySlug!}
+                    subcategorySlug={subcategorySlug!}
+                  />
                 ))}
               </div>
-            </div>
+
+              <!-- ── Пагинация ─────────────────────────────────────────── -->
+              {totalPages > 1 && (
+                <div class="flex items-center justify-center flex-wrap gap-1.5 mt-8">
+                  {page > 1 && (
+                    <a
+                      href={buildUrl({ page: String(page - 1) })}
+                      class="px-4 py-2 text-sm border border-[#e5e5e5] rounded-[5px] hover:border-[#FFAE01] hover:text-[#FFAE01] transition-colors bg-white"
+                    >
+                      ← Назад
+                    </a>
+                  )}
+
+                  {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                    const p2 = Math.max(1, page - 3) + i;
+                    if (p2 > totalPages) return null;
+                    return (
+                      <a
+                        href={buildUrl({ page: String(p2) })}
+                        class={`w-10 h-10 flex items-center justify-center text-sm rounded-[5px] transition-colors ${
+                          p2 === page
+                            ? 'bg-[#FFAE01] text-black font-semibold'
+                            : 'bg-white border border-[#e5e5e5] hover:border-[#FFAE01] hover:text-[#FFAE01]'
+                        }`}
+                      >
+                        {p2}
+                      </a>
+                    );
+                  })}
+
+                  {page < totalPages && (
+                    <a
+                      href={buildUrl({ page: String(page + 1) })}
+                      class="px-4 py-2 text-sm border border-[#e5e5e5] rounded-[5px] hover:border-[#FFAE01] hover:text-[#FFAE01] transition-colors bg-white"
+                    >
+                      Вперёд →
+                    </a>
+                  )}
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
 
-      <!-- CTA -->
-      <div class="mt-12 bg-slate-900 text-white rounded-2xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <p class="font-bold text-lg">Нужна консультация по {subcategory.title.toLowerCase()}?</p>
-          <p class="text-slate-400 text-sm mt-1">Поможем подобрать под ваш проект и бюджет, рассчитаем количество</p>
+          <!-- ── CTA ────────────────────────────────────────────────────── -->
+          <div class="mt-10 bg-slate-900 text-white rounded-[10px] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p class="font-bold text-lg">Нужна консультация по {subcategory.title.toLowerCase()}?</p>
+              <p class="text-[#898989] text-sm mt-1">Поможем подобрать под ваш проект и бюджет, рассчитаем количество</p>
+            </div>
+            <a
+              href="tel:88003339495"
+              class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap"
+            >
+              Позвонить
+            </a>
+          </div>
+
         </div>
-        <a href="tel:88003339495" class="shrink-0 bg-brand hover:bg-brand-hover text-white font-semibold px-6 py-3 rounded-xl transition-colors">
-          Позвонить
-        </a>
+        <!-- └──────────────────────────────────────────────────────────────┘ -->
       </div>
-
     </div>
   </div>
 
-  <!-- Скрипт: подгружаем цены и наличие после рендера -->
-  <script define:vars={{ kodsBatch }}>
+  <!-- ══ Клиентский JS ══════════════════════════════════════════════════════ -->
+  <script define:vars={{ kodsBatch, priceMin, priceMax, sortParam }}>
+
+    // ── Утилиты ───────────────────────────────────────────────────────────────
     function fmt(n) {
       return n.toLocaleString('ru-RU') + ' ₽';
     }
 
     function fillCard(card, priceData, stockQty) {
-      const skeleton  = card.querySelector('.price-skeleton');
-      const loaded    = card.querySelector('.price-loaded');
-      const noPrice   = card.querySelector('.no-price');
-      const origEl    = card.querySelector('.original-price');
-      const dispEl    = card.querySelector('.price-display');
-      const discBadge = card.querySelector('.discount-badge');
-      const stockBadge= card.querySelector('.stock-badge');
+      const skeleton   = card.querySelector('.price-skeleton');
+      const loaded     = card.querySelector('.price-loaded');
+      const noPrice    = card.querySelector('.no-price');
+      const origEl     = card.querySelector('.original-price');
+      const dispEl     = card.querySelector('.price-display');
+      const discBadge  = card.querySelector('.discount-badge');
+      const stockBadge = card.querySelector('.stock-badge');
 
-      // ── Цены ───────────────────────────────────────────────
+      // ── Цены ─────────────────────────────────────────────────────────────
       if (skeleton) skeleton.classList.add('hidden');
 
       if (priceData && (priceData.price > 0 || priceData.discounted_price > 0)) {
         if (loaded) loaded.classList.remove('hidden');
 
-        const hasDiscount = priceData.discounted_price > 0 && priceData.discounted_price < priceData.price;
+        const hasDiscount =
+          priceData.discounted_price > 0 &&
+          priceData.discounted_price < priceData.price;
 
         if (hasDiscount) {
-          // Зачёркнутая старая цена
-          if (origEl) {
-            origEl.textContent = fmt(priceData.price);
-            origEl.classList.remove('hidden');
-          }
-          // Цена со скидкой — выделяем оранжевым
+          if (origEl) { origEl.textContent = fmt(priceData.price); origEl.classList.remove('hidden'); }
           if (dispEl) {
             dispEl.textContent = fmt(priceData.discounted_price);
             dispEl.classList.add('text-brand');
             dispEl.classList.remove('text-slate-900');
           }
-          // Бейдж "АКЦИЯ"
           if (discBadge) discBadge.classList.remove('hidden');
+          card.dataset.priceValue = String(priceData.discounted_price);
         } else {
-          // Только базовая цена
           const price = priceData.discounted_price > 0 ? priceData.discounted_price : priceData.price;
           if (dispEl) dispEl.textContent = fmt(price);
+          card.dataset.priceValue = String(price);
         }
       } else {
-        // Нет данных о цене
         if (noPrice) noPrice.classList.remove('hidden');
       }
 
-      // ── Наличие ─────────────────────────────────────────────
+      // ── Наличие ───────────────────────────────────────────────────────────
       if (stockQty !== undefined && stockBadge) {
         stockBadge.classList.remove('hidden');
         if (stockQty > 0) {
           stockBadge.textContent = 'В наличии';
-          stockBadge.className = stockBadge.className.replace(/bg-\S+|text-\S+/g, '');
-          stockBadge.classList.add(
-            'stock-badge', 'absolute', 'top-2', 'right-2',
-            'text-[10px]', 'font-semibold', 'px-1.5', 'py-0.5', 'rounded-md',
-            'bg-green-100', 'text-green-700'
-          );
+          stockBadge.className =
+            'stock-badge absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-green-100 text-green-700';
         } else {
           stockBadge.textContent = 'Под заказ';
-          stockBadge.classList.add(
-            'stock-badge', 'absolute', 'top-2', 'right-2',
-            'text-[10px]', 'font-semibold', 'px-1.5', 'py-0.5', 'rounded-md',
-            'bg-slate-100', 'text-slate-500'
-          );
+          stockBadge.className =
+            'stock-badge absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500';
         }
       }
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    // ── Загрузка цен и наличия ─────────────────────────────────────────────
+    async function loadPricesAndStock() {
       if (!kodsBatch || kodsBatch.length === 0) return;
 
-      // Грузим цены и наличие параллельно
       const [pricesRes, stockRes] = await Promise.allSettled([
         fetch('/api/catalog/prices', {
           method: 'POST',
@@ -462,6 +661,118 @@ const jsonLd = {
         if (!kod) return;
         fillCard(card, prices[kod], stock[kod]);
       });
+
+      // Клиентский фильтр по цене (если переданы price_min/price_max)
+      const pMin = priceMin ? parseFloat(priceMin) : null;
+      const pMax = priceMax ? parseFloat(priceMax) : null;
+      if (pMin !== null || pMax !== null) {
+        applyPriceFilter(pMin, pMax);
+      }
+
+      // Клиентская сортировка по цене
+      if (sortParam === 'price_asc' || sortParam === 'price_desc') {
+        sortCardsByPrice(sortParam === 'price_asc');
+      }
+
+      // Обновить слайдер цен
+      updatePriceSlider();
+    }
+
+    // ── Клиентский фильтр по цене ──────────────────────────────────────────
+    function applyPriceFilter(pMin, pMax) {
+      document.querySelectorAll('[data-product-kod]').forEach(card => {
+        const val = parseFloat(card.dataset.priceValue || '0');
+        let show = true;
+        if (pMin !== null && val > 0 && val < pMin) show = false;
+        if (pMax !== null && val > 0 && val > pMax) show = false;
+        card.style.display = show ? '' : 'none';
+      });
+    }
+
+    // ── Сортировка карточек по цене ────────────────────────────────────────
+    function sortCardsByPrice(ascending) {
+      const grid = document.getElementById('products-grid');
+      if (!grid) return;
+      const cards = Array.from(grid.querySelectorAll('[data-product-kod]'));
+      cards.sort((a, b) => {
+        const pA = parseFloat(a.dataset.priceValue || '0');
+        const pB = parseFloat(b.dataset.priceValue || '0');
+        if (pA === 0 && pB === 0) return 0;
+        if (pA === 0) return ascending ? 1 : -1;
+        if (pB === 0) return ascending ? -1 : 1;
+        return ascending ? pA - pB : pB - pA;
+      });
+      cards.forEach(card => grid.appendChild(card));
+    }
+
+    // ── Слайдер цен (визуальный) ───────────────────────────────────────────
+    function updatePriceSlider() {
+      const cards = Array.from(document.querySelectorAll('[data-product-kod]'));
+      const prices = cards
+        .map(c => parseFloat(c.dataset.priceValue || '0'))
+        .filter(p => p > 0);
+
+      if (prices.length === 0) return;
+
+      const minAll = Math.min(...prices);
+      const maxAll = Math.max(...prices);
+      if (minAll >= maxAll) return;
+
+      const curMin = priceMin ? Math.max(parseFloat(priceMin), minAll) : minAll;
+      const curMax = priceMax ? Math.min(parseFloat(priceMax), maxAll) : maxAll;
+
+      const fill = document.getElementById('price-slider-fill');
+      if (fill) {
+        const left  = ((curMin - minAll) / (maxAll - minAll)) * 100;
+        const right = 100 - ((curMax - minAll) / (maxAll - minAll)) * 100;
+        fill.style.left  = left + '%';
+        fill.style.right = right + '%';
+      }
+
+      // Заполнить плейсхолдеры полей диапазона ценой
+      const minInput = document.getElementById('price-min-input');
+      const maxInput = document.getElementById('price-max-input');
+      if (minInput && !minInput.value) minInput.placeholder = Math.floor(minAll).toLocaleString('ru-RU');
+      if (maxInput && !maxInput.value) maxInput.placeholder = Math.ceil(maxAll).toLocaleString('ru-RU');
+    }
+
+    // ── Мобильный сайдбар ─────────────────────────────────────────────────
+    const mobileBtn  = document.getElementById('mobile-filter-btn');
+    const sidebar    = document.getElementById('catalog-sidebar');
+    if (mobileBtn && sidebar) {
+      mobileBtn.addEventListener('click', () => {
+        const isHidden = sidebar.classList.contains('hidden');
+        if (isHidden) {
+          sidebar.classList.remove('hidden');
+          sidebar.classList.add('block', 'w-full', 'mb-4');
+        } else {
+          sidebar.classList.add('hidden');
+          sidebar.classList.remove('block', 'w-full', 'mb-4');
+        }
+      });
+    }
+
+    // ── Раскрыть все бренды ────────────────────────────────────────────────
+    const showAllBrandsBtn = document.getElementById('show-all-brands');
+    if (showAllBrandsBtn) {
+      showAllBrandsBtn.addEventListener('click', () => {
+        const extras = document.querySelectorAll('.brand-extra');
+        const isCollapsed = extras.length > 0 && extras[0].classList.contains('hidden');
+        extras.forEach(el => el.classList.toggle('hidden'));
+        showAllBrandsBtn.textContent = isCollapsed
+          ? 'Скрыть ▴'
+          : `Ещё ${extras.length} брендов ▾`;
+      });
+    }
+
+    // ── Радиокнопка бренда → авто-сабмит формы ───────────────────────────
+    document.querySelectorAll('input[name="brand"]').forEach(input => {
+      input.addEventListener('change', () => {
+        document.getElementById('filter-form')?.submit();
+      });
     });
+
+    document.addEventListener('DOMContentLoaded', loadPricesAndStock);
   </script>
+
 </BaseLayout>
