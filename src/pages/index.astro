@@ -1,5 +1,4 @@
 ---
-// TODO: сверить все секции с Figma «Главная страница» когда сбросится rate limit
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CategoryCard from '../components/catalog/CategoryCard.astro';
 import { categories } from '../data/categories';
@@ -109,10 +108,12 @@ const jsonLd = {
           </a>
         </div>
 
-        <!-- Slider dots: Figma 136:684, row gap:10, at x:91,y:557 -->
-        <div class="absolute hidden lg:flex items-center gap-[10px]" style="left:91px;top:557px;">
-          <div class="w-[10px] h-[10px] rounded-full bg-white"></div>
-          <div class="w-[20px] h-[20px] rounded-full bg-white/40"></div>
+        <!-- Slider dots: Figma 136:684, 5 dots row gap:8, at x:91,y:557. Active=3rd orange -->
+        <div class="absolute hidden lg:flex items-center gap-[8px]" style="left:91px;top:557px;">
+          <div class="w-[10px] h-[10px] rounded-full bg-white/40"></div>
+          <div class="w-[10px] h-[10px] rounded-full bg-white/40"></div>
+          <div class="w-[10px] h-[10px] rounded-full bg-[#FFAE01]"></div>
+          <div class="w-[10px] h-[10px] rounded-full bg-white/40"></div>
           <div class="w-[10px] h-[10px] rounded-full bg-white/40"></div>
         </div>
       </div>
@@ -137,17 +138,51 @@ const jsonLd = {
           </p>
         </div>
 
-        <!-- Inputs: Figma 136:697, column gap:15, each 482×58 -->
+        <!-- Inputs: Figma 136:697 — площадь (+ calc icon) / материал (select) / производитель (select) -->
         <form id="hero-calc-form" class="flex flex-col gap-[15px]">
-          <input type="text" name="name" placeholder="Ваше имя"
-                 class="h-[58px] px-[20px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]"
-                 style="width:100%;" />
-          <input type="tel" name="phone" placeholder="Ваш телефон"
-                 class="h-[58px] px-[20px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]"
-                 style="width:100%;" />
-          <input type="email" name="email" placeholder="Ваш email"
-                 class="h-[58px] px-[20px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]"
-                 style="width:100%;" />
+
+          <!-- "Введите площадь" + orange circle calc icon (Figma: input with icon at right) -->
+          <div class="relative">
+            <input type="text" name="area" placeholder="Введите площадь"
+                   class="h-[58px] pl-[20px] pr-[68px] w-full bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+            <!-- Orange circle button with % icon -->
+            <button type="button" aria-label="Калькулятор"
+                    class="absolute right-[10px] top-1/2 -translate-y-1/2 w-[38px] h-[38px] rounded-full bg-[#FFAE01] flex items-center justify-center flex-shrink-0 hover:bg-[#E09800] transition-colors">
+              <span class="text-[#333333] font-bold text-[16px] leading-none">%</span>
+            </button>
+          </div>
+
+          <!-- "Выберите материал" dropdown -->
+          <div class="relative">
+            <select name="material"
+                    class="h-[58px] px-[20px] w-full bg-white rounded-[5px] text-[16px] text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01] appearance-none cursor-pointer">
+              <option value="" disabled selected>Выберите материал</option>
+              <option value="metallocherepitsa">Металлочерепица</option>
+              <option value="gibkaya-cherepitsa">Гибкая черепица</option>
+              <option value="profnastil">Профнастил</option>
+              <option value="faltsevaya">Фальцевая кровля</option>
+              <option value="sayding">Сайдинг</option>
+            </select>
+            <svg class="absolute right-[18px] top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="8" fill="none" viewBox="0 0 14 8">
+              <path d="M1 1l6 6 6-6" stroke="#898989" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <!-- "Выберите производителя" dropdown -->
+          <div class="relative">
+            <select name="manufacturer"
+                    class="h-[58px] px-[20px] w-full bg-white rounded-[5px] text-[16px] text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01] appearance-none cursor-pointer">
+              <option value="" disabled selected>Выберите производителя</option>
+              <option value="grandline">GrandLine</option>
+              <option value="docke">DÖCKE</option>
+              <option value="texnonikolb">ТЕХНОНИКОЛЬ</option>
+              <option value="metalloprofil">Металл Профиль</option>
+              <option value="stynergy">Stynergy</option>
+            </select>
+            <svg class="absolute right-[18px] top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="8" fill="none" viewBox="0 0 14 8">
+              <path d="M1 1l6 6 6-6" stroke="#898989" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
 
           <!-- Button: Figma 136:713, 482×50, bg Orange, radius 5px, Inter 600 18px Black -->
           <button type="submit"
@@ -155,11 +190,6 @@ const jsonLd = {
                   style="width:100%;">
             Получить расчет
           </button>
-
-          <!-- Согласие: Figma 136:715 -->
-          <p class="text-center text-[12px] text-[#898989] leading-tight">
-            Нажимая кнопку, вы соглашаетесь с&nbsp;<a href="/politika-konfidentsialnosti" class="underline hover:text-[#333333]">политикой конфиденциальности</a>
-          </p>
         </form>
       </div>
     </div>
@@ -353,8 +383,8 @@ const jsonLd = {
         <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
       </div>
 
-      <!-- Filter buttons: Figma 136:454, justify flex-end, gap:20, each 194×40 -->
-      <div class="flex justify-end gap-[20px]">
+      <!-- Filter buttons: Figma 136:454, LEFT aligned, gap:20, each 194×40 -->
+      <div class="flex gap-[20px]">
         <button class="bg-[#FFAE01] rounded-[5px] text-[#333333] text-[16px] font-medium"
                 style="width:194px;height:40px;padding:0 20px;">Распродажа</button>
         <button class="bg-[#E9E9E9] rounded-[5px] text-[#898989] text-[16px] font-medium hover:bg-[#d8d8d8] transition-colors"
@@ -658,8 +688,8 @@ const jsonLd = {
         <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
       </div>
 
-      <!-- Filter buttons -->
-      <div class="flex justify-end gap-[20px]">
+      <!-- Filter buttons: Figma LEFT aligned, gap:20, each 194×40 -->
+      <div class="flex gap-[20px]">
         <button class="bg-[#FFAE01] rounded-[5px] text-[#333333] text-[16px] font-medium"
                 style="width:194px;height:40px;padding:0 20px;">Кровля</button>
         <button class="bg-[#E9E9E9] rounded-[5px] text-[#898989] text-[16px] font-medium hover:bg-[#d8d8d8] transition-colors"
@@ -735,7 +765,7 @@ const jsonLd = {
   </section>
 
   <!-- ========== 7 ЭКРАН: КАЛЬКУЛЯТОРЫ / СЕРВИСЫ (Figma 139:2506) ========== -->
-  <!-- Pattern matches Figma: H2 42px Montserrat + inline line, white section bg, calc cards bg #F5F5F5 -->
+  <!-- Figma: 1804×753. Vertical gap:50. Heading row full-width + 2-col row (links 571×610 LEFT + photo flex-1 RIGHT) -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex flex-col gap-[50px]">
       <!-- Heading row -->
@@ -747,26 +777,37 @@ const jsonLd = {
         <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
       </div>
 
-      <!-- Калькуляторы grid — карточки bg #F5F5F5 -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]">
-        {[
-          { label: 'Расчёт кровли из металлочерепицы', href: '/servisy/metallocherepitsa' },
-          { label: 'Расчёт кровли из профнастила', href: '/servisy/profnastil' },
-          { label: 'Калькулятор гибкой черепицы', href: '/servisy/gibkaya-cherepitsa' },
-          { label: 'Расчёт фасадных панелей', href: '/servisy/fasadnye-paneli' },
-          { label: 'Расчёт винилового сайдинга', href: '/servisy/vinilovyy-sayding' },
-          { label: 'Расчёт водостока', href: '/servisy/vodostok' },
-          { label: 'Расчёт фальцевой кровли', href: '/servisy/faltsevaya-krovlya' },
-        ].map(calc => (
-          <a href={calc.href}
-             class="group flex items-center justify-between bg-[#F5F5F5] rounded-[5px] hover:bg-[#FFAE01] transition-colors"
-             style="height:70px;padding:0 25px;">
-            <span class="text-[#333333] text-[18px] font-medium">{calc.label}</span>
-            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors flex-shrink-0">
-              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </span>
-          </a>
-        ))}
+      <!-- 2-col row: links LEFT (571px fixed) + photo RIGHT (flex-1) -->
+      <div class="flex flex-col lg:flex-row gap-[20px]" style="min-height:610px;">
+
+        <!-- Left: vertical list of 7 links, gap:20, each 571×70 -->
+        <div class="flex flex-col gap-[20px] flex-shrink-0" style="width:100%;max-width:571px;">
+          {[
+            { label: 'Расчёт кровли из металлочерепицы', href: '/servisy/metallocherepitsa' },
+            { label: 'Расчёт кровли из профнастила', href: '/servisy/profnastil' },
+            { label: 'Калькулятор гибкой черепицы', href: '/servisy/gibkaya-cherepitsa' },
+            { label: 'Расчёт фасадных панелей', href: '/servisy/fasadnye-paneli' },
+            { label: 'Расчёт винилового сайдинга', href: '/servisy/vinilovyy-sayding' },
+            { label: 'Расчёт водостока', href: '/servisy/vodostok' },
+            { label: 'Расчёт фальцевой кровли', href: '/servisy/faltsevaya-krovlya' },
+          ].map(calc => (
+            <a href={calc.href}
+               class="group flex items-center justify-between bg-[#F5F5F5] rounded-[5px] hover:bg-[#FFAE01] transition-colors flex-shrink-0"
+               style="height:70px;padding:0 25px;">
+              <span class="text-[#333333] text-[18px] font-medium">{calc.label}</span>
+              <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors flex-shrink-0">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+              </span>
+            </a>
+          ))}
+        </div>
+
+        <!-- Right: large photo, fill remaining space, rounded 5px -->
+        <div class="flex-1 relative rounded-[5px] overflow-hidden hidden lg:block" style="min-height:400px;">
+          <img src="/images/categories/krovlya.png" alt="Кровельные работы"
+               class="absolute inset-0 w-full h-full object-cover" />
+        </div>
+
       </div>
     </div>
   </section>
@@ -870,26 +911,28 @@ const jsonLd = {
             },
           ].map(r => (
             <div class="bg-white rounded-[5px] flex flex-col gap-[15px]" style="height:307px;padding:25px;">
-              <!-- Header: avatar + name + rating -->
-              <div class="flex items-start justify-between">
+              <!-- Header: round avatar + name LEFT, 5 star-icons RIGHT (Figma layout) -->
+              <div class="flex items-center justify-between">
                 <div class="flex items-center gap-[12px]">
-                  <div class="w-[50px] h-[50px] rounded-full bg-[#FFAE01] flex items-center justify-center text-white text-[20px] font-semibold flex-shrink-0">
+                  <!-- Round placeholder avatar with initial letter -->
+                  <div class="w-[50px] h-[50px] rounded-full bg-[#E9E9E9] flex items-center justify-center text-[#898989] text-[20px] font-semibold flex-shrink-0 overflow-hidden">
                     {r.name.charAt(0)}
                   </div>
-                  <div class="flex flex-col">
-                    <span class="text-[#333333] text-[16px] font-semibold leading-tight">{r.name}</span>
-                    <span class="text-[#898989] text-[13px]">{r.city}</span>
-                  </div>
+                  <span class="text-[#333333] text-[16px] font-semibold leading-tight">{r.name}</span>
                 </div>
-                <div class="flex items-center gap-[5px] bg-[#333333] rounded-[5px]" style="padding:2px 7px;height:25px;">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>
-                  <span class="text-white text-[13px]">{r.rating}</span>
+                <!-- 5 individual orange stars (no dark badge) -->
+                <div class="flex items-center gap-[2px]">
+                  {[1,2,3,4,5].map(() => (
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>
+                  ))}
                 </div>
               </div>
-              <!-- Text -->
+              <!-- Review text -->
               <p class="text-[#333333] text-[14px] leading-[1.4] flex-1 overflow-hidden">{r.text}</p>
-              <!-- Date -->
-              <span class="text-[#898989] text-[13px]">{r.date}</span>
+              <!-- "Читать весь отзыв" link -->
+              <a href="/otzyvy" class="text-[#333333] text-[13px] underline hover:text-[#FFAE01] transition-colors self-start">
+                Читать весь отзыв
+              </a>
             </div>
           ))}
         </div>
@@ -960,8 +1003,9 @@ const jsonLd = {
   </section>
 
   <!-- ========== 11 ЭКРАН: ГОТОВЫЕ РЕШЕНИЯ (Figma 141:2921) ========== -->
-  <!-- 1799×604. Heading 862×55 + subtitle + Item card area 1800×407 with slider arrows 1850×50 -->
-  <!-- 3 solution cards 586×407 each (3×586 + 2×20 gap = 1798) -->
+  <!-- 1800×604. Heading + subtitle + 4 category-style photo cards 435×407 + slider arrows. -->
+  <!-- Each card: full-photo bg, white label bar at bottom (2-line: title + count + arrow). -->
+  <!-- First card dark label bg + orange text = active/highlighted (like Мансардные окна). -->
   <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex flex-col gap-[40px]">
       <div class="flex items-end gap-[25px]">
@@ -976,59 +1020,43 @@ const jsonLd = {
         У-Стройка&nbsp;— это компания, готовая решить все&nbsp;ваши задачи по&nbsp;ремонту и&nbsp;строительству крыш. Благодаря нашим готовым решениям, вы&nbsp;сэкономите более 10% только на&nbsp;стоимости материалов!
       </p>
 
-      <!-- 3 solution cards 586×407 + slider arrows -->
+      <!-- 4 solution category cards 435×407 + slider arrows -->
       <div class="relative">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+        <!-- Cards: 4 × flex-1 + 3 × 20px gap = 1800px on desktop -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
           {[
-            {
-              title: 'Кровля «Эконом»',
-              area: 'Дом до 100 м²',
-              price: 'от 85 000 ₽',
-              items: ['Металлочерепица 0,45мм', 'Доборные элементы', 'Водосточная система', 'Крепёж и саморезы'],
-              img: '/images/categories/krovlya.png',
-            },
-            {
-              title: 'Кровля «Стандарт»',
-              area: 'Дом 100—150 м²',
-              price: 'от 145 000 ₽',
-              items: ['Металлочерепица 0,5мм PE', 'Полный комплект доборки', 'Водосток + воронки', 'Антиконденсатная плёнка'],
-              img: '/images/categories/profnastil.png',
-            },
-            {
-              title: 'Кровля «Премиум»',
-              area: 'Дом 150—250 м²',
-              price: 'от 285 000 ₽',
-              items: ['Композитная черепица', 'Утепление 200мм', 'Снегозадержание + ливневка', 'Мансардные окна Velux'],
-              img: '/images/categories/mansardnye.png',
-            },
+            { title: 'Плоская крыша',           count: '8 готовых решений',  img: '/images/categories/krovlya.png',    href: '/resheniya/ploskaya-krysha'    },
+            { title: 'Фасад',                   count: '52 готовых решения', img: '/images/categories/fasad.png',      href: '/resheniya/fasad'               },
+            { title: 'Стены и&nbsp;перегородки', count: '30 готовых решений', img: '/images/categories/dobornye.png',   href: '/resheniya/steny-i-peregorodki' },
+            { title: 'Скатная крыша',           count: '5 готовых решений',  img: '/images/categories/mansardnye.png', href: '/resheniya/skatnaya-krysha'     },
           ].map(s => (
-            <div class="bg-white rounded-[5px] flex flex-col overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.08)]" style="height:407px;">
-              <!-- Photo top -->
-              <div class="relative bg-[#F5F5F5] flex-shrink-0" style="height:180px;">
-                <img src={s.img} alt="" class="absolute inset-0 w-full h-full object-cover" />
-                <span class="absolute top-[15px] left-[15px] bg-[#FFAE01] text-[#333333] font-semibold text-[13px] rounded-[5px]" style="padding:4px 10px;">{s.area}</span>
-              </div>
-              <!-- Content -->
-              <div class="flex flex-col gap-[12px] flex-1" style="padding:20px;">
-                <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[20px] leading-[1.2]">{s.title}</h3>
-                <ul class="flex flex-col gap-[6px] flex-1">
-                  {s.items.map(item => (
-                    <li class="flex items-start gap-[8px] text-[#333333] text-[13px] leading-[1.3]">
-                      <svg width="14" height="14" fill="none" stroke="#4AC71E" stroke-width="2.5" viewBox="0 0 24 24" class="flex-shrink-0 mt-[2px]"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div class="flex items-center justify-between mt-auto">
-                  <span class="text-[#333333] font-bold text-[20px] leading-[1.21]">{s.price}</span>
-                  <a href="/catalog" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[13px] rounded-[5px] transition-colors flex items-center justify-center" style="width:110px;height:36px;">Узнать&nbsp;больше</a>
+            <a href={s.href}
+               class="group relative block rounded-[5px] overflow-hidden bg-[#464646]"
+               style="height:407px;">
+              <!-- Full-photo background -->
+              <img src={s.img} alt={s.title}
+                   class="absolute inset-0 w-full h-full object-cover" />
+              <!-- Floating label bar: inset 20px from bottom/sides, height 65px -->
+              <div class="absolute bg-white rounded-[5px] flex items-center justify-between"
+                   style="bottom:20px;left:20px;right:20px;height:65px;padding:0 15px;">
+                <div class="flex flex-col gap-[3px]">
+                  <span class="font-[Montserrat] font-semibold text-[#333333] text-[18px] leading-tight"
+                        set:html={s.title}></span>
+                  <span class="text-[#898989] text-[13px]">{s.count}</span>
                 </div>
+                <!-- Diagonal external-link arrow button 30×30 -->
+                <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] flex-shrink-0 group-hover:bg-[#333333] transition-colors">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                       class="text-[#333333] group-hover:text-white">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                </span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
 
-        <!-- Slider arrows -->
+        <!-- Slider arrows (decorative, outside card row) -->
         <div class="hidden lg:flex absolute -left-[26px] -right-[26px] top-1/2 -translate-y-1/2 justify-between pointer-events-none">
           <button class="pointer-events-auto w-[50px] h-[50px] rounded-full bg-white shadow-[0_0_10px_rgba(0,0,0,0.1)] flex items-center justify-center hover:bg-[#FFAE01] transition-colors" aria-label="Назад">
             <svg width="10" height="14" fill="none" stroke="#333333" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
@@ -1042,9 +1070,9 @@ const jsonLd = {
   </section>
 
   <!-- ========== 12 ЭКРАН: СПЕКТР УСЛУГ (Figma 146:959) ========== -->
-  <!-- 1920×800. Heading + 6 услуг карточки с иконками -->
+  <!-- 1920×800. Heading + 7 cards: Row1=4 (card1 photo+orange header, cards2-4 dark header+text), Row2=3 dark header+text -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
-    <div class="flex flex-col gap-[50px]">
+    <div class="flex flex-col gap-[40px]">
       <div class="flex items-end gap-[25px]">
         <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
           Предоставляем весь спектр необходимых услуг
@@ -1052,41 +1080,70 @@ const jsonLd = {
         <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
       </div>
 
-      <p class="text-[#333333] text-[18px] leading-[1.3]" style="max-width:1100px;">
-        Полный цикл работ от&nbsp;замера и&nbsp;расчёта до&nbsp;монтажа под&nbsp;ключ. Наши мастера&nbsp;— сертифицированные специалисты с&nbsp;опытом более 8&nbsp;лет.
-      </p>
+      <!-- Row 1: 4 cards — first is featured (photo + orange header at top), rest = dark header + text -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
 
-      <!-- 6 service cards with icons -->
+        <!-- Featured card: photo bg + orange header at TOP, 250px tall -->
+        <a href="/uslugi/podboj-karnizov"
+           class="group relative block rounded-[5px] overflow-hidden bg-[#464646]"
+           style="height:250px;">
+          <img src="/images/categories/krovlya.png" alt=""
+               class="absolute inset-0 w-full h-full object-cover" />
+          <div class="absolute top-0 left-0 right-0 flex items-center justify-between bg-[#FFAE01]"
+               style="height:55px;padding:0 20px;">
+            <span class="font-[Montserrat] font-semibold text-[#333333] text-[15px] leading-tight">
+              Подбой карнизных свесов
+            </span>
+            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] flex-shrink-0 group-hover:bg-[#333333] transition-colors">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                   class="text-[#333333] group-hover:text-white">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+
+        <!-- Regular cards 2-4: white bg + dark header bar at top + description -->
+        {[
+          { title: 'Монтажные работы по фасаду',  desc: 'Монтаж фасадных панелей, сайдинга и подсистемы — полный цикл облицовки здания.',       href: '/uslugi/fasad'     },
+          { title: 'Монтаж водосточной системы',  desc: 'Установка металлических и пластиковых водостоков с гарантией герметичности швов.',      href: '/uslugi/vodostok'  },
+          { title: 'Монтаж стропильной системы',  desc: 'Сборка стропильной конструкции любой сложности под кровельный пирог под&nbsp;ключ.',   href: '/uslugi/stropila'  },
+        ].map(u => (
+          <a href={u.href} class="group block rounded-[5px] overflow-hidden bg-white shadow-[0_4px_20px_rgba(0,0,0,0.07)]">
+            <!-- Dark header bar: title left + arrow right -->
+            <div class="flex items-center justify-between bg-[#333333]" style="height:55px;padding:0 20px;">
+              <span class="font-[Montserrat] font-semibold text-white text-[15px] leading-tight">{u.title}</span>
+              <span class="flex items-center justify-center w-[30px] h-[30px] border border-white/40 rounded-[5px] flex-shrink-0 group-hover:bg-white transition-colors">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                     class="text-white group-hover:text-[#333333]">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+              </span>
+            </div>
+            <!-- Description text -->
+            <p class="text-[#333333] text-[13px] leading-[1.5]" style="padding:20px;" set:html={u.desc}></p>
+          </a>
+        ))}
+      </div>
+
+      <!-- Row 2: 3 equal cards — dark header + text -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]">
         {[
-          { title: 'Расчёт материалов', desc: 'Точный расчёт стоимости и вызов замерщика на объект', href: '/uslugi/raschet',
-            icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-          { title: 'Подбой карнизных свесов', desc: 'Закрытие свесов сайдингом или софитами', href: '/uslugi/podboj-karnizov',
-            icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-          { title: 'Монтаж фасада', desc: 'Установка фасадных панелей и сайдинга по технологии', href: '/uslugi/fasad',
-            icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-          { title: 'Монтаж кровли', desc: 'Полный комплекс работ от стропил до конька', href: '/uslugi/montazh-krovli',
-            icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-          { title: 'Монтаж водостока', desc: 'Установка водосточной системы с воронками и креплениями', href: '/uslugi/vodostok',
-            icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-          { title: 'Монтаж стропил', desc: 'Сборка стропильной системы под кровельный пирог', href: '/uslugi/stropila',
-            icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+          { title: 'Расчёт материалов и вызов замерщика', desc: 'Точный расчёт объёма и стоимости материалов, выезд специалиста на объект бесплатно.',    href: '/uslugi/raschet'           },
+          { title: 'Монтаж кровельного покрытия',        desc: 'Укладка металлочерепицы, гибкой черепицы, профнастила и фальца по технологии завода.',     href: '/uslugi/montazh-krovli'    },
+          { title: 'Бесплатная доставка',                desc: 'Доставка материалов на объект включена в стоимость заказа от&nbsp;50&nbsp;000&nbsp;₽.',     href: '/uslugi/dostavka'          },
         ].map(u => (
-          <a href={u.href} class="group flex flex-col gap-[15px] bg-[#F5F5F5] rounded-[5px] hover:bg-[#FFAE01] transition-colors"
-             style="height:180px;padding:25px;">
-            <!-- Icon circle 50×50 bg orange (turns dark on hover) -->
-            <div class="flex items-center justify-between">
-              <span class="flex items-center justify-center w-[50px] h-[50px] rounded-full bg-[#FFAE01] group-hover:bg-[#333333] transition-colors">
-                <svg width="24" height="24" fill="none" stroke="#333333" stroke-width="1.8" viewBox="0 0 24 24" class="group-hover:stroke-white"><path stroke-linecap="round" stroke-linejoin="round" d={u.icon}/></svg>
-              </span>
-              <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors flex-shrink-0">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          <a href={u.href} class="group block rounded-[5px] overflow-hidden bg-white shadow-[0_4px_20px_rgba(0,0,0,0.07)]">
+            <div class="flex items-center justify-between bg-[#333333]" style="height:55px;padding:0 20px;">
+              <span class="font-[Montserrat] font-semibold text-white text-[15px] leading-tight">{u.title}</span>
+              <span class="flex items-center justify-center w-[30px] h-[30px] border border-white/40 rounded-[5px] flex-shrink-0 group-hover:bg-white transition-colors">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                     class="text-white group-hover:text-[#333333]">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
               </span>
             </div>
-            <div class="flex flex-col gap-[6px]">
-              <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px] leading-[1.2]" set:html={u.title}></h3>
-              <p class="text-[#333333] text-[13px] leading-[1.3]">{u.desc}</p>
-            </div>
+            <p class="text-[#333333] text-[13px] leading-[1.5]" style="padding:20px;" set:html={u.desc}></p>
           </a>
         ))}
       </div>
@@ -1094,66 +1151,58 @@ const jsonLd = {
   </section>
 
   <!-- ========== 13 ЭКРАН: ВОДОСТОК CTA (Figma 146:925) ========== -->
-  <!-- 1800×638. CTA-баннер с тегом «Водосточная система» -->
+  <!-- 1800×638. Full house photo bg. Heading left (dark text on sky). Popup card right. border-radius:15px -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:80px;">
-    <div class="relative bg-[#464646] rounded-[5px] overflow-hidden" style="height:520px;">
-      <!-- Decorative orange circle (top-right) -->
-      <div class="hidden lg:block absolute rounded-full bg-[#FFAE01] pointer-events-none"
-           style="width:420px;height:420px;right:-100px;top:-100px;opacity:0.95;"></div>
+    <!-- Container: 1800×638, radius:15px, overflow:hidden, full photo bg -->
+    <div class="relative overflow-hidden" style="height:638px;border-radius:15px;background:#dde8f0;">
+      <!-- Full photo background (house + sky). TODO: replace hero-building.png with house-exterior.jpg -->
+      <img src="/images/hero-building.png" alt=""
+           class="absolute inset-0 w-full h-full object-cover" />
 
-      <!-- Building photo (right side) -->
-      <img src="/images/hero-building.png" alt="" class="hidden lg:block absolute pointer-events-none object-cover"
-           style="right:0;top:60px;width:780px;height:520px;opacity:0.85;mix-blend-mode:luminosity;" />
-
-      <!-- Dark gradient overlay on left for text readability -->
-      <div class="absolute inset-0 bg-gradient-to-r from-[#464646] via-[#464646]/95 to-transparent pointer-events-none" style="width:65%;"></div>
-
-      <!-- Info block left -->
-      <div class="absolute z-10 flex flex-col gap-[25px] p-6 lg:p-0"
-           style="left:60px;top:60px;max-width:680px;">
-
-        <!-- Tag «Водосточная система» -->
-        <span class="inline-flex items-center bg-[#FFAE01] text-[#333333] text-[14px] font-semibold rounded-[5px] self-start"
-              style="padding:6px 14px;height:32px;">
-          Водосточная система
-        </span>
-
-        <h2 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[42px] leading-[1.22]">
+      <!-- Heading: large dark text on left, overlaid on the sky/light part of photo -->
+      <div class="absolute z-10 flex flex-col justify-center p-8 lg:p-0"
+           style="left:60px;top:50%;transform:translateY(-50%);max-width:620px;">
+        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[28px] lg:text-[42px] leading-[1.22]">
           Приготовьтесь к&nbsp;обновлению крыши по&nbsp;очень приятной цене
         </h2>
-        <p class="text-[#F5F5F5] text-[18px] leading-[1.3]" style="max-width:520px;">
-          Необходима для&nbsp;отвода атмосферных осадков с&nbsp;кровли до&nbsp;места стояка.
-          Гарантия 25&nbsp;лет, материалы Grand Line и&nbsp;Docke по&nbsp;лучшим ценам.
-        </p>
-
-        <!-- Features list -->
-        <ul class="flex flex-col gap-[10px]">
-          {[
-            'Бесплатная доставка по Москве и МО',
-            'Точный расчёт за 20 минут',
-            'Возврат за наш счёт при браке',
-          ].map(f => (
-            <li class="flex items-center gap-[10px] text-[#F5F5F5] text-[15px]">
-              <span class="flex items-center justify-center w-[20px] h-[20px] rounded-full bg-[#FFAE01] flex-shrink-0">
-                <svg width="10" height="10" fill="none" stroke="#333333" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-              </span>
-              {f}
-            </li>
-          ))}
-        </ul>
-
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-[20px] mt-[10px]">
-          <a href="/catalog/vodostochnye-sistemy"
-             class="inline-flex items-center justify-center gap-3 bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] text-[18px] font-semibold rounded-[5px] transition-colors"
-             style="width:252px;height:50px;">
-            Перейти в&nbsp;каталог
-            <svg width="14" height="14" fill="none" stroke="#333333" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </a>
-          <a href="/calculator" class="text-white text-[16px] underline hover:text-[#FFAE01] transition-colors">
-            Рассчитать стоимость
-          </a>
-        </div>
       </div>
+
+      <!-- Popup card: white, right side, centered vertically -->
+      <!-- Figma: ~380px wide, shadow, close × button, title + desc + orange button -->
+      <div class="hidden lg:flex flex-col gap-[15px] absolute z-10 bg-white rounded-[10px] shadow-[0_10px_40px_rgba(0,0,0,0.15)]"
+           style="right:60px;top:50%;transform:translateY(-50%);width:380px;padding:25px;">
+        <!-- Close button -->
+        <button class="absolute top-[12px] right-[12px] flex items-center justify-center w-[24px] h-[24px] text-[#898989] hover:text-[#333333] text-[18px] leading-none" aria-label="Закрыть">
+          ×
+        </button>
+        <!-- Card title -->
+        <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[20px] leading-[1.2]">
+          Водосточная система
+        </h3>
+        <!-- Card description -->
+        <p class="text-[#333333] text-[14px] leading-[1.5]">
+          Необходима для&nbsp;отвода атмосферных осадков с&nbsp;кровли до&nbsp;места стока
+        </p>
+        <!-- CTA button -->
+        <a href="/catalog/vodostochnye-sistemy"
+           class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[16px] rounded-[5px] transition-colors"
+           style="height:50px;">
+          Перейти в&nbsp;каталог
+        </a>
+      </div>
+
+      <!-- Mobile fallback: card below the image -->
+    </div>
+
+    <!-- Mobile: card below the banner -->
+    <div class="lg:hidden mt-[20px] flex flex-col gap-[15px] bg-white rounded-[10px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] p-[25px]">
+      <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">Водосточная система</h3>
+      <p class="text-[#333333] text-[14px] leading-[1.5]">Необходима для отвода атмосферных осадков с кровли до места стока</p>
+      <a href="/catalog/vodostochnye-sistemy"
+         class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[16px] rounded-[5px] transition-colors"
+         style="height:50px;">
+        Перейти в&nbsp;каталог
+      </a>
     </div>
   </section>
 
