@@ -12,8 +12,25 @@ import { resolve } from 'node:path';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ProductCard from '../../../components/catalog/ProductCard.astro';
 import { categories } from '../../../data/categories';
+import { catalogSlugAliases } from '../../../data/catalogSlugMap';
 
 const { category: categorySlug, subcategory: subcategorySlug } = Astro.params;
+
+// ─── 301-редиректы для target slug-алиасов ──────────────────────────────────
+// Если входящий slug совпадает с "targetCategory/targetSubcategory" из маппинга,
+// отдаём 301 на currentCategory/currentSubcategory.
+const alias = catalogSlugAliases.find(a =>
+  a.targetCategory === categorySlug &&
+  (a.targetSubcategory ?? '') === (subcategorySlug ?? '')
+);
+if (alias) {
+  const dest = `/catalog/${alias.currentCategory}/${alias.currentSubcategory ?? subcategorySlug}/`;
+  const qs = Astro.url.search;
+  return new Response(null, {
+    status: 301,
+    headers: { Location: dest + qs, 'Cache-Control': 'public, max-age=31536000' },
+  });
+}
 
 const category = categories.find(c => c.slug === categorySlug);
 const subcategory = category?.subcategories?.find(s => s.slug === subcategorySlug);
