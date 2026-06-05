@@ -27,8 +27,8 @@ const jsonLd = {
     {
       "@type": "CollectionPage",
       "@id": canonicalURL,
-      "name": `${category.title} — У-Стройка`,
-      "description": `${category.title} — ${category.description} Москва и МО.`,
+      "name": `${category.title} — купить в Москве · У-Стройка`,
+      "description": `${category.title} в Москве и МО — ${category.description}`,
       "url": canonicalURL,
       "breadcrumb": { "@type": "BreadcrumbList" },
       "isPartOf": { "@id": "https://ystroika.ru/#website" }
@@ -38,8 +38,8 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title={category.title}
-  description={`${category.title} — ${category.description} Москва и МО, доставка за 1 день.`}
+  title={`${category.title} — купить в Москве`}
+  description={`${category.title} в Москве и МО — ${category.description} Широкий ассортимент, доставка за 1 день, гарантия лучшей цены.`}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
   <div class="bg-[#f5f5f5] min-h-screen">
@@ -101,7 +101,7 @@ const jsonLd = {
       <!-- CTA -->
       <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
-          <h2 class="font-bold text-xl mb-2">Нужна консультация по {category.title.toLowerCase()}?</h2>
+          <h2 class="font-bold text-xl mb-2">Нужна консультация? Подберём {category.title.toLowerCase()} под ваш проект</h2>
           <p class="text-[#898989] text-sm">Поможем подобрать материал под ваш проект и бюджет</p>
         </div>
         <a
