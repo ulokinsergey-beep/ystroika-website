@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CategoryCard from '../components/catalog/CategoryCard.astro';
+import Quiz from '../components/Quiz.astro';
 import { categories } from '../data/categories';
 
 const jsonLd = {
@@ -518,8 +519,8 @@ const jsonLd = {
           {[
             { title: 'Бесплатная доставка',              text: 'Доставим ваш заказ бесплатно по Москве и московской области',                          icon: '/images/advantages/dostavka.svg' },
             { title: 'Лучшая цена!',                     text: 'Гарантия лучшей цены! Нашли дешевле — вернём разницу!',                                 icon: '/images/advantages/tsena.svg' },
-            { title: 'Возврат за наш счёт',              text: 'Приём возврата при браке производителя. Вернём деньги или заменим товар',              icon: '/images/advantages/klient-prav.svg' },
-            { title: 'Клиент всегда прав!',              text: 'Решим любые вопросы оперативно — менеджер поддержки свяжется с вами в течение 30 минут', icon: '/images/advantages/vozvrat.svg' },
+            { title: 'Клиент всегда прав!',              text: 'Решим любые вопросы оперативно — менеджер поддержки свяжется с вами в течение 30 минут', icon: '/images/advantages/klient-prav.svg' },
+            { title: 'Возврат за наш счёт',              text: 'Приём возврата при браке производителя. Вернём деньги или заменим товар ненадлежащего качества (царапины, сколы)', icon: '/images/advantages/vozvrat.svg' },
             { title: 'Оперативность',                    text: 'Менеджер поддержки на связи до позднего вечера — свяжемся в течение 30 минут',          icon: '/images/advantages/operativnost.svg' },
             { title: 'Качество, проверенное временем!',  text: 'Уже 9 лет работаем — поставляем качественные товары для строительства и ремонта крыши', icon: '/images/advantages/kachestvo.svg' },
           ].map((adv) => (
@@ -561,104 +562,7 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- ========== 5 ЭКРАН: QUIZ (Figma 385:6937) ========== -->
-  <!-- Figma: 1801×638. Left info 818 wide, Right banners 918×638 bg #464646 at x:883 -->
-  <!-- Info column gap:40: heading 42px / subtitle 20px / progress / "Вопрос 1/9" / H4 / 2 rows of 3 answers / submit btn -->
-  <!-- Right banner: 8 пазлов 230×319 (4×2 grid), 1st has photo, others have "?" + dashed border, + button "Ответьте..." -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
-
-    <div class="flex flex-col lg:flex-row gap-[65px] items-start">
-
-      <!-- LEFT: Info / Quiz form (818 wide) -->
-      <div class="flex-1 flex flex-col gap-[40px]" style="max-width:818px;">
-
-        <div class="flex flex-col gap-[30px]">
-          <!-- H1: Montserrat 600 42px -->
-          <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.3]">
-            Получите предварительный расчёт стоимости материалов под&nbsp;ваш&nbsp;объект с&nbsp;точностью 90%
-          </h2>
-
-          <!-- Subtitle: Inter 500 20px -->
-          <p class="text-[#333333] text-[20px] font-medium leading-[1.3]">
-            Учитывая все доборные элементы + гарантированные подарки на&nbsp;выбор
-          </p>
-
-          <!-- Progress bar: 818×10, ~94/818 filled -->
-          <div class="relative w-full bg-[#E9E9E9] rounded-full" style="height:10px;">
-            <div class="absolute left-0 top-0 h-full bg-[#FFAE01] rounded-full" style="width:11.5%;"></div>
-          </div>
-
-          <p class="text-[#333333] text-[20px] font-medium">Вопрос 1/9</p>
-
-          <h3 class="text-[#333333] text-[24px] font-semibold leading-[1.3]">1. Выберите категорию</h3>
-
-          <!-- Ответы: 2 rows × 3 buttons. Кровля = active black -->
-          <div class="flex flex-col gap-[20px]">
-            <div class="flex flex-wrap gap-[20px]">
-              <button class="bg-[#333333] text-white text-[18px] font-medium rounded-[5px]" style="width:220px;padding:19px 44px;">Кровля</button>
-              <button class="border border-[#898989] text-[#898989] text-[18px] font-medium rounded-[5px] hover:border-[#333333] hover:text-[#333333] transition-colors" style="width:220px;padding:19px 45px;">Фасад</button>
-              <button class="border border-[#898989] text-[#898989] text-[18px] font-medium rounded-[5px] hover:border-[#333333] hover:text-[#333333] transition-colors" style="width:220px;padding:19px 45px;">Водосток</button>
-            </div>
-            <div class="flex flex-wrap gap-[20px]">
-              <button class="border border-[#898989] text-[#898989] text-[18px] font-medium rounded-[5px] hover:border-[#333333] hover:text-[#333333] transition-colors" style="width:220px;padding:19px 45px;">Ограждения</button>
-              <button class="border border-[#898989] text-[#898989] text-[18px] font-medium rounded-[5px] hover:border-[#333333] hover:text-[#333333] transition-colors" style="width:220px;padding:19px 45px;">Вентиляция</button>
-              <button class="border border-[#898989] text-[#898989] text-[18px] font-medium rounded-[5px] hover:border-[#333333] hover:text-[#333333] transition-colors text-center leading-[1.21]" style="width:220px;height:60px;padding:0 45px;">Утепление<br/>и&nbsp;изоляция</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Submit button: 300×50, bg Orange -->
-        <button class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] text-[18px] font-semibold rounded-[5px] transition-colors"
-                style="width:300px;height:50px;">
-          Следующий вопрос
-        </button>
-      </div>
-
-      <!-- RIGHT: Puzzle banner — 918×638, bg #464646, radius 5 -->
-      <div class="relative bg-[#464646] rounded-[5px] overflow-hidden" style="width:100%;max-width:918px;height:638px;">
-
-        <!-- Puzzle grid 4×2, each 230×319 — using CSS background-image on first cell -->
-        <div class="absolute inset-0 grid grid-cols-4 grid-rows-2">
-          <!-- Cell 1: photo -->
-          <div class="relative overflow-hidden">
-            <img src="/images/quiz-puzzle.png" alt="" class="absolute" style="left:-129px;top:-35px;width:1178px;height:785px;object-fit:cover;" />
-          </div>
-          <!-- Empty puzzle cells with dashed borders + "?" -->
-          <div class="relative flex items-center justify-center border-r border-b border-dashed border-[#898989]">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-          <div class="relative flex items-center justify-center border-r border-b border-dashed border-[#898989]">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-          <div class="relative flex items-center justify-center border-b border-dashed border-[#898989]">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-          <div class="relative flex items-center justify-center border-r border-dashed border-[#898989]">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-          <div class="relative flex items-center justify-center border-r border-dashed border-[#898989]">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-          <div class="relative flex items-center justify-center border-r border-dashed border-[#898989]">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-          <div class="relative flex items-center justify-center">
-            <span class="text-[#898989] text-[60px] font-normal leading-none">?</span>
-          </div>
-        </div>
-
-        <!-- CTA pill button absolute bottom — Figma at x:258 y:569, 630×50 -->
-        <div class="absolute bg-transparent flex items-center justify-center gap-[10px] rounded-[5px] border border-[#FFAE01]"
-             style="left:144px;bottom:19px;width:630px;height:50px;padding:9px 19px;">
-          <span class="text-[#FFAE01] text-[18px] font-semibold leading-[1.21]">
-            Ответьте на все вопросы и&nbsp;получите гарантированный подарок
-          </span>
-          <svg width="20" height="14" fill="none" stroke="#FFAE01" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </div>
-      </div>
-
-    </div>
-  </section>
+  <Quiz />
 
   <!-- ========== 6 ЭКРАН: СПЕЦПРЕДЛОЖЕНИЯ (Figma 138:2299) ========== -->
   <!-- Figma: 1920×863 bg #F5F5F5. info at x:60 y:47, column gap:50. -->
@@ -841,22 +745,22 @@ const jsonLd = {
         <!-- Banner 1045×360, bg #464646. Has pngwing photo as bg + "более 30 000" orange box + tagline -->
         <div class="relative bg-[#464646] rounded-[5px] overflow-hidden flex-shrink-0"
              style="width:100%;max-width:1045px;height:360px;">
-          <!-- Background photo (pngwing 2) — 823×1122 in Figma, positioned to fill banner -->
+          <!-- Background photo (pngwing 2) — Figma x:-88 y:-235, 823×1122 — СЛЕВА -->
           <img src="/images/about/pngwing.png" alt=""
                class="absolute pointer-events-none"
-               style="right:0;top:-200px;width:823px;height:1122px;object-fit:cover;opacity:0.85;" />
-          <!-- Dark gradient overlay for text readability -->
-          <div class="absolute inset-0 bg-gradient-to-r from-[#464646] via-[#464646]/80 to-transparent pointer-events-none"></div>
+               style="left:-88px;top:-235px;width:823px;height:1122px;object-fit:cover;" />
+          <!-- Тёмный градиент справа — под текст -->
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[#464646]/40 to-[#464646] pointer-events-none"></div>
 
-          <!-- "более 30 000" orange box: 273×47 -->
-          <div class="absolute flex items-center" style="left:40px;top:50px;width:273px;height:47px;background:#FFAE01;border-radius:5px;">
-            <span class="text-[#333333] font-bold text-[24px] px-3">более 30&nbsp;000</span>
-          </div>
-          <!-- Tagline text: 334×188 Montserrat 600 ~28px White -->
+          <!-- Tagline: Figma x:676 y:47, 334×188, Montserrat 600 28px White (СВЕРХУ, справа) -->
           <p class="absolute font-[Montserrat] font-semibold text-white leading-[1.3] z-10"
-             style="left:40px;top:120px;width:334px;font-size:28px;">
+             style="right:35px;top:47px;width:334px;font-size:28px;">
             Широкий ассортимент позиций кровли и&nbsp;фасада
           </p>
+          <!-- "более 30 000" orange box: Figma x:676 y:261, 273×47 (ПОД заголовком, справа) -->
+          <div class="absolute flex items-center z-10" style="right:35px;top:261px;width:273px;height:47px;background:#FFAE01;border-radius:5px;">
+            <span class="text-[#333333] font-bold text-[24px] px-3">более 30&nbsp;000</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1054,7 +958,7 @@ const jsonLd = {
 
   <!-- ========== 12 ЭКРАН: СПЕКТР УСЛУГ (Figma 146:959) ========== -->
   <!-- 1920×800. Heading + 7 cards: Row1=4 (card1 photo+orange header, cards2-4 dark header+text), Row2=3 dark header+text -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex flex-col gap-[40px]">
       <div class="flex items-end gap-[25px]">
         <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
@@ -1066,20 +970,20 @@ const jsonLd = {
       <!-- Row 1: 4 cards — first is featured (photo + orange header at top), rest = dark header + text -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
 
-        <!-- Featured card: photo bg + orange header at TOP, 250px tall -->
+        <!-- Featured card: Figma 145:600 — white card, photo bg, floating dark label (#333) with ORANGE text, h-260 -->
         <a href="/uslugi/podboj-karnizov"
-           class="group relative block rounded-[5px] overflow-hidden bg-[#464646]"
-           style="height:250px;">
+           class="group relative block rounded-[5px] overflow-hidden bg-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
+           style="height:260px;">
           <img src="/images/categories/krovlya.png" alt=""
                class="absolute inset-0 w-full h-full object-cover" />
-          <div class="absolute top-0 left-0 right-0 flex items-center justify-between bg-[#FFAE01]"
-               style="height:55px;padding:0 20px;">
-            <span class="font-[Montserrat] font-semibold text-[#333333] text-[15px] leading-tight">
+          <div class="absolute flex items-center justify-between bg-[#333333] rounded-[5px]"
+               style="left:27px;top:30px;width:calc(100% - 54px);height:50px;padding:0 20px;">
+            <span class="font-['Inter'] font-semibold text-[#FFAE01] text-[18px] leading-tight">
               Подбой карнизных свесов
             </span>
-            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] flex-shrink-0 group-hover:bg-[#333333] transition-colors">
+            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#FFAE01] rounded-[5px] flex-shrink-0 group-hover:bg-[#FFAE01] transition-colors">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                   class="text-[#333333] group-hover:text-white">
+                   class="text-[#FFAE01] group-hover:text-[#333333]">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
               </svg>
             </span>
@@ -1092,10 +996,10 @@ const jsonLd = {
           { title: 'Монтаж водосточной системы',  desc: 'Установка металлических и пластиковых водостоков с гарантией герметичности швов.',      href: '/uslugi/vodostok'  },
           { title: 'Монтаж стропильной системы',  desc: 'Сборка стропильной конструкции любой сложности под кровельный пирог под&nbsp;ключ.',   href: '/uslugi/stropila'  },
         ].map(u => (
-          <a href={u.href} class="group block rounded-[5px] overflow-hidden bg-white shadow-[0_4px_20px_rgba(0,0,0,0.07)]">
+          <a href={u.href} class="group flex flex-col items-center gap-[20px] rounded-[5px] bg-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]" style="height:260px;padding:30px 35px;">
             <!-- Dark header bar: title left + arrow right -->
-            <div class="flex items-center justify-between bg-[#333333]" style="height:55px;padding:0 20px;">
-              <span class="font-[Montserrat] font-semibold text-white text-[15px] leading-tight">{u.title}</span>
+            <div class="flex items-center justify-between bg-[#333333] rounded-[5px] w-full" style="min-height:50px;padding:0 20px;">
+              <span class="font-['Inter'] font-semibold text-white text-[18px] leading-tight">{u.title}</span>
               <span class="flex items-center justify-center w-[30px] h-[30px] border border-white/40 rounded-[5px] flex-shrink-0 group-hover:bg-white transition-colors">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                      class="text-white group-hover:text-[#333333]">
@@ -1104,7 +1008,7 @@ const jsonLd = {
               </span>
             </div>
             <!-- Description text -->
-            <p class="text-[#333333] text-[13px] leading-[1.5]" style="padding:20px;" set:html={u.desc}></p>
+            <p class="text-[#333333] text-[16px] leading-[1.3] w-full" set:html={u.desc}></p>
           </a>
         ))}
       </div>
@@ -1116,9 +1020,9 @@ const jsonLd = {
           { title: 'Монтаж кровельного покрытия',        desc: 'Укладка металлочерепицы, гибкой черепицы, профнастила и фальца по технологии завода.',     href: '/uslugi/montazh-krovli'    },
           { title: 'Бесплатная доставка',                desc: 'Доставка материалов на объект включена в стоимость заказа от&nbsp;50&nbsp;000&nbsp;₽.',     href: '/uslugi/dostavka'          },
         ].map(u => (
-          <a href={u.href} class="group block rounded-[5px] overflow-hidden bg-white shadow-[0_4px_20px_rgba(0,0,0,0.07)]">
-            <div class="flex items-center justify-between bg-[#333333]" style="height:55px;padding:0 20px;">
-              <span class="font-[Montserrat] font-semibold text-white text-[15px] leading-tight">{u.title}</span>
+          <a href={u.href} class="group flex flex-col items-center gap-[20px] rounded-[5px] bg-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]" style="height:260px;padding:30px 35px;">
+            <div class="flex items-center justify-between bg-[#333333] rounded-[5px] w-full" style="min-height:50px;padding:0 20px;">
+              <span class="font-['Inter'] font-semibold text-white text-[18px] leading-tight">{u.title}</span>
               <span class="flex items-center justify-center w-[30px] h-[30px] border border-white/40 rounded-[5px] flex-shrink-0 group-hover:bg-white transition-colors">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                      class="text-white group-hover:text-[#333333]">
@@ -1126,7 +1030,7 @@ const jsonLd = {
                 </svg>
               </span>
             </div>
-            <p class="text-[#333333] text-[13px] leading-[1.5]" style="padding:20px;" set:html={u.desc}></p>
+            <p class="text-[#333333] text-[16px] leading-[1.3] w-full" set:html={u.desc}></p>
           </a>
         ))}
       </div>
@@ -1139,13 +1043,13 @@ const jsonLd = {
     <!-- Container: 1800×638, radius:15px, overflow:hidden, full photo bg -->
     <div class="relative overflow-hidden" style="height:638px;border-radius:15px;background:#dde8f0;">
       <!-- Full photo background — house with metallic roof + sky (Figma 146:925) -->
-      <img src="/images/house-exterior-clean.jpg" alt=""
+      <img src="/images/vodostok-cta.png" alt=""
            class="absolute inset-0 w-full h-full object-cover object-center" />
 
       <!-- Heading: large dark text on left, overlaid on the sky/light part of photo -->
-      <div class="absolute z-10 flex flex-col justify-center p-8 lg:p-0"
-           style="left:60px;top:50%;transform:translateY(-50%);max-width:620px;">
-        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[28px] lg:text-[42px] leading-[1.22]">
+      <div class="absolute z-10 flex flex-col p-8 lg:p-0"
+           style="left:96px;top:66px;max-width:496px;">
+        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[28px] lg:text-[48px] leading-[1.3]">
           Приготовьтесь к&nbsp;обновлению крыши по&nbsp;очень приятной цене
         </h2>
       </div>

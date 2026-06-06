@@ -1,0 +1,298 @@
+---
+/**
+ * Quiz.astro — интерактивный квиз-расчёт (экран 5 главной).
+ * 9 вопросов 1-в-1 из Figma (385:6937 и шаги Квиз 2..10).
+ * Логика: шаги вперёд/назад, прогресс N/9, пазл собирается по мере ответов,
+ * финал — контакт + попап «Спасибо». Реальная отправка не подключена
+ * (на финале показываем попап-благодарность из макета; данные не уходят на бэкенд).
+ */
+
+const QUESTIONS = [
+  { n: 1, title: 'Выберите категорию', type: 'single',
+    options: ['Кровля', 'Фасад', 'Водосток', 'Ограждения', 'Вентиляция', 'Утепление и изоляция'], hint: '' },
+  { n: 2, title: 'Выберите тип вашей крыши', type: 'single',
+    options: ['Односкатная', 'Двускатная', 'Вальмовая', 'Шатровая', 'Мансардная', 'Другая'],
+    hint: 'Над раскладкой кровли находятся переключатели профилей изделия, они позволят вам выбрать профиль' },
+  { n: 3, title: 'Выберите тип материала', type: 'single',
+    options: ['Металлочерепица', 'Профнастил', 'Фальцевая кровля', 'Гибкая черепица'],
+    hint: 'В зависимости от выбранного типа кровли будут использоваться разные доборные элементы' },
+  { n: 4, title: 'Выберите завод производителя', type: 'single',
+    options: ['Shinglas', 'Docke', 'Icopal', 'CertainTeed', 'Katepal', 'Tegola'],
+    hint: 'Покупайте кровельные материалы престижных марок, и будьте уверены в качестве сырья' },
+  { n: 5, title: 'Выберите тип покрытия', type: 'single',
+    options: ['Оптима', 'Фазенда', 'Континент', 'Вестерн', 'Джаз', 'Кантри', 'Ранчо', 'Финская', 'Классик'], hint: '' },
+  { n: 6, title: 'Укажите ориентировочную площадь вашей кровли или дома', type: 'range',
+    min: 50, max: 500, def: 350, unit: 'м²',
+    hint: 'Расчёт площади фасада (S) производится по простой формуле: S фасада = S стен и фронтонов – S окон+дверей' },
+  { n: 7, title: 'Включаем в расчёт дополнительную комплектацию?', type: 'multi',
+    options: ['Саморезы', 'Снегозадержатели', 'Мембраны и плёнки', 'Софиты', 'Кровельная вентиляция и проходки', 'Аэроэлемент конька', 'Без комплектации', 'Водосточная система'],
+    hint: 'Доборные элементы обеспечивают надёжность, долговечность и эстетичность конструкции' },
+  { n: 8, title: 'Выберите подарок за прохождение расчёта', type: 'single',
+    options: ['Скидка 20% на мансардные окна', 'Снегозадержатель в подарок', 'Скидка 20% на водосточную систему', 'Упаковка материала для качественной транспортировки'],
+    hint: 'Работаем официально по договору. Юридически отвечаем перед вами за всю работу' },
+  { n: 9, title: 'Куда вам отправить расчёт стоимости кровли?', type: 'contact',
+    options: ['WhatsApp', 'Telegram', 'Viber', 'Позвоните мне'], hint: '' },
+];
+const TOTAL = QUESTIONS.length;
+---
+
+<!-- ========== 5 ЭКРАН: QUIZ (Figma 385:6937) ========== -->
+<section id="quiz" class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+  <div class="flex flex-col lg:flex-row gap-[65px] items-stretch">
+
+    <!-- LEFT: форма квиза -->
+    <div class="flex-1 flex flex-col gap-[40px]" style="max-width:818px;">
+      <!-- Статичная шапка -->
+      <div class="flex flex-col gap-[30px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.3]">
+          Получите предварительный расчёт стоимости материалов под&nbsp;ваш&nbsp;объект с&nbsp;точностью 90%
+        </h2>
+        <p class="text-[#333333] text-[20px] font-medium leading-[1.3]">
+          Учитывая все доборные элементы + гарантированные подарки на&nbsp;выбор
+        </p>
+
+        <!-- Прогресс-бар -->
+        <div class="relative w-full bg-[#E9E9E9] rounded-full" style="height:10px;">
+          <div id="quiz-progress" class="absolute left-0 top-0 h-full bg-[#FFAE01] rounded-full transition-all duration-300" style="width:11%;"></div>
+        </div>
+
+        <!-- Динамическая область: вопрос + ответы (заполняется JS) -->
+        <div id="quiz-body" class="flex flex-col gap-[30px]"></div>
+      </div>
+
+      <!-- Навигация -->
+      <div class="flex items-center gap-[20px]">
+        <button id="quiz-back"
+                class="hidden border border-[#898989] text-[#898989] text-[18px] font-medium rounded-[5px] hover:border-[#333333] hover:text-[#333333] transition-colors"
+                style="height:50px;padding:0 35px;">Назад</button>
+        <button id="quiz-next"
+                class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] text-[18px] font-semibold rounded-[5px] transition-colors"
+                style="min-width:300px;height:50px;padding:0 30px;">Следующий вопрос</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: пазл-баннер 918×638 -->
+    <div class="relative bg-[#464646] rounded-[5px] overflow-hidden w-full" style="max-width:918px;min-height:638px;">
+      <div class="absolute inset-0 grid grid-cols-4 grid-rows-2">
+        {Array.from({ length: 8 }).map((_, i) => {
+          const col = i % 4; const row = Math.floor(i / 4);
+          const bgX = col === 0 ? '0%' : col === 1 ? '33.333%' : col === 2 ? '66.666%' : '100%';
+          const bgY = row === 0 ? '0%' : '100%';
+          return (
+            <div class="quiz-cell relative" data-cell={i}
+                 style={`background-image:url(/images/quiz-puzzle.png);background-size:400% 200%;background-position:${bgX} ${bgY};`}>
+              <div class="quiz-cell-cover absolute inset-0 flex items-center justify-center bg-[#464646] border border-dashed border-[#898989]">
+                <span class="text-[#898989] text-[60px] font-normal leading-none select-none">?</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <!-- Нижний CTA -->
+      <div class="absolute flex items-center justify-center gap-[10px]"
+           style="left:24px;right:24px;bottom:19px;height:50px;">
+        <span class="text-[#FFAE01] text-[16px] lg:text-[18px] font-semibold leading-[1.21] text-center">
+          Ответьте на&nbsp;все вопросы и&nbsp;получите гарантированный подарок
+        </span>
+        <svg width="20" height="14" fill="none" stroke="#FFAE01" stroke-width="1.5" viewBox="0 0 24 24" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПОПАП «Спасибо» (Figma Квиз 10) -->
+  <div id="quiz-thanks" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-black/50 px-4">
+    <div class="relative bg-white rounded-[10px] shadow-2xl flex flex-col items-center text-center gap-[20px]"
+         style="max-width:520px;padding:50px 40px;">
+      <div class="w-[70px] h-[70px] rounded-full bg-[#FFAE01] flex items-center justify-center">
+        <svg width="34" height="34" fill="none" stroke="#333333" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[24px] leading-[1.3]">
+        Спасибо, ваш расчёт стоимости материалов скоро будет готов!
+      </h3>
+      <p class="text-[#333333] text-[16px] leading-[1.4]">
+        В течение 30&nbsp;минут мы&nbsp;подготовим и&nbsp;вышлем вам файл
+      </p>
+      <button id="quiz-thanks-close"
+              class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors"
+              style="height:50px;padding:0 40px;">Вернуться к&nbsp;сайту</button>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ QUESTIONS, TOTAL }}>
+  (function () {
+    const body = document.getElementById('quiz-body');
+    const progress = document.getElementById('quiz-progress');
+    const backBtn = document.getElementById('quiz-back');
+    const nextBtn = document.getElementById('quiz-next');
+    const thanks = document.getElementById('quiz-thanks');
+    const thanksClose = document.getElementById('quiz-thanks-close');
+    const cells = Array.from(document.querySelectorAll('.quiz-cell'));
+    if (!body || !nextBtn) return;
+
+    const answers = {};   // n -> значение(я)
+    let step = 0;         // индекс текущего вопроса (0..TOTAL-1)
+
+    const optBase = 'quiz-opt min-w-[220px] max-w-full text-[18px] font-medium rounded-[5px] transition-colors text-center leading-[1.21]';
+    const optStyle = 'padding:18px 30px;';
+
+    function optClass(active) {
+      return active
+        ? optBase + ' bg-[#333333] text-white'
+        : optBase + ' border border-[#898989] text-[#898989] hover:border-[#333333] hover:text-[#333333]';
+    }
+
+    function revealPuzzle(count) {
+      cells.forEach((c, i) => {
+        const cover = c.querySelector('.quiz-cell-cover');
+        if (!cover) return;
+        cover.style.display = i < count ? 'none' : 'flex';
+      });
+    }
+
+    function render() {
+      const q = QUESTIONS[step];
+      progress.style.width = Math.round(((step + 1) / TOTAL) * 100) + '%';
+      backBtn.classList.toggle('hidden', step === 0);
+      nextBtn.textContent = step === TOTAL - 1 ? 'Получить расчёт' : 'Следующий вопрос';
+
+      let html = '';
+      html += '<p class="text-[#333333] text-[20px] font-medium">Вопрос ' + q.n + '/' + TOTAL + '</p>';
+      html += '<h3 class="text-[#333333] text-[24px] font-semibold leading-[1.3]">' + q.n + '. ' + q.title + '</h3>';
+
+      if (q.type === 'single' || q.type === 'multi') {
+        const sel = answers[q.n] || (q.type === 'multi' ? [] : null);
+        html += '<div class="flex flex-wrap gap-[20px]">';
+        q.options.forEach((opt, i) => {
+          const active = q.type === 'multi' ? sel.indexOf(opt) !== -1 : sel === opt;
+          html += '<button type="button" class="' + optClass(active) + '" style="' + optStyle + '" data-opt="' + i + '">' + opt + '</button>';
+        });
+        html += '</div>';
+      } else if (q.type === 'range') {
+        const val = answers[q.n] != null ? answers[q.n] : q.def;
+        html += '<div class="flex flex-col gap-[15px]">';
+        html += '<div class="flex items-end gap-[10px]"><span id="quiz-range-val" class="text-[#333333] text-[42px] font-semibold font-[Montserrat] leading-none">' + val + '</span><span class="text-[#898989] text-[20px] mb-[4px]">' + q.unit + '</span></div>';
+        html += '<input id="quiz-range" type="range" min="' + q.min + '" max="' + q.max + '" value="' + val + '" class="w-full max-w-[700px] accent-[#FFAE01]" />';
+        html += '<div class="flex justify-between max-w-[700px] text-[#898989] text-[14px]"><span>' + q.min + ' ' + q.unit + '</span><span>' + q.max + ' ' + q.unit + '</span></div>';
+        html += '</div>';
+      } else if (q.type === 'contact') {
+        const sel = answers[q.n] && answers[q.n].channel;
+        html += '<div class="flex flex-wrap gap-[20px]">';
+        q.options.forEach((opt, i) => {
+          html += '<button type="button" class="' + optClass(sel === opt) + '" style="' + optStyle + '" data-opt="' + i + '">' + opt + '</button>';
+        });
+        html += '</div>';
+        const c = answers[q.n] || {};
+        html += '<div class="flex flex-col gap-[15px] max-w-[564px]">';
+        html += '<input id="quiz-name" type="text" placeholder="Ваше имя *" value="' + (c.name || '') + '" class="bg-[#F5F5F5] rounded-[5px] text-[16px] text-[#333333] outline-none focus:ring-2 focus:ring-[#FFAE01]" style="height:50px;padding:0 20px;" />';
+        html += '<input id="quiz-phone" type="tel" placeholder="+7 (___) ___-__-__" value="' + (c.phone || '') + '" class="bg-[#F5F5F5] rounded-[5px] text-[16px] text-[#333333] outline-none focus:ring-2 focus:ring-[#FFAE01]" style="height:50px;padding:0 20px;" />';
+        html += '<label class="flex items-start gap-[10px] text-[#898989] text-[13px] leading-[1.4] cursor-pointer"><input id="quiz-consent" type="checkbox"' + (c.consent ? ' checked' : '') + ' class="mt-[2px] accent-[#FFAE01] w-[16px] h-[16px] flex-shrink-0" /><span>Ознакомился и&nbsp;согласен с&nbsp;политикой конфиденциальности и&nbsp;обработкой персональных данных</span></label>';
+        html += '</div>';
+      }
+
+      if (q.hint) {
+        html += '<div class="flex items-start gap-[10px] bg-[#F5F5F5] rounded-[5px]" style="padding:15px 18px;max-width:700px;">';
+        html += '<span class="inline-flex items-center justify-center bg-[#FFAE01] text-[#333333] text-[13px] font-bold rounded-full flex-shrink-0" style="width:20px;height:20px;">i</span>';
+        html += '<span class="text-[#898989] text-[14px] leading-[1.4]">' + q.hint + '</span></div>';
+      }
+
+      body.innerHTML = html;
+      bindStep();
+      revealPuzzle(Math.max(1, step + (isCurrentAnswered() ? 1 : 0)));
+    }
+
+    function isCurrentAnswered() {
+      const q = QUESTIONS[step];
+      const a = answers[q.n];
+      if (q.type === 'single') return !!a;
+      if (q.type === 'multi') return Array.isArray(a) && a.length > 0;
+      if (q.type === 'range') return true; // всегда есть значение
+      if (q.type === 'contact') return !!(a && a.channel && a.name && a.phone && a.consent);
+      return false;
+    }
+
+    function bindStep() {
+      const q = QUESTIONS[step];
+      // варианты
+      body.querySelectorAll('.quiz-opt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const opt = q.options[Number(btn.getAttribute('data-opt'))];
+          if (q.type === 'multi') {
+            const arr = answers[q.n] || [];
+            const idx = arr.indexOf(opt);
+            if (idx === -1) arr.push(opt); else arr.splice(idx, 1);
+            answers[q.n] = arr;
+          } else if (q.type === 'contact') {
+            answers[q.n] = Object.assign({}, answers[q.n], { channel: opt });
+          } else {
+            answers[q.n] = opt;
+          }
+          render();
+        });
+      });
+      // слайдер
+      const range = document.getElementById('quiz-range');
+      if (range) {
+        answers[q.n] = answers[q.n] != null ? answers[q.n] : q.def;
+        range.addEventListener('input', () => {
+          answers[q.n] = Number(range.value);
+          const v = document.getElementById('quiz-range-val');
+          if (v) v.textContent = range.value;
+        });
+      }
+      // контактные поля
+      const nameI = document.getElementById('quiz-name');
+      const phoneI = document.getElementById('quiz-phone');
+      const consentI = document.getElementById('quiz-consent');
+      function syncContact() {
+        answers[q.n] = Object.assign({}, answers[q.n], {
+          name: nameI ? nameI.value.trim() : '',
+          phone: phoneI ? phoneI.value.trim() : '',
+          consent: consentI ? consentI.checked : false,
+        });
+      }
+      if (nameI) nameI.addEventListener('input', syncContact);
+      if (phoneI) phoneI.addEventListener('input', syncContact);
+      if (consentI) consentI.addEventListener('change', syncContact);
+    }
+
+    function flashError(msg) {
+      nextBtn.animate(
+        [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
+        { duration: 250 }
+      );
+      // подсветим незаполненные контактные поля
+      const q = QUESTIONS[step];
+      if (q.type === 'contact') {
+        ['quiz-name', 'quiz-phone'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el && !el.value.trim()) el.classList.add('ring-2', 'ring-[#C51212]');
+        });
+      }
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (!isCurrentAnswered()) { flashError(); return; }
+      if (step === TOTAL - 1) {
+        // финал — попап «Спасибо» (без отправки на бэкенд)
+        thanks.classList.remove('hidden');
+        thanks.classList.add('flex');
+        return;
+      }
+      step++;
+      render();
+    });
+
+    backBtn.addEventListener('click', () => {
+      if (step > 0) { step--; render(); }
+    });
+
+    if (thanksClose) thanksClose.addEventListener('click', () => {
+      thanks.classList.add('hidden');
+      thanks.classList.remove('flex');
+    });
+
+    render();
+  })();
+</script>

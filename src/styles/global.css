@@ -18,4 +18,8 @@
   --color-bg-gray: #F5F5F5;
   --color-dark-gray: #464646;
   --color-light-gray: #E9E9E9;
+
+  /* Статусные цвета из Figma */
+  --color-success: #4AC71E;  /* «в наличии» */
+  --color-danger: #C51212;   /* скидка / предупреждение */
 }

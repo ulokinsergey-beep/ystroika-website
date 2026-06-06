@@ -39,3 +39,4 @@ src/data/kroval-catalog-full.json
 # Данные каталога по подкатегориям (~91 МБ) — хранятся локально
 # При деплое генерируются из API или копируются на сервер
 src/data/catalog/
+tmp-figma-audit/
