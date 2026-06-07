@@ -331,8 +331,12 @@ const jsonLd = {
               <!-- Цена -->
               <div class="bg-white rounded-[5px] border border-[#E9E9E9] p-4 mb-3">
                 <h3 class="text-xs font-bold text-[#333333] uppercase tracking-wider mb-4">Цена, ₽</h3>
-                <div class="relative h-1 bg-[#E9E9E9] rounded-full mb-4 mx-1">
-                  <div class="absolute inset-y-0 left-0 right-0 bg-[#FFAE01] rounded-full" id="price-slider-fill"></div>
+                <div class="relative h-1.5 bg-[#E9E9E9] rounded-full mb-5 mx-2 select-none" id="price-track">
+                  <div class="absolute inset-y-0 bg-[#FFAE01] rounded-full" id="price-slider-fill" style="left:0;right:0;"></div>
+                  <button type="button" id="price-handle-min" aria-label="Минимальная цена"
+                    class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#FFAE01] rounded-full shadow cursor-grab active:cursor-grabbing touch-none z-10" style="left:0%;"></button>
+                  <button type="button" id="price-handle-max" aria-label="Максимальная цена"
+                    class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#FFAE01] rounded-full shadow cursor-grab active:cursor-grabbing touch-none z-10" style="left:100%;"></button>
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="flex-1">
@@ -719,34 +723,85 @@ const jsonLd = {
     }
 
     // ── Слайдер цен (визуальный) ───────────────────────────────────────────
-    function updatePriceSlider() {
-      const cards = Array.from(document.querySelectorAll('[data-product-kod]'));
-      const prices = cards
-        .map(c => parseFloat(c.dataset.priceValue || '0'))
-        .filter(p => p > 0);
+    // ── Двухползунковый слайдер цены (F2) ──────────────────────────────────
+    let sliderMin = 0, sliderMax = 0, sliderReady = false;
+    const pctOf = (v) => sliderMax > sliderMin ? ((v - sliderMin) / (sliderMax - sliderMin)) * 100 : 0;
+    const valOf = (p) => Math.round(sliderMin + (p / 100) * (sliderMax - sliderMin));
 
-      if (prices.length === 0) return;
-
-      const minAll = Math.min(...prices);
-      const maxAll = Math.max(...prices);
-      if (minAll >= maxAll) return;
-
-      const curMin = priceMin ? Math.max(parseFloat(priceMin), minAll) : minAll;
-      const curMax = priceMax ? Math.min(parseFloat(priceMax), maxAll) : maxAll;
-
+    function renderSlider() {
       const fill = document.getElementById('price-slider-fill');
-      if (fill) {
-        const left  = ((curMin - minAll) / (maxAll - minAll)) * 100;
-        const right = 100 - ((curMax - minAll) / (maxAll - minAll)) * 100;
-        fill.style.left  = left + '%';
-        fill.style.right = right + '%';
-      }
-
-      // Заполнить плейсхолдеры полей диапазона ценой
+      const hMin = document.getElementById('price-handle-min');
+      const hMax = document.getElementById('price-handle-max');
       const minInput = document.getElementById('price-min-input');
       const maxInput = document.getElementById('price-max-input');
-      if (minInput && !minInput.value) minInput.placeholder = Math.floor(minAll).toLocaleString('ru-RU');
-      if (maxInput && !maxInput.value) maxInput.placeholder = Math.ceil(maxAll).toLocaleString('ru-RU');
+      if (!fill || !hMin || !hMax || !minInput || !maxInput) return;
+      const vMin = minInput.value ? parseFloat(minInput.value) : sliderMin;
+      const vMax = maxInput.value ? parseFloat(maxInput.value) : sliderMax;
+      const pMin = Math.max(0, Math.min(100, pctOf(vMin)));
+      const pMax = Math.max(0, Math.min(100, pctOf(vMax)));
+      hMin.style.left = pMin + '%';
+      hMax.style.left = pMax + '%';
+      fill.style.left = pMin + '%';
+      fill.style.right = (100 - pMax) + '%';
+    }
+
+    function applyPriceLive() {
+      const minInput = document.getElementById('price-min-input');
+      const maxInput = document.getElementById('price-max-input');
+      const pMin = minInput && minInput.value ? parseFloat(minInput.value) : null;
+      const pMax = maxInput && maxInput.value ? parseFloat(maxInput.value) : null;
+      applyPriceFilter(pMin, pMax);
+    }
+
+    function initSlider() {
+      if (sliderReady) return;
+      const track = document.getElementById('price-track');
+      const hMin = document.getElementById('price-handle-min');
+      const hMax = document.getElementById('price-handle-max');
+      const minInput = document.getElementById('price-min-input');
+      const maxInput = document.getElementById('price-max-input');
+      if (!track || !hMin || !hMax || !minInput || !maxInput) return;
+      sliderReady = true;
+      let dragging = null;
+      function moveTo(clientX) {
+        const rect = track.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        let p = ((clientX - rect.left) / rect.width) * 100;
+        p = Math.max(0, Math.min(100, p));
+        const v = valOf(p);
+        if (dragging === 'min') {
+          const vMaxCur = maxInput.value ? parseFloat(maxInput.value) : sliderMax;
+          minInput.value = String(Math.min(v, vMaxCur));
+        } else {
+          const vMinCur = minInput.value ? parseFloat(minInput.value) : sliderMin;
+          maxInput.value = String(Math.max(v, vMinCur));
+        }
+        renderSlider();
+        applyPriceLive();
+      }
+      hMin.addEventListener('pointerdown', (e) => { dragging = 'min'; e.preventDefault(); });
+      hMax.addEventListener('pointerdown', (e) => { dragging = 'max'; e.preventDefault(); });
+      window.addEventListener('pointermove', (e) => { if (dragging) moveTo(e.clientX); });
+      window.addEventListener('pointerup', () => { dragging = null; });
+      minInput.addEventListener('input', () => { renderSlider(); applyPriceLive(); });
+      maxInput.addEventListener('input', () => { renderSlider(); applyPriceLive(); });
+    }
+
+    function updatePriceSlider() {
+      const cards = Array.from(document.querySelectorAll('[data-product-kod]'));
+      const prices = cards.map(c => parseFloat(c.dataset.priceValue || '0')).filter(p => p > 0);
+      if (prices.length === 0) return;
+      const minAll = Math.floor(Math.min(...prices));
+      const maxAll = Math.ceil(Math.max(...prices));
+      if (minAll >= maxAll) return;
+      sliderMin = minAll;
+      sliderMax = maxAll;
+      const minInput = document.getElementById('price-min-input');
+      const maxInput = document.getElementById('price-max-input');
+      if (minInput && !minInput.value) minInput.placeholder = minAll.toLocaleString('ru-RU');
+      if (maxInput && !maxInput.value) maxInput.placeholder = maxAll.toLocaleString('ru-RU');
+      initSlider();
+      renderSlider();
     }
 
     // ── Дропдаун: сортировка ─────────────────────────────────────────────
