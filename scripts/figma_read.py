@@ -24,29 +24,33 @@ HEADERS = {"Content-Type": "application/json",
            "Accept": "application/json, text/event-stream"}
 
 
-def post(body, session=None):
+def post(body, session=None, want_id=None):
     h = dict(HEADERS)
     if session:
         h["mcp-session-id"] = session
     req = urllib.request.Request(URL, data=json.dumps(body).encode(), headers=h, method="POST")
-    resp = urllib.request.urlopen(req, timeout=30)
+    resp = urllib.request.urlopen(req, timeout=60)
     sid = resp.headers.get("mcp-session-id")
-    raw = resp.read().decode("utf-8", "replace")
-    # SSE: lines "data: {...}". Collect JSON objects.
+    # SSE: читаем построчно, чтобы не висеть на открытом стриме.
     objs = []
-    for line in raw.splitlines():
-        line = line.strip()
-        if line.startswith("data:"):
-            payload = line[5:].strip()
-            try:
-                objs.append(json.loads(payload))
-            except Exception:
-                pass
-        elif line.startswith("{"):
-            try:
-                objs.append(json.loads(line))
-            except Exception:
-                pass
+    try:
+        for raw_line in resp:
+            line = raw_line.decode("utf-8", "replace").strip()
+            payload = None
+            if line.startswith("data:"):
+                payload = line[5:].strip()
+            elif line.startswith("{"):
+                payload = line
+            if payload:
+                try:
+                    o = json.loads(payload)
+                    objs.append(o)
+                    if want_id is not None and o.get("id") == want_id:
+                        break
+                except Exception:
+                    pass
+    except Exception:
+        pass  # терпим обрыв чтения — возвращаем что собрали
     return sid, objs
 
 
@@ -64,13 +68,13 @@ def main():
 
     # 3. the call
     if tool == "tools/list":
-        _, objs = post({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}, session=sid)
+        _, objs = post({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}, session=sid, want_id=2)
     else:
         # default logging params for design-context-style tools
         args.setdefault("clientFrameworks", "astro")
         args.setdefault("clientLanguages", "html,css,typescript")
         _, objs = post({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
-                        "params": {"name": tool, "arguments": args}}, session=sid)
+                        "params": {"name": tool, "arguments": args}}, session=sid, want_id=2)
 
     # find response with id 2
     result = None
