@@ -322,7 +322,8 @@ const jsonLd = {
 
           <!-- Кнопки действий -->
           <div class="flex gap-2">
-            <button class="flex-1 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold py-3 rounded-[3px] transition-colors text-sm">
+            <button data-add-cart data-kod={product.kod} data-name={product.name} data-url={productUrl} data-unit={product.unit}
+              class="flex-1 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold py-3 rounded-[3px] transition-colors text-sm">
               Добавить в корзину
             </button>
             <a href="tel:88003339495" class="flex-1 inline-flex items-center justify-center border border-[#565656] hover:border-white text-white font-semibold py-3 rounded-[3px] transition-colors text-sm whitespace-nowrap">

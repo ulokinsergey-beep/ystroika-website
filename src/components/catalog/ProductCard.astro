@@ -146,7 +146,7 @@ const displayBrand = brand || (() => {
         <button
           type="button"
           aria-label="В корзину"
-          onclick="event.preventDefault()"
+          data-add-cart data-kod={kod} data-name={name} data-url={productUrl} data-unit={unit}
           class="w-[36px] h-[36px] rounded-full bg-[#333333] flex items-center justify-center hover:bg-[#464646] transition-colors text-white">
           <svg class="w-[16px] h-[16px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"

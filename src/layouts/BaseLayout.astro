@@ -65,6 +65,39 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <StickyNav />
     <FormSuccessToast />
 
+    <!-- Корзина: глобальный обработчик «В корзину» + бейдж -->
+    <script is:inline>
+      (function () {
+        var KEY = 'ystroika-cart';
+        function badge() {
+          try {
+            var it = JSON.parse(localStorage.getItem(KEY) || '[]');
+            var n = it.reduce(function (s, i) { return s + (i.qty || 1); }, 0);
+            document.querySelectorAll('[data-cart-badge]').forEach(function (b) { b.textContent = String(n); });
+          } catch (e) {}
+        }
+        document.addEventListener('click', function (e) {
+          var btn = e.target.closest ? e.target.closest('[data-add-cart]') : null;
+          if (!btn) return;
+          e.preventDefault();
+          try {
+            var items = JSON.parse(localStorage.getItem(KEY) || '[]');
+            var kod = btn.getAttribute('data-kod');
+            var ex = items.filter(function (i) { return i.kod === kod; })[0];
+            if (ex) ex.qty = (ex.qty || 1) + 1;
+            else items.push({ kod: kod, name: btn.getAttribute('data-name'), url: btn.getAttribute('data-url'), unit: btn.getAttribute('data-unit'), qty: 1 });
+            localStorage.setItem(KEY, JSON.stringify(items));
+            badge();
+            var prev = btn.style.backgroundColor;
+            btn.style.backgroundColor = '#4AC71E';
+            setTimeout(function () { btn.style.backgroundColor = prev; }, 600);
+          } catch (e2) {}
+        });
+        document.addEventListener('DOMContentLoaded', badge);
+        badge();
+      })();
+    </script>
+
     <script is:inline>
       (function () {
         var DESIGN_W = 1920;
