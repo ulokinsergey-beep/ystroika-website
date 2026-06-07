@@ -1,9 +1,12 @@
 ---
 /**
- * Страница услуги — /uslugi/[slug]
- * Контент: src/content/services/ (из Bitrix IBLOCK 29)
+ * Страница услуги — /uslugi/[slug] — лендинг по Figma (396:7295).
+ * Секции: hero → описание → как работаем → преимущества → стоимость →
+ * отзывы → специалисты → полезные видео → CTA. Маркетинговые секции общие
+ * для всех услуг (переиспользуют блоки сайта), контент — из services collection.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdvantagesBlock from '../../components/AdvantagesBlock.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -16,106 +19,216 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await entry.render();
-
 const service = entry.data;
 const serviceSlug = entry.id.replace(/\.mdx?$/, '');
 const canonicalURL = `https://ystroika.ru/uslugi/${serviceSlug}/`;
 
+const steps = [
+  { n: '01', title: 'Заявка', text: 'Оставляете заявку на сайте или по телефону — отвечаем в течение 15 минут.' },
+  { n: '02', title: 'Замер', text: 'Бесплатный выезд замерщика на объект в удобное вам время.' },
+  { n: '03', title: 'Расчёт', text: 'Готовим смету и коммерческое предложение с фиксированной ценой.' },
+  { n: '04', title: 'Работы', text: 'Выполняем работы по технологии завода-производителя с гарантией.' },
+];
+
+const reviews = [
+  { name: 'Вадим',   text: 'Огромное спасибо за грамотное и профессиональное отношение. Приятное общение, своевременная доставка, итоговая цена порадовала.' },
+  { name: 'Валерий', text: 'Выражаем благодарность за профессиональную работу! Чёткие ответы, доставка в назначенное время — самое приятное впечатление.' },
+  { name: 'Ольга',   text: 'Грамотная и профессиональная работа с клиентом. Хотелось, чтобы таких специалистов было больше. Спасибо за индивидуальный подход!' },
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Service',
-  'name': service.title,
-  'description': service.shortDescription,
-  'url': canonicalURL,
-  'provider': {
-    '@type': 'Organization',
-    'name': 'У-Стройка',
-    'url': 'https://ystroika.ru',
-    'telephone': '+78003339495',
-  },
-  ...(service.priceFrom ? { 'offers': {
-    '@type': 'Offer',
-    'priceCurrency': 'RUB',
-    'description': service.priceFrom,
-  }} : {}),
+  name: service.title,
+  description: service.shortDescription,
+  url: canonicalURL,
+  provider: { '@type': 'Organization', name: 'У-Стройка', url: 'https://ystroika.ru', telephone: '+78003339495' },
+  ...(service.priceFrom ? { offers: { '@type': 'Offer', priceCurrency: 'RUB', description: service.priceFrom } } : {}),
 };
 ---
 
 <BaseLayout
   title={`${service.title} — У-Стройка`}
-  description={`${service.title}. ${service.shortDescription?.slice(0, 150) ?? ''}. Москва и МО. Звоните: 8-800-333-94-95.`}
+  description={`${service.title}. ${service.shortDescription?.slice(0, 150) ?? ''} Москва и МО. Звоните: 8-800-333-94-95.`}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
-  <div class="bg-[#f5f5f5] min-h-screen">
+  <!-- Крошки + заголовок -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <nav class="text-[14px] text-[#898989] mb-[20px]">
+      <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span>
+      <a href="/uslugi" class="hover:text-[#FFAE01]">Услуги</a> <span class="mx-[8px]">/</span>
+      <span class="text-[#333333]">{service.title}</span>
+    </nav>
+    <div class="flex items-end gap-[25px]">
+      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        {service.title}
+      </h1>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+  </section>
 
-    <!-- Шапка -->
-    <div class="bg-white border-b border-[#e5e5e5]">
-      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
-        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
-          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
-          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          <a href="/uslugi" class="hover:text-[#FFAE01] transition-colors">Услуги</a>
-          <svg class="w-3.5 h-3.5 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          <span class="text-slate-900 font-medium truncate max-w-xs">{service.title}</span>
-        </nav>
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">{service.title}</h1>
-          {service.priceFrom && (
-            <span class="shrink-0 bg-[#FFAE01]/10 text-[#FFAE01] font-bold text-lg px-5 py-2 rounded-[5px] whitespace-nowrap">
-              {service.priceFrom}
-            </span>
-          )}
+  <!-- HERO-баннер: тёмный, описание + CTA -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
+    <div class="relative bg-[#333333] rounded-[5px] overflow-hidden flex flex-col gap-[25px]" style="padding:50px;">
+      <span class="absolute font-[Montserrat] font-black text-[#FFAE01]/10 leading-none select-none pointer-events-none" style="font-size:280px;right:-20px;top:-80px;">%</span>
+      <div class="relative z-10 flex flex-col gap-[20px] max-w-[760px]">
+        <h2 class="font-[Montserrat] font-semibold text-white text-[24px] lg:text-[32px] leading-[1.3]">
+          {service.shortDescription ?? `${service.title} от У-Стройка — качественно, в срок, с гарантией`}
+        </h2>
+        {service.priceFrom && (
+          <div class="inline-flex items-center bg-[#FFAE01] rounded-[5px] self-start" style="padding:10px 20px;">
+            <span class="text-[#333333] font-bold text-[20px]">{service.priceFrom}</span>
+          </div>
+        )}
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="/raschet" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;padding:0 35px;">
+            Получить расчёт
+          </a>
+          <a href="tel:88003339495" class="inline-flex items-center justify-center border border-white/40 hover:border-white text-white font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;padding:0 35px;">
+            Позвонить
+          </a>
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
-      <div class="max-w-3xl">
+  <!-- Описание (контент из Bitrix) -->
+  {entry.body && entry.body.trim() && (
+    <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
+      <div class="prose prose-slate max-w-[860px]">
+        <Content />
+      </div>
+    </section>
+  )}
 
-        {service.shortDescription && (
-          <p class="text-lg text-[#898989] mb-6 leading-relaxed">{service.shortDescription}</p>
-        )}
+  <!-- Как мы работаем -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Как мы работаем</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+      {steps.map((s) => (
+        <div class="bg-white rounded-[5px] flex flex-col gap-[12px]" style="padding:30px;min-height:200px;">
+          <span class="font-[Montserrat] font-bold text-[#FFAE01] text-[40px] leading-none">{s.n}</span>
+          <span class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{s.title}</span>
+          <p class="text-[#333333] text-[15px] leading-[1.4]">{s.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
 
-        {entry.body && entry.body.trim() && (
-          <div class="bg-white rounded-[10px] border border-[#e5e5e5] p-6 lg:p-8 prose prose-slate max-w-none mb-8">
-            <Content />
+  <!-- Преимущества -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]">
+    <AdvantagesBlock />
+  </section>
+
+  <!-- Стоимость -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[30px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Стоимость</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="bg-white rounded-[5px] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6" style="padding:40px;">
+      <p class="text-[#333333] text-[16px] leading-[1.5] max-w-[760px]">
+        Стоимость рассчитывается индивидуально под ваш объект: зависит от площади, сложности и объёма работ. При заказе работ в&nbsp;полном объёме материалы предоставляются по&nbsp;оптовым ценам. Оставьте заявку — сделаем точный расчёт за&nbsp;1&nbsp;день.
+      </p>
+      <a href="/raschet" class="shrink-0 inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;padding:0 35px;">
+        Узнать стоимость
+      </a>
+    </div>
+  </section>
+
+  <!-- Отзывы -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0" style="max-width:892px;">Посмотрите что говорят наши клиенты</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+      {reviews.map((r) => (
+        <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:25px;min-height:220px;">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-[12px]">
+              <div class="w-[50px] h-[50px] rounded-full bg-[#E9E9E9] flex items-center justify-center text-[#898989] text-[20px] font-semibold flex-shrink-0">{r.name.charAt(0)}</div>
+              <span class="text-[#333333] text-[16px] font-semibold">{r.name}</span>
+            </div>
+            <div class="flex items-center gap-[2px]">
+              {[1,2,3,4,5].map(() => (<svg width="18" height="18" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>))}
+            </div>
           </div>
-        )}
+          <p class="text-[#333333] text-[14px] leading-[1.4] flex-1">{r.text}</p>
+          <a href="/otzyvy" class="text-[#333333] text-[13px] underline hover:text-[#FFAE01] transition-colors self-start">Читать весь отзыв</a>
+        </div>
+      ))}
+    </div>
+  </section>
 
-        <!-- CTA -->
-        <div class="bg-[#333333] text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center gap-6 mb-8">
-          <div class="flex-1">
-            <h2 class="font-bold text-xl mb-2">Заказать {service.title.toLowerCase()}</h2>
-            <p class="text-[#898989] text-sm">Бесплатный выезд замерщика. Расчёт за 1 день.</p>
+  <!-- Специалисты -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex flex-col gap-[40px]">
+      <div class="flex flex-col gap-[15px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22]">
+          У&nbsp;нас работают только сертифицированные специалисты с&nbsp;опытом более 8&nbsp;лет
+        </h2>
+        <p class="text-[#333333] text-[18px] leading-[1.3]" style="max-width:714px;">
+          Ежегодно проходят обучение от&nbsp;заводов-производителей и&nbsp;прошли аттестацию на&nbsp;знание продукции
+        </p>
+      </div>
+      <div class="flex flex-col lg:flex-row gap-[20px]" style="min-height:400px;">
+        <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="flex:1042 1 0%;min-height:250px;">
+          <img src="/images/home/s10-team-main.png" alt="Специалисты компании" class="absolute inset-0 w-full h-full object-cover object-top" />
+        </div>
+        <div class="flex flex-col gap-[20px]" style="flex:738 1 0%;">
+          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9] flex-1" style="min-height:120px;">
+            <img src="/images/home/s10-team-2.png" alt="Команда специалистов" class="absolute inset-0 w-full h-full object-cover" />
           </div>
-          <div class="flex flex-col sm:flex-row gap-3 shrink-0">
-            <a
-              href="tel:88003339495"
-              class="inline-flex items-center justify-center gap-2 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-              Позвонить
-            </a>
-            <a
-              href="/raschet"
-              class="inline-flex items-center justify-center gap-2 border border-[#464646] hover:border-white text-white font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap"
-            >
-              Получить расчёт
-            </a>
+          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9] flex-1" style="min-height:120px;">
+            <img src="/images/home/s10-team-3.png" alt="Сертифицированные мастера" class="absolute inset-0 w-full h-full object-cover" />
           </div>
         </div>
-
-        <a href="/uslugi" class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
-          <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-          Все услуги
-        </a>
-
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Полезные видео -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <div class="flex items-end gap-[25px] mb-6">
+      <h2 class="font-[Montserrat] font-semibold text-[22px] lg:text-[28px] text-[#333333] leading-snug flex-shrink-0">Полезные видео</h2>
+      <div class="flex-1 h-px bg-[#E9E9E9] mb-2"></div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {['Как проходит монтаж', 'Технология и материалы', 'Гарантия на работы'].map((t) => (
+        <div class="group cursor-pointer">
+          <div class="relative aspect-video rounded-[5px] overflow-hidden bg-[#333333] mb-3">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="w-[60px] h-[60px] rounded-full bg-[#FFAE01]/90 flex items-center justify-center group-hover:bg-[#FFAE01] transition-colors">
+                <svg class="w-6 h-6 text-[#333333] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+            </div>
+          </div>
+          <p class="text-sm text-[#333333] font-medium leading-snug group-hover:text-[#FFAE01] transition-colors">{t}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:30px;padding-bottom:80px;">
+    <div class="bg-[#333333] text-white rounded-[5px] p-8 flex flex-col sm:flex-row items-center gap-6">
+      <div class="flex-1">
+        <h2 class="font-[Montserrat] font-bold text-xl lg:text-2xl mb-2">Заказать «{service.title}»</h2>
+        <p class="text-[#898989] text-sm">Бесплатный выезд замерщика. Расчёт за 1 день.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+        <a href="tel:88003339495" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap">Позвонить</a>
+        <a href="/raschet" class="inline-flex items-center justify-center border border-[#464646] hover:border-white text-white font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap">Получить расчёт</a>
+      </div>
+    </div>
+    <a href="/uslugi" class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity mt-6">
+      <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      Все услуги
+    </a>
+  </section>
 </BaseLayout>
