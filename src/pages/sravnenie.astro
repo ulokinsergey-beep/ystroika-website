@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Сравнение товаров"
+  description="Сравнение характеристик кровельных и фасадных материалов У-Стройка — цена, покрытие, толщина, гарантия."
+>
+  <!-- Заголовок + крошки -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <nav class="text-[14px] text-[#898989] mb-[20px]">
+      <a href="/" class="hover:text-[#FFAE01]">Главная</a>
+      <span class="mx-[8px]">/</span>
+      <span class="text-[#333333]">Сравнение товаров</span>
+    </nav>
+    <div class="flex items-end gap-[25px]">
+      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Сравнение товаров
+      </h1>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+  </section>
+
+  <!-- Пустое состояние (товары добавляются из карточки) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:80px;">
+    <div id="compare-empty" class="flex flex-col items-center justify-center text-center gap-5 bg-[#F5F5F5] rounded-[5px]" style="padding:80px 24px;">
+      <svg class="w-16 h-16 text-[#d0d0d0]" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[22px]">Список сравнения пуст</h2>
+      <p class="text-[#898989] text-[16px] leading-[1.5]" style="max-width:480px;">
+        Добавляйте товары к&nbsp;сравнению кнопкой «Сравнить» в&nbsp;карточке товара — здесь появится таблица их&nbsp;характеристик рядом.
+      </p>
+      <a href="/catalog"
+         class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[16px] rounded-[5px] transition-colors"
+         style="height:50px;padding:0 40px;">
+        Перейти в&nbsp;каталог
+      </a>
+    </div>
+  </section>
+</BaseLayout>
