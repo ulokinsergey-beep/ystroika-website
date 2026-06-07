@@ -1,0 +1,57 @@
+---
+/**
+ * StickyNav — узкая панель навигации, появляется при скролле вниз.
+ * Рендерится ВНЕ #figma-canvas (без transform), поэтому position:fixed работает.
+ * Даёт доступ к быстрым ссылкам из середины страницы.
+ */
+const navLinks = [
+  { href: '/catalog/krovlya', label: 'Кровля' },
+  { href: '/catalog/fasad', label: 'Фасад' },
+  { href: '/catalog/ograzhdeniya', label: 'Ограждение' },
+  { href: '/spetspredlozheniya', label: '% Спецпредложения' },
+  { href: '/sravnenie', label: 'Сравнение товаров' },
+  { href: '/o-kompanii', label: 'О компании' },
+  { href: '/otzyvy', label: 'Отзывы' },
+  { href: '/kontakty', label: 'Контакты' },
+];
+---
+
+<div id="sticky-nav"
+     class="hidden lg:block fixed top-0 left-0 right-0 z-[60] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] -translate-y-full transition-transform duration-300 will-change-transform">
+  <div class="px-4 sm:px-8 lg:px-[60px] h-[60px] flex items-center gap-6">
+    <a href="/" class="flex-shrink-0 flex items-center" aria-label="У-Стройка — на главную">
+      <img src="/images/logo.svg" width="120" height="32" alt="У-Стройка" />
+    </a>
+    <nav class="flex items-center gap-[26px] flex-1 overflow-x-auto">
+      {navLinks.map((l) => (
+        <a href={l.href} class="whitespace-nowrap text-[15px] font-medium text-[#333333] hover:text-[#FFAE01] transition-colors">
+          {l.label}
+        </a>
+      ))}
+    </nav>
+    <a href="tel:88003339495" class="flex-shrink-0 text-[15px] font-bold text-[#FFAE01] hover:opacity-80 transition-opacity whitespace-nowrap">
+      +7 800 333 94 95
+    </a>
+    <a href="/raschet"
+       class="flex-shrink-0 bg-[#333333] hover:bg-[#444] text-[#FFAE01] text-[15px] font-medium flex items-center justify-center rounded-[5px] px-5 h-[40px] whitespace-nowrap transition-colors">
+      Получить счёт
+    </a>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var bar = document.getElementById('sticky-nav');
+    if (!bar) return;
+    var shown = false;
+    var THRESHOLD = 600; // показывать после прокрутки на ~высоту шапки
+    function onScroll() {
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      var should = y > THRESHOLD;
+      if (should && !shown) { bar.classList.remove('-translate-y-full'); shown = true; }
+      else if (!should && shown) { bar.classList.add('-translate-y-full'); shown = false; }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
