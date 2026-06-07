@@ -797,13 +797,17 @@ const jsonLd = {
           card.classList.remove('list-card');
         });
       } else {
-        productsGrid.className = 'flex flex-col gap-2';
+        productsGrid.className = 'flex flex-col gap-3';
         viewListBtn?.classList.add('bg-[#FFAE01]', 'text-black');
         viewListBtn?.classList.remove('bg-white', 'text-[#898989]');
         viewGridBtn?.classList.add('bg-white', 'text-[#898989]');
         viewGridBtn?.classList.remove('bg-[#FFAE01]', 'text-black');
         viewListBtn?.setAttribute('aria-pressed', 'true');
         viewGridBtn?.setAttribute('aria-pressed', 'false');
+        // C1: карточки → горизонтальные строки (режим списка по Figma)
+        productsGrid.querySelectorAll('[data-product-kod]').forEach(card => {
+          card.classList.add('list-card');
+        });
       }
       try { localStorage.setItem('catalog-view', mode); } catch {}
     }
@@ -873,5 +877,16 @@ const jsonLd = {
 
     document.addEventListener('DOMContentLoaded', loadPricesAndStock);
   </script>
+
+  <style is:global>
+    /* C1: режим «список» — карточка ProductCard горизонтально (фото слева, инфо справа) */
+    .list-card { flex-direction: row !important; align-items: stretch; }
+    .list-card > a:first-of-type { width: 240px; flex-shrink: 0; }
+    .list-card > div { justify-content: center; }
+    @media (max-width: 639px) {
+      .list-card { flex-direction: column !important; }
+      .list-card > a:first-of-type { width: 100%; }
+    }
+  </style>
 
 </BaseLayout>
