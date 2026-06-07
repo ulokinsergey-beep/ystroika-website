@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { calculators } from '../../data/calculators';
+---
+
+<BaseLayout
+  title="Калькуляторы расчёта материалов"
+  description="Онлайн-калькуляторы расчёта кровли, фасада и водостока У-Стройка. Рассчитайте количество материалов под ваш объект за 1 день."
+>
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
+    <nav class="text-[14px] text-[#898989] mb-[20px]">
+      <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span>
+      <span class="text-[#333333]">Наши сервисы</span>
+    </nav>
+    <div class="flex items-end gap-[25px]">
+      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
+        Калькуляторы расчёта
+      </h1>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+  </section>
+
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:80px;">
+    <p class="text-[#333333] text-[18px] leading-[1.4] mb-[30px]" style="max-width:760px;">
+      Укажите параметры объекта — менеджер подготовит расчёт материалов и&nbsp;стоимости за&nbsp;1&nbsp;день. Точно, с&nbsp;учётом доборных элементов.
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+      {calculators.map((c) => (
+        <a href={`/servisy/${c.slug}`}
+           class="group flex flex-col gap-[12px] bg-[#F5F5F5] rounded-[5px] hover:bg-[#FFAE01]/10 border border-transparent hover:border-[#FFAE01] transition-colors" style="padding:25px;min-height:170px;">
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center justify-center w-[44px] h-[44px] rounded-[5px] bg-white text-[#FFAE01]">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            </span>
+            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors flex-shrink-0">
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </span>
+          </div>
+          <span class="font-[Montserrat] font-semibold text-[#333333] text-[18px] leading-snug">{c.title}</span>
+          <p class="text-[#898989] text-[14px] leading-[1.4]">{c.short}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
