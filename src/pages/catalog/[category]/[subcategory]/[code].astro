@@ -7,6 +7,7 @@ import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import { categories } from '../../../../data/categories';
 import { fetchPrices, fetchStock } from '../../../../lib/kroval';
 import ProductCard from '../../../../components/catalog/ProductCard.astro';
+import AdvantagesBlock from '../../../../components/AdvantagesBlock.astro';
 
 const { category: categorySlug, subcategory: subcategorySlug, code } = Astro.params;
 
@@ -488,6 +489,42 @@ const jsonLd = {
           </div>
         </section>
       )}
+
+      <!-- Полезные видео (Figma PC1) -->
+      <section class="mt-10 mb-8">
+        <div class="flex items-end gap-[25px] mb-6">
+          <h2 class="font-[Montserrat] font-semibold text-[22px] lg:text-[28px] text-[#333333] leading-snug flex-shrink-0">
+            Полезные видео
+          </h2>
+          <div class="flex-1 h-px bg-[#E9E9E9] mb-2"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            'Инструкция по монтажу металлочерепицы',
+            'Как выбрать кровельный материал для дома',
+            'Расчёт количества материала на кровлю',
+          ].map((title) => (
+            <div class="group cursor-pointer">
+              <div class="relative aspect-video rounded-[5px] overflow-hidden bg-[#333333] mb-3">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="w-[60px] h-[60px] rounded-full bg-[#FFAE01]/90 flex items-center justify-center group-hover:bg-[#FFAE01] transition-colors">
+                    <svg class="w-6 h-6 text-[#333333] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </span>
+                </div>
+              </div>
+              <p class="text-sm text-[#333333] font-medium leading-snug group-hover:text-[#FFAE01] transition-colors">{title}</p>
+            </div>
+          ))}
+        </div>
+        <div class="flex justify-center mt-6">
+          <a href="/novosti" class="inline-flex items-center justify-center border border-[#333333] text-[#333333] hover:bg-[#333333] hover:text-white font-semibold text-sm rounded-[5px] transition-colors" style="height:50px;padding:0 40px;">
+            Смотреть больше видео
+          </a>
+        </div>
+      </section>
+
+      <!-- Блок преимуществ (Figma PC1) -->
+      <AdvantagesBlock />
 
       <!-- Назад в раздел -->
       <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
