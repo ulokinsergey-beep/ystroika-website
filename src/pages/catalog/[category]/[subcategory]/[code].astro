@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import { categories } from '../../../../data/categories';
 import { fetchPrices, fetchStock } from '../../../../lib/kroval';
+import ProductCard from '../../../../components/catalog/ProductCard.astro';
 
 const { category: categorySlug, subcategory: subcategorySlug, code } = Astro.params;
 
@@ -18,18 +19,23 @@ if (!category || !subcategory) {
 
 const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
 let product: any = null;
+let relatedProducts: any[] = [];
 
 if (existsSync(dataPath)) {
   try {
     const raw = readFileSync(dataPath, 'utf-8');
     const data = JSON.parse(raw);
-    product = (data.products ?? []).find((p: any) => p.kod === code);
+    const list = data.products ?? [];
+    product = list.find((p: any) => p.kod === code);
+    relatedProducts = list.filter((p: any) => p.kod !== code).slice(0, 4);
   } catch {}
 }
 
 if (!product) {
   return new Response(null, { status: 404 });
 }
+
+const relatedKods = relatedProducts.map((p: any) => p.kod).filter(Boolean);
 
 let priceData: { price: number; discounted_price: number } | null = null;
 let stockData: Record<string, number> = {};
@@ -458,6 +464,31 @@ const jsonLd = {
         </div>
       </div>
 
+      <!-- Вам может понадобиться (Figma PC1) -->
+      {relatedProducts.length > 0 && (
+        <section class="mt-10 mb-8">
+          <div class="flex items-end gap-[25px] mb-6">
+            <h2 class="font-[Montserrat] font-semibold text-[22px] lg:text-[28px] text-[#333333] leading-snug flex-shrink-0">
+              Вам может понадобиться
+            </h2>
+            <div class="flex-1 h-px bg-[#E9E9E9] mb-2"></div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {relatedProducts.map((p: any) => (
+              <ProductCard
+                kod={p.kod}
+                name={p.name}
+                unit={p.unit}
+                brand={p.brand}
+                priceGroup={p.priceGroup}
+                categorySlug={categorySlug!}
+                subcategorySlug={subcategorySlug!}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       <!-- Назад в раздел -->
       <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
         <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -583,4 +614,52 @@ if (minusS && plusS && qtyS) {
     qtyS.value = String(parseInt(qtyS.value, 10) + 1);
   });
 }
+</script>
+
+<!-- Цены/наличие для блока «Вам может понадобиться» -->
+<script define:vars={{ relatedKods }}>
+  (async function () {
+    if (!relatedKods || !relatedKods.length) return;
+    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
+    function fillCard(card, priceData, stockQty) {
+      const skeleton = card.querySelector('.price-skeleton');
+      const loaded   = card.querySelector('.price-loaded');
+      const noPrice  = card.querySelector('.no-price');
+      const origEl   = card.querySelector('.original-price');
+      const dispEl   = card.querySelector('.price-display');
+      const discBadge= card.querySelector('.discount-badge');
+      const stockBadge = card.querySelector('.stock-badge');
+      if (skeleton) skeleton.classList.add('hidden');
+      if (priceData && (priceData.price > 0 || priceData.discounted_price > 0)) {
+        if (loaded) loaded.classList.remove('hidden');
+        const hasDiscount = priceData.discounted_price > 0 && priceData.discounted_price < priceData.price;
+        if (hasDiscount) {
+          if (origEl) { origEl.textContent = fmt(priceData.price); origEl.classList.remove('hidden'); }
+          if (dispEl) dispEl.textContent = fmt(priceData.discounted_price);
+          if (discBadge) discBadge.classList.remove('hidden');
+        } else {
+          const price = priceData.discounted_price > 0 ? priceData.discounted_price : priceData.price;
+          if (dispEl) dispEl.textContent = fmt(price);
+        }
+      } else if (noPrice) {
+        noPrice.classList.remove('hidden');
+      }
+      if (stockQty > 0 && stockBadge) {
+        stockBadge.classList.remove('hidden');
+        stockBadge.classList.add('inline-flex');
+      }
+    }
+    try {
+      const [pricesRes, stockRes] = await Promise.allSettled([
+        fetch('/api/catalog/prices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kods: relatedKods }) }).then(r => r.ok ? r.json() : { prices: {} }),
+        fetch('/api/catalog/stock',  { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kods: relatedKods }) }).then(r => r.ok ? r.json() : { stock: {} }),
+      ]);
+      const prices = pricesRes.status === 'fulfilled' ? (pricesRes.value?.prices ?? {}) : {};
+      const stock  = stockRes.status === 'fulfilled'  ? (stockRes.value?.stock  ?? {}) : {};
+      document.querySelectorAll('[data-product-kod]').forEach(card => {
+        const kod = card.getAttribute('data-product-kod');
+        if (kod && relatedKods.includes(kod)) fillCard(card, prices[kod], stock[kod]);
+      });
+    } catch (e) {}
+  })();
 </script>
