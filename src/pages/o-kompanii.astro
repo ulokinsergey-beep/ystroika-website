@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import AdvantagesBlock from '../components/AdvantagesBlock.astro';
 import aboutData from '../data/about-company.json';
 
 const jsonLd = {
@@ -82,6 +83,11 @@ const jsonLd = {
     </div>
   </section>
 
+  <!-- ADVANTAGES (Figma P3) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]">
+    <AdvantagesBlock />
+  </section>
+
   <!-- SECOND BLOCK: цель и девиз -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[40px]">
@@ -136,6 +142,118 @@ const jsonLd = {
           </a>
         );
       })}
+    </div>
+  </section>
+
+  <!-- SPECIALISTS (Figma P3) -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex flex-col gap-[40px]">
+      <div class="flex flex-col gap-[15px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22]">
+          У&nbsp;нас работают только сертифицированные специалисты с&nbsp;опытом более 8&nbsp;лет
+        </h2>
+        <p class="text-[#333333] text-[18px] leading-[1.3]" style="max-width:714px;">
+          Ежегодно проходят обучение от&nbsp;заводов-производителей, понимают весь технический процесс, прошли аттестацию на&nbsp;знание данной продукции
+        </p>
+      </div>
+      <div class="flex flex-col lg:flex-row gap-[20px]" style="min-height:550px;">
+        <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="flex:1042 1 0%;min-height:300px;">
+          <img src="/images/home/s10-team-main.png" alt="Специалисты компании" class="absolute inset-0 w-full h-full object-cover object-top" />
+        </div>
+        <div class="flex flex-col gap-[20px]" style="flex:738 1 0%;">
+          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9] flex-1" style="min-height:140px;">
+            <img src="/images/home/s10-team-2.png" alt="Команда специалистов" class="absolute inset-0 w-full h-full object-cover" />
+          </div>
+          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9] flex-1" style="min-height:140px;">
+            <img src="/images/home/s10-team-3.png" alt="Сертифицированные мастера" class="absolute inset-0 w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS (Figma P3) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex flex-col gap-[40px]">
+      <div class="flex items-end gap-[25px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0" style="max-width:892px;">
+          Посмотрите что говорят наши клиенты
+        </h2>
+        <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+        {[
+          { name: 'Вадим',   text: 'Огромное спасибо Александру за грамотное и профессиональное отношение к клиентам. Очень приятное общение, своевременная доставка. Итоговая цена очень порадовала.' },
+          { name: 'Валерий', text: 'Выражаем огромную благодарность вашей компании за грамотную и профессиональную работу! Чёткие ответы, доставка в назначенное время оставили самое приятное впечатление.' },
+          { name: 'Ольга',   text: 'Хочу выразить благодарность Светлане за грамотную и профессиональную работу с клиентом. Хотелось, чтобы таких специалистов было больше. Спасибо за индивидуальный подход!' },
+        ].map((r) => (
+          <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:25px;min-height:240px;">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-[12px]">
+                <div class="w-[50px] h-[50px] rounded-full bg-[#E9E9E9] flex items-center justify-center text-[#898989] text-[20px] font-semibold flex-shrink-0">{r.name.charAt(0)}</div>
+                <span class="text-[#333333] text-[16px] font-semibold">{r.name}</span>
+              </div>
+              <div class="flex items-center gap-[2px]">
+                {[1,2,3,4,5].map(() => (<svg width="18" height="18" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>))}
+              </div>
+            </div>
+            <p class="text-[#333333] text-[14px] leading-[1.4] flex-1">{r.text}</p>
+            <a href="/otzyvy" class="text-[#333333] text-[13px] underline hover:text-[#FFAE01] transition-colors self-start">Читать весь отзыв</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CERTIFICATES (Figma P3) -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex flex-col gap-[40px]">
+      <div class="flex items-end gap-[25px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Сертификаты</h2>
+        <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[20px]">
+        {['Сертификат соответствия', 'Сертификат качества', 'Декларация о соответствии', 'Гарантийный сертификат'].map((t) => (
+          <div class="bg-white rounded-[5px] border border-[#E9E9E9] flex flex-col items-center justify-center gap-[15px] p-6" style="aspect-ratio:3/4;">
+            <svg class="w-12 h-12 text-[#FFAE01]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span class="text-[#333333] text-[13px] text-center leading-snug">{t}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACTS + MAP (Figma P3) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:80px;">
+    <div class="flex flex-col gap-[40px]">
+      <div class="flex items-end gap-[25px]">
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Контактная информация</h2>
+        <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-[20px]">
+        <div class="bg-[#F5F5F5] rounded-[5px] p-6 flex flex-col gap-2">
+          <span class="text-[#898989] text-[14px]">Телефон</span>
+          <a href="tel:88003339495" class="text-[#333333] text-[20px] font-bold hover:text-[#FFAE01] transition-colors">8-800-333-94-95</a>
+          <span class="text-[#898989] text-[13px]">Бесплатно по&nbsp;России</span>
+        </div>
+        <div class="bg-[#F5F5F5] rounded-[5px] p-6 flex flex-col gap-2">
+          <span class="text-[#898989] text-[14px]">Email</span>
+          <a href="mailto:office@y-stroika.ru" class="text-[#333333] text-[18px] font-semibold hover:text-[#FFAE01] transition-colors break-words">office@y-stroika.ru</a>
+          <span class="text-[#898989] text-[13px]">Отвечаем в&nbsp;течение часа</span>
+        </div>
+        <div class="bg-[#F5F5F5] rounded-[5px] p-6 flex flex-col gap-2">
+          <span class="text-[#898989] text-[14px]">Офис</span>
+          <span class="text-[#333333] text-[16px] font-semibold leading-snug">ул.&nbsp;Советская 1А, Куровское</span>
+          <a href="/kontakty" class="text-[#FFAE01] text-[13px] font-semibold hover:underline">Схема проезда →</a>
+        </div>
+      </div>
+      <a href="/kontakty" class="relative block rounded-[5px] overflow-hidden bg-[#333333] group" style="height:320px;">
+        <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-4">
+          <svg class="w-12 h-12 text-[#FFAE01]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="text-white text-[16px] font-semibold">Москва и&nbsp;Московская область</span>
+          <span class="inline-flex items-center justify-center bg-[#FFAE01] text-[#333333] font-semibold text-sm rounded-[5px] px-6 h-11 group-hover:bg-[#e09d00] transition-colors">Открыть карту</span>
+        </div>
+      </a>
     </div>
   </section>
 </BaseLayout>
