@@ -20,9 +20,9 @@ const canonicalURL = `https://ystroika.ru/uslugi/${serviceSlug}/`;
 const price = service.priceFrom || 'по запросу';
 
 const bullets = [
-  'БЕСПЛАТНО к вам приедет инженер для уточнения конструкции и материала',
-  'БЕСПЛАТНО составим смету и подготовим проект',
-  'ВЫЕЗД ЗАМЕРЩИКА в день обращения',
+  { bold: 'БЕСПЛАТНО', rest: ' к вам приедет инженер для уточнения конструкции и материала кровли' },
+  { bold: 'БЕСПЛАТНО', rest: ' составим для Вас смету и подготовим проект кровли' },
+  { bold: 'ВЫЕЗД ЗАМЕРЩИКА', rest: ' в день обращения' },
 ];
 const steps = [
   'Делаем заявку в строительную компанию',
@@ -41,16 +41,16 @@ const priceRows = [
   'Демонтаж старой конструкции',
 ];
 const accessories = [
-  { name: 'Система вентиляционного выхода с регулируемым углом наклона', price: '2000 ₽/шт', old: '', stock: 'in' },
-  { name: 'Классические виниловые софиты',                               price: '1000 ₽/шт', old: '', stock: 'check' },
-  { name: 'Снегозадержатель',                                            price: '650 ₽/шт',  old: '900 ₽/шт', stock: 'check' },
-  { name: 'Аэроэлемент конька',                                          price: '4500 ₽/5м', old: '7000 ₽/5м', stock: 'in' },
+  { name: 'Система вентиляционного выхода с регулируемым углом наклона', price: '2000 ₽/шт', old: '', stock: 'in',    qty: 1,  img: '/images/uslugi/products/ventvyhod.png' },
+  { name: 'Классические виниловые софиты',                               price: '1000 ₽/шт', old: '', stock: 'check', qty: 5,  img: '/images/uslugi/products/sofity.png' },
+  { name: 'Снегозадержатель',                                            price: '650 ₽/шт',  old: '900 ₽/шт', stock: 'check', qty: 8,  img: '/images/uslugi/products/snegozaderzhatel.png' },
+  { name: 'Аэроэлемент конька',                                          price: '4500 ₽/5м', old: '7000 ₽/5м', stock: 'in',  qty: 24, img: '/images/uslugi/products/aeroelement.png' },
 ];
 const newsVideo = [
-  { t: 'Почему течёт крыша? Зачем контробрешётке уплотнитель?', date: '23 марта', video: false },
-  { t: 'Кровля из металлочерепицы. Загородный дом из СИП-панелей', date: '20 марта', video: false },
-  { t: 'Металлический вертикальный сайдинг. Кровельный профнастил', date: '16 марта', video: true },
-  { t: 'Скатная крыша — виды, чем отличаются по конструкции', date: '16 марта', video: true },
+  { t: 'Почему течёт крыша? / Зачем контробрешётке уплотнитель?',                                  date: '23 марта', video: false, img: '/images/uslugi/video/v1.png' },
+  { t: 'Кровля из металлочерепицы / Фасад в виниловом сайдинге / Загородный дом из СИП панелей',   date: '20 марта', video: false, img: '/images/uslugi/video/v2.png' },
+  { t: 'Металлический вертикальный сайдинг / Оцинкованный кровельный профнастил',                  date: '16 марта', video: true,  img: '/images/uslugi/video/v3.png' },
+  { t: 'Скатная крыша — виды, чем отличаются по конструктивным элементам, форме и параметрам',     date: '16 марта', video: true,  img: '/images/uslugi/video/v4.png' },
 ];
 const reviews = [
   { name: 'Александр Завьялов', date: '20.03.2023', text: 'У-Стройка — компания, готовая решить все задачи по ремонту и строительству крыш. Благодаря готовым решениям мы сэкономили более 10% на стоимости материалов! Используют проверенных поставщиков и качественный монтаж.' },
@@ -81,42 +81,46 @@ const jsonLd = {
   <!-- HERO: тёмная карточка (фото) + форма -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
     <div class="flex flex-col lg:flex-row gap-[20px] items-stretch">
-      <!-- Тёмная карточка -->
-      <div class="relative flex-1 rounded-[5px] overflow-hidden flex items-center" style="min-height:420px;background:#333333;">
-        <img src="/images/home/s7-services.png" alt="" class="absolute inset-0 w-full h-full object-cover opacity-25" />
-        <div class="relative z-10 flex flex-col gap-[20px]" style="padding:50px;max-width:560px;">
-          <h1 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[40px] leading-[1.2]">
-            {service.title} в&nbsp;Москве «под&nbsp;ключ»
-          </h1>
-          <div class="inline-flex items-center bg-[#FFAE01] rounded-[5px] self-start" style="padding:8px 18px;">
-            <span class="text-[#333333] font-bold text-[20px]">{price}</span>
+      <!-- Левый блок: фото-крыша + тёмная info-карточка поверх -->
+      <div class="relative flex-1 rounded-[5px] overflow-hidden" style="min-height:620px;">
+        <img src="/images/uslugi/hero-roofer.png" alt={service.title} class="absolute inset-0 w-full h-full object-cover object-bottom pointer-events-none" />
+        <div class="relative z-10 inline-flex flex-col gap-[40px] bg-[#333333] rounded-[5px] m-[40px] lg:m-[70px]" style="padding:50px 60px;max-width:612px;">
+          <div class="flex flex-col gap-[14px]">
+            <h1 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[42px] leading-[1.1]">
+              {service.title} в&nbsp;Москве «под&nbsp;ключ»
+            </h1>
+            <div class="inline-flex items-center self-start bg-[#FFAE01] rounded-[5px]" style="padding:6px 13px;">
+              <span class="text-[#333333] font-bold text-[28px] lg:text-[42px] leading-none whitespace-nowrap">{price}</span>
+            </div>
           </div>
-          <ul class="flex flex-col gap-[10px]">
+          <ul class="flex flex-col gap-[10px] list-disc pl-[20px] marker:text-white">
             {bullets.map((b) => (
-              <li class="flex items-start gap-[10px] text-white text-[15px] leading-[1.4]">
-                <span class="inline-flex items-center justify-center w-[20px] h-[20px] rounded-full bg-[#FFAE01] flex-shrink-0 mt-[1px]">
-                  <svg width="11" height="11" fill="none" stroke="#333333" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                </span>{b}
+              <li class="text-white text-[16px] lg:text-[18px] leading-[1.3]">
+                <span class="font-medium">{b.bold}</span><span class="font-normal">{b.rest}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
-      <!-- Форма расчёта -->
-      <form id="zayavka" class="lg:w-[420px] flex-shrink-0 bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[14px]" style="padding:35px;">
-        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[22px] leading-[1.2]">Получите точный расчёт</h2>
-        <p class="text-[#898989] text-[13px] leading-[1.4]">Предварительный расчёт с точностью 99%. Свяжемся в течение 10 минут.</p>
-        <input type="tel" name="phone" required placeholder="Ваш телефон *" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <input type="number" name="length" placeholder="Введите длину, м" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <input type="number" name="width" placeholder="Введите ширину, м" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <select name="category" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]">
-          <option value="">Выберите категорию</option>
-          <option>Кровля</option><option>Фасад</option><option>Водосток</option><option>Другое</option>
-        </select>
+      <!-- Форма расчёта (правый блок, как в Figma) -->
+      <form id="zayavka" class="lg:w-[564px] flex-shrink-0 bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[20px] justify-center" style="padding:37px 41px;">
+        <div class="flex flex-col gap-[20px]">
+          <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[24px] leading-[1.3]">Получите точный расчёт кровли</h2>
+          <p class="text-[#333333] text-[16px] leading-[1.3]">Получите предварительный расчёт стоимости кровли под&nbsp;ваш объект с&nbsp;точностью 99%. Наш&nbsp;специалист свяжется с&nbsp;вами в&nbsp;течение 10&nbsp;минут</p>
+        </div>
+        <div class="flex flex-col gap-[15px]">
+          <input type="tel" name="phone" required placeholder="+7 (___) ___-__-__" class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#bdbdbd] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+          <input type="number" name="length" placeholder="Длина" class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#bdbdbd] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+          <input type="number" name="width" placeholder="Ширина" class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#bdbdbd] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+          <select name="material" class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]">
+            <option value="">Материал</option>
+            <option>Металлочерепица</option><option>Профнастил</option><option>Мягкая кровля</option><option>Другое</option>
+          </select>
+        </div>
         <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">Получить расчёт</button>
-        <label class="flex items-start gap-[8px] text-[#898989] text-[12px] leading-[1.3] cursor-pointer">
-          <input type="checkbox" checked class="mt-[2px] accent-[#FFAE01] w-[14px] h-[14px] flex-shrink-0" />
-          <span>Ознакомлен и&nbsp;согласен с&nbsp;политикой конфиденциальности</span>
+        <label class="flex items-center gap-[10px] text-[#898989] text-[13px] leading-[1.3] cursor-pointer">
+          <input type="checkbox" checked class="accent-[#FFAE01] w-[17px] h-[17px] flex-shrink-0" />
+          <span>Ознакомился и&nbsp;согласен с&nbsp;<span class="underline">политикой конфиденциальности</span></span>
         </label>
       </form>
     </div>
@@ -125,14 +129,14 @@ const jsonLd = {
   <!-- Основа (интро + фото) -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[30px]">
-      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">{service.osnovaTitle ?? 'Подробнее об услуге'}</h2>
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.1] flex-shrink-0">{service.osnovaTitle ?? 'Подробнее об услуге'}</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="flex flex-col lg:flex-row gap-[30px] items-start">
-      <div class="flex-1 prose prose-slate max-w-none">
+    <div class="flex flex-col lg:flex-row gap-[40px] xl:gap-[91px] items-center">
+      <div class="flex-1 lg:max-w-[738px] text-[#333333] text-[16px] lg:text-[18px] leading-[25px] [&_p]:mb-[10px] [&_strong]:font-semibold">
         {entry.body && entry.body.trim() ? <Content /> : <p>{service.shortDescription}</p>}
       </div>
-      <div class="lg:w-[560px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="aspect-ratio:16/10;">
+      <div class="w-full lg:w-[969px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#464646]" style="height:431px;">
         <img src={service.osnovaImage ?? '/images/home/s7-services.png'} alt={service.title} class="w-full h-full object-cover" />
       </div>
     </div>
@@ -166,15 +170,23 @@ const jsonLd = {
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Выполненные работы</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-[20px]">
-      {[1,2,3].map(() => (
-        <div class="aspect-[4/3] rounded-[5px] bg-gradient-to-br from-[#f0f0f0] to-[#dcdcdc] flex items-center justify-center">
-          <svg class="w-12 h-12 text-[#c0c0c0]" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </div>
-      ))}
+    <!-- Коллаж 1-в-1 по Figma: левое большое + центральное большое + правый столбец из двух -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]" style="grid-auto-rows:265px;">
+      <div class="rounded-[5px] overflow-hidden lg:row-span-2" style="height:550px;">
+        <img src="/images/uslugi/work-1.png" alt="Выполненная работа — монтаж стропильной системы" class="w-full h-full object-cover" />
+      </div>
+      <div class="rounded-[5px] overflow-hidden lg:row-span-2" style="height:550px;">
+        <img src="/images/uslugi/work-2.png" alt="Выполненная работа — стропильная система" class="w-full h-full object-cover" />
+      </div>
+      <div class="rounded-[5px] overflow-hidden" style="height:265px;">
+        <img src="/images/uslugi/work-3.png" alt="Выполненная работа — кровельные работы" class="w-full h-full object-cover" />
+      </div>
+      <div class="rounded-[5px] overflow-hidden lg:col-start-3" style="height:265px;">
+        <img src="/images/uslugi/work-4.png" alt="Выполненная работа — каркас крыши" class="w-full h-full object-cover" />
+      </div>
     </div>
-    <div class="flex justify-center mt-6">
-      <a href="/proekty" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[16px] rounded-[5px] transition-colors" style="height:48px;padding:0 36px;">Посмотреть все работы</a>
+    <div class="flex justify-center mt-[50px]">
+      <a href="/proekty" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;width:457px;max-width:100%;">Посмотреть все работы</a>
     </div>
   </section>
 
@@ -271,25 +283,49 @@ const jsonLd = {
         <button class={`rounded-[5px] text-[14px] font-medium ${i === 0 ? 'bg-[#FFAE01] text-[#333333]' : 'bg-[#E9E9E9] text-[#898989]'}`} style="padding:8px 18px;">{t}</button>
       ))}
     </div>
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-[20px]">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
       {accessories.map((a) => (
-        <a href="/catalog" class="group relative rounded-[5px] bg-white border border-[#E9E9E9] hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] transition-shadow overflow-hidden flex flex-col">
-          {a.old && <span class="absolute top-0 left-0 bg-[#C51212] text-white text-[11px] font-semibold px-[10px] py-[4px] z-10">Скидка</span>}
-          <div class="aspect-[4/3] bg-[#F5F5F5] flex items-center justify-center">
-            <svg class="w-12 h-12 text-[#D0D0D0]" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        <div class="group relative rounded-[5px] bg-white shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
+          {a.old && <span class="absolute top-0 left-0 bg-[#C51212] text-white text-[12px] font-medium z-10 rounded-br-[5px]" style="padding:4px 12px;">Скидка</span>}
+          <!-- Фото товара -->
+          <div class="bg-[#F5F5F5] border-b-[1.5px] border-[#E9E9E9] flex items-center justify-center overflow-hidden" style="height:200px;">
+            <img src={a.img} alt={a.name} class="max-h-[170px] max-w-[80%] object-contain pointer-events-none" />
           </div>
-          <div class="p-[15px] flex flex-col gap-[8px] flex-1">
-            <div class="flex items-center justify-between">
-              <span class="inline-flex items-center gap-[4px] bg-[#333333] text-white text-[11px] font-semibold px-[7px] py-[3px] rounded-[3px]"><svg class="w-[11px] h-[11px] fill-[#FFAE01]" viewBox="0 0 20 20"><path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03 1.07 3.29c.3.92-.76 1.69-1.54 1.12L10 14.43l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29-2.8-2.03c-.78-.57-.38-1.81.59-1.81h3.46l1.07-3.29z"/></svg>5.0</span>
-              <span class={`text-[11px] font-medium ${a.stock === 'in' ? 'text-[#4AC71E]' : 'text-[#C51212]'}`}>{a.stock === 'in' ? 'В наличии' : 'Уточните'}</span>
+          <div class="flex flex-col flex-1" style="padding:18px 20px 20px;">
+            <!-- Оценка + наличие -->
+            <div class="flex items-center justify-between mb-[12px]">
+              <span class="inline-flex items-center gap-[5px] bg-[#333333] text-white text-[13px] rounded-[5px]" style="padding:2px 7px;"><svg class="w-[14px] h-[14px] fill-[#FFAE01]" viewBox="0 0 20 20"><path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03 1.07 3.29c.3.92-.76 1.69-1.54 1.12L10 14.43l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29-2.8-2.03c-.78-.57-.38-1.81.59-1.81h3.46l1.07-3.29z"/></svg>5.0</span>
+              <span class={`flex items-center gap-[5px] text-[13px] ${a.stock === 'in' ? 'text-[#4AC71E]' : 'text-[#C51212]'}`}>
+                {a.stock === 'in'
+                  ? <svg class="w-[13px] h-[13px]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  : <svg class="w-[13px] h-[13px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8v5M12 16h.01"/></svg>}
+                {a.stock === 'in' ? 'В наличии' : 'Уточните у менеджера'}
+              </span>
             </div>
-            <p class="text-[13px] text-[#333333] font-medium leading-[1.4] line-clamp-2 flex-1">{a.name}</p>
-            <div>
-              {a.old && <span class="block text-[11px] text-[#898989] line-through">{a.old}</span>}
-              <span class="font-bold text-[18px] text-[#333333]">{a.price}</span>
+            <!-- Название -->
+            <p class="text-[15px] text-[#333333] font-medium leading-[1.3] mb-[15px]" style="min-height:40px;">{a.name}</p>
+            <!-- Кол-во -->
+            <div class="flex items-center justify-between border-b-[1.5px] border-[#E9E9E9] mt-auto" style="padding-bottom:12px;margin-bottom:14px;">
+              <span class="text-[#333333] text-[15px]">Кол-во</span>
+              <div class="flex items-center gap-[12px]">
+                <span class="flex items-center justify-center bg-[#E9E9E9] rounded-[5px] text-[#333333] text-[18px] font-medium" style="width:32px;height:32px;">−</span>
+                <span class="text-[#333333] text-[15px] font-medium min-w-[14px] text-center">{a.qty}</span>
+                <span class="flex items-center justify-center bg-[#E9E9E9] rounded-[5px] text-[#333333] text-[18px] font-medium" style="width:32px;height:32px;">+</span>
+              </div>
+            </div>
+            <!-- Цена + иконки -->
+            <div class="flex items-end justify-between">
+              <div class="flex flex-col">
+                {a.old && <span class="text-[12px] text-[#898989] line-through leading-none mb-[2px]">{a.old}</span>}
+                <span class="font-bold text-[22px] text-[#333333] leading-none">{a.price}</span>
+              </div>
+              <div class="flex items-center gap-[12px]">
+                <button aria-label="В избранное" class="flex items-center justify-center bg-[#F5F5F5] hover:bg-[#E9E9E9] rounded-full text-[#333333] transition-colors" style="width:38px;height:38px;"><svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></button>
+                <button aria-label="В корзину" class="flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] rounded-full text-[#333333] transition-colors" style="width:38px;height:38px;"><svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005.414 17H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></button>
+              </div>
             </div>
           </div>
-        </a>
+        </div>
       ))}
     </div>
   </section>
@@ -332,17 +368,23 @@ const jsonLd = {
 
   <!-- Баннер «лучший поставщик» -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
-    <div class="flex flex-col lg:flex-row gap-[40px] items-start">
-      <div class="flex-1">
-        <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[32px] text-[#333333] leading-[1.3] mb-4">У-Стройка&nbsp;— лучший поставщик строительных материалов для&nbsp;кровли</h2>
-        <p class="text-[#333333] text-[15px] leading-[1.5]">У-Стройка&nbsp;— это материалы для&nbsp;кровли и&nbsp;фасадов от&nbsp;лучших поставщиков. Работаем на&nbsp;рынке с&nbsp;2014&nbsp;года. Более 30&nbsp;000 позиций кровли и&nbsp;фасада. Бренды Grandline, Docke, Металлпрофиль, АльтаПрофиль по&nbsp;лучшим ценам! Вернём разницу, если найдёте дешевле!</p>
+    <!-- Заголовок с разделителем как у других секций -->
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.3] flex-shrink-0" style="max-width:898px;">У-Стройка&nbsp;— лучший поставщик строительных материалов для&nbsp;кровли</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="flex flex-col lg:flex-row gap-[40px] items-stretch">
+      <div class="flex-1 flex flex-col gap-[15px]" style="max-width:651px;padding-top:30px;">
+        <p class="text-[#333333] text-[20px] lg:text-[24px] font-semibold leading-[1.3]">У-Стройка&nbsp;— это материалы для&nbsp;кровли и&nbsp;фасадов от&nbsp;лучших поставщиков. Работаем для&nbsp;вас на&nbsp;рынке строительных материалов с&nbsp;2014&nbsp;года.</p>
+        <p class="text-[#333333] text-[16px] leading-[1.3]">Смело можем сказать, что&nbsp;мы&nbsp;— эксперты данного рынка. Более 30&nbsp;000 позиций кровли и&nbsp;фасада мы&nbsp;собрали для&nbsp;вас в&nbsp;одном месте. Предлагаем продукцию таких брендов, как&nbsp;Grand&nbsp;line, Docke, Металлпрофиль, АльтаПрофиль по&nbsp;лучшим ценам!</p>
+        <p class="text-[#333333] text-[16px] leading-[1.3]">Вернём разницу если&nbsp;найдёте дешевле!</p>
+        <p class="text-[#333333] text-[16px] leading-[1.3]">Поставляем материал в&nbsp;день готовности, чтобы&nbsp;не&nbsp;останавливалась стройка.</p>
       </div>
-      <div class="relative lg:w-[640px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#464646]" style="height:300px;">
-        <img src="/images/home/s8-banner.png" alt="" class="absolute pointer-events-none" style="left:-88px;top:-120px;width:560px;height:760px;object-fit:cover;" />
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[#464646]/40 to-[#464646] pointer-events-none"></div>
-        <p class="absolute font-[Montserrat] font-semibold text-white text-[26px] leading-[1.3] z-10" style="right:35px;top:40px;width:280px;">Широкий ассортимент позиций кровли и&nbsp;фасада</p>
-        <div class="absolute flex items-center z-10" style="right:35px;top:200px;background:#FFAE01;border-radius:5px;padding:10px 18px;">
-          <span class="text-[#333333] font-bold text-[22px]">более 30&nbsp;000</span>
+      <div class="relative lg:w-[1045px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#464646]" style="height:360px;">
+        <img src="/images/uslugi/supplier-banner.png" alt="" class="absolute pointer-events-none object-cover" style="left:-88px;top:-235px;width:823px;height:1122px;" />
+        <p class="absolute font-[Montserrat] font-semibold text-white text-[28px] lg:text-[36px] leading-[1.3] z-10" style="right:35px;top:47px;width:334px;">Широкий ассортимент позиций кровли и&nbsp;фасада</p>
+        <div class="absolute flex items-center z-10 bg-[#FFAE01] rounded-[5px]" style="right:60px;top:261px;height:47px;padding:0 9px;">
+          <span class="text-[#333333] font-[Montserrat] font-semibold text-[28px] lg:text-[36px] leading-none whitespace-nowrap">более 30&nbsp;000</span>
         </div>
       </div>
     </div>
@@ -358,6 +400,7 @@ const jsonLd = {
       {newsVideo.map((n) => (
         <div class="group cursor-pointer flex flex-col gap-3">
           <div class="relative aspect-video rounded-[5px] overflow-hidden bg-[#333333]">
+            <img src={n.img} alt={n.t} class="absolute inset-0 w-full h-full object-cover" />
             {n.video && (
               <div class="absolute inset-0 flex items-center justify-center">
                 <span class="w-[54px] h-[54px] rounded-full bg-[#FFAE01]/90 flex items-center justify-center group-hover:bg-[#FFAE01] transition-colors"><svg class="w-5 h-5 text-[#333333] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
