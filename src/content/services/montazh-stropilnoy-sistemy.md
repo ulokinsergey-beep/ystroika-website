@@ -4,6 +4,8 @@ title: 'Монтаж стропильной системы'
 slug: 'montazh-stropilnoy-sistemy'
 shortDescription: 'БЕСПЛАТНО к вам приедет инженер для уточнения конструкции и материала кровли. БЕСПЛАТНО составим для Вас смету и подготовим проект кровли. ВЫЕЗД ЗАМЕРЩИКА в день обращения.'
 priceFrom: 'от 300 руб/м2'
+osnovaTitle: 'Основа всей крыши — это стропильная система'
+osnovaImage: '/images/uslugi/stropila-osnova.png'
 order: 4
 published: true
 ---
