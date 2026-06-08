@@ -1,9 +1,7 @@
 ---
 /**
- * Страница услуги — /uslugi/[slug] — лендинг 1-в-1 по Figma (401:15673 и др.).
- * Секции: hero(+форма) → интро → как работаем → преимущества → выполненные работы →
- * CTA-баннер → стоимость → спектр услуг → отзывы → специалисты → баннер-поставщик → CTA.
- * Маркетинговые секции общие; контент услуги — из services collection.
+ * Страница услуги — /uslugi/[slug] — лендинг 1-в-1 по Figma (401:15673).
+ * Контент секций восстановлен из макета. Сервис-специфика — из services collection.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdvantagesBlock from '../../components/AdvantagesBlock.astro';
@@ -19,23 +17,47 @@ const { Content } = await entry.render();
 const service = entry.data;
 const serviceSlug = entry.id.replace(/\.mdx?$/, '');
 const canonicalURL = `https://ystroika.ru/uslugi/${serviceSlug}/`;
+const price = service.priceFrom || 'по запросу';
 
-const others = services
-  .filter((s) => s.id !== entry.id)
-  .slice(0, 4)
-  .map((s) => ({ slug: s.id.replace(/\.mdx?$/, ''), title: s.data.title }));
-
+const bullets = [
+  'БЕСПЛАТНО к вам приедет инженер для уточнения конструкции и материала',
+  'БЕСПЛАТНО составим смету и подготовим проект',
+  'ВЫЕЗД ЗАМЕРЩИКА в день обращения',
+];
 const steps = [
-  { n: '01', title: 'Заявка', text: 'Оставляете заявку — отвечаем в течение 15 минут.' },
-  { n: '02', title: 'Замер', text: 'Бесплатный выезд замерщика на объект.' },
-  { n: '03', title: 'Расчёт', text: 'Смета с фиксированной ценой за 1 день.' },
-  { n: '04', title: 'Работы', text: 'Монтаж по технологии завода с гарантией.' },
+  'Делаем заявку в строительную компанию',
+  'Производим оценку сроков и стоимости',
+  'Формируем наиболее выгодное предложение',
+  'Подписываем договор о работе',
+  'Производим необходимые работы',
+  'Сдаём точно в срок готовый проект',
+];
+const priceTabs = ['Работы', 'Материалы'];
+const priceRows = [
+  'Выезд инженера и замер объекта',
+  'Подготовка сметы и проекта',
+  'Монтаж основной конструкции',
+  'Монтаж доборных элементов',
+  'Демонтаж старой конструкции',
+];
+const accessories = [
+  { name: 'Система вентиляционного выхода с регулируемым углом наклона', price: '2000 ₽/шт', old: '', stock: 'in' },
+  { name: 'Классические виниловые софиты',                               price: '1000 ₽/шт', old: '', stock: 'check' },
+  { name: 'Снегозадержатель',                                            price: '650 ₽/шт',  old: '900 ₽/шт', stock: 'check' },
+  { name: 'Аэроэлемент конька',                                          price: '4500 ₽/5м', old: '7000 ₽/5м', stock: 'in' },
+];
+const newsVideo = [
+  { t: 'Почему течёт крыша? Зачем контробрешётке уплотнитель?', date: '23 марта', video: false },
+  { t: 'Кровля из металлочерепицы. Загородный дом из СИП-панелей', date: '20 марта', video: false },
+  { t: 'Металлический вертикальный сайдинг. Кровельный профнастил', date: '16 марта', video: true },
+  { t: 'Скатная крыша — виды, чем отличаются по конструкции', date: '16 марта', video: true },
 ];
 const reviews = [
-  { name: 'Вадим',   text: 'Огромное спасибо за грамотное и профессиональное отношение. Своевременная доставка, итоговая цена порадовала.' },
-  { name: 'Валерий', text: 'Благодарность за профессиональную работу! Чёткие ответы, доставка в назначенное время — приятное впечатление.' },
-  { name: 'Ольга',   text: 'Грамотная работа с клиентом. Хотелось бы, чтобы таких специалистов было больше. Спасибо за индивидуальный подход!' },
+  { name: 'Александр Завьялов', date: '20.03.2023', text: 'У-Стройка — компания, готовая решить все задачи по ремонту и строительству крыш. Благодаря готовым решениям мы сэкономили более 10% на стоимости материалов! Используют проверенных поставщиков и качественный монтаж.' },
+  { name: 'Вадим',             date: '16.04.2021', text: 'Огромное спасибо за грамотное и профессиональное отношение. Приятное общение, своевременная доставка, итоговая цена порадовала.' },
+  { name: 'Ольга',             date: '02.04.2020', text: 'Грамотная и профессиональная работа с клиентом. Хотелось бы, чтобы таких специалистов было больше. Спасибо за индивидуальный подход!' },
 ];
+const others = services.filter((s) => s.id !== entry.id).slice(0, 7).map((s) => ({ slug: s.id.replace(/\.mdx?$/, ''), title: s.data.title }));
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Service', name: service.title, description: service.shortDescription, url: canonicalURL,
@@ -48,69 +70,98 @@ const jsonLd = {
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
   <!-- Крошки -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:30px;padding-bottom:20px;">
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:24px;padding-bottom:20px;">
     <nav class="text-[14px] text-[#898989]">
       <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span>
-      <a href="/uslugi" class="hover:text-[#FFAE01]">Услуги</a> <span class="mx-[8px]">/</span>
+      <a href="/uslugi" class="hover:text-[#FFAE01]">Наши услуги</a> <span class="mx-[8px]">/</span>
       <span class="text-[#333333]">{service.title}</span>
     </nav>
   </section>
 
-  <!-- HERO: тёмный баннер + форма -->
+  <!-- HERO: тёмная карточка (фото) + форма -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
     <div class="flex flex-col lg:flex-row gap-[20px] items-stretch">
-      <div class="relative flex-1 bg-[#333333] rounded-[5px] overflow-hidden flex flex-col justify-center gap-[20px]" style="padding:50px;">
-        <span class="absolute font-[Montserrat] font-black text-[#FFAE01]/10 leading-none select-none pointer-events-none" style="font-size:300px;right:-20px;bottom:-90px;">%</span>
-        <h1 class="relative z-10 font-[Montserrat] font-semibold text-white text-[28px] lg:text-[40px] leading-[1.25] max-w-[640px]">{service.title}</h1>
-        <p class="relative z-10 text-[#E9E9E9] text-[16px] lg:text-[18px] leading-[1.4] max-w-[560px]">{service.shortDescription ?? 'Качественно, в срок, с гарантией. Москва и Московская область.'}</p>
-        {service.priceFrom && (
-          <div class="relative z-10 inline-flex items-center bg-[#FFAE01] rounded-[5px] self-start" style="padding:10px 20px;">
-            <span class="text-[#333333] font-bold text-[20px]">{service.priceFrom}</span>
+      <!-- Тёмная карточка -->
+      <div class="relative flex-1 rounded-[5px] overflow-hidden flex items-center" style="min-height:420px;background:#333333;">
+        <img src="/images/home/s7-services.png" alt="" class="absolute inset-0 w-full h-full object-cover opacity-25" />
+        <div class="relative z-10 flex flex-col gap-[20px]" style="padding:50px;max-width:560px;">
+          <h1 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[40px] leading-[1.2]">
+            {service.title} в&nbsp;Москве «под&nbsp;ключ»
+          </h1>
+          <div class="inline-flex items-center bg-[#FFAE01] rounded-[5px] self-start" style="padding:8px 18px;">
+            <span class="text-[#333333] font-bold text-[20px]">{price}</span>
           </div>
-        )}
-        <a href="#zayavka" class="relative z-10 inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors self-start" style="height:50px;padding:0 35px;">Получить расчёт</a>
+          <ul class="flex flex-col gap-[10px]">
+            {bullets.map((b) => (
+              <li class="flex items-start gap-[10px] text-white text-[15px] leading-[1.4]">
+                <span class="inline-flex items-center justify-center w-[20px] h-[20px] rounded-full bg-[#FFAE01] flex-shrink-0 mt-[1px]">
+                  <svg width="11" height="11" fill="none" stroke="#333333" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </span>{b}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <!-- Форма -->
-      <form id="zayavka" class="lg:w-[420px] flex-shrink-0 bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px] justify-center" style="padding:35px;">
-        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[22px] leading-[1.2]">Рассчитать стоимость</h2>
-        <p class="text-[#898989] text-[14px]">Ответим за 15 минут, замер бесплатно</p>
-        <input type="text" name="name" placeholder="Ваше имя" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <input type="tel" name="phone" required placeholder="+7 (___) ___-__-__" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">Отправить заявку</button>
-        <p class="text-[#898989] text-[12px] leading-[1.4]">Нажимая, вы соглашаетесь с политикой конфиденциальности</p>
+      <!-- Форма расчёта -->
+      <form id="zayavka" class="lg:w-[420px] flex-shrink-0 bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[14px]" style="padding:35px;">
+        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[22px] leading-[1.2]">Получите точный расчёт</h2>
+        <p class="text-[#898989] text-[13px] leading-[1.4]">Предварительный расчёт с точностью 99%. Свяжемся в течение 10 минут.</p>
+        <input type="tel" name="phone" required placeholder="Ваш телефон *" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+        <input type="number" name="length" placeholder="Введите длину, м" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+        <input type="number" name="width" placeholder="Введите ширину, м" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+        <select name="category" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]">
+          <option value="">Выберите категорию</option>
+          <option>Кровля</option><option>Фасад</option><option>Водосток</option><option>Другое</option>
+        </select>
+        <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">Получить расчёт</button>
+        <label class="flex items-start gap-[8px] text-[#898989] text-[12px] leading-[1.3] cursor-pointer">
+          <input type="checkbox" checked class="mt-[2px] accent-[#FFAE01] w-[14px] h-[14px] flex-shrink-0" />
+          <span>Ознакомлен и&nbsp;согласен с&nbsp;политикой конфиденциальности</span>
+        </label>
       </form>
     </div>
   </section>
 
-  <!-- Описание (из Bitrix) -->
-  {entry.body && entry.body.trim() && (
-    <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
-      <div class="prose prose-slate max-w-[900px]"><Content /></div>
-    </section>
-  )}
-
-  <!-- Как мы работаем (тёмные карточки) -->
+  <!-- Основа (интро + фото) -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
-    <div class="flex items-end gap-[25px] mb-[40px]">
-      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Как происходит работа у нас</h2>
+    <div class="flex items-end gap-[25px] mb-[30px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Подробнее об&nbsp;услуге</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
-      {steps.map((s) => (
-        <div class="bg-[#333333] rounded-[5px] flex flex-col gap-[12px]" style="padding:30px;min-height:190px;">
-          <span class="font-[Montserrat] font-bold text-[#FFAE01] text-[40px] leading-none">{s.n}</span>
-          <span class="font-[Montserrat] font-semibold text-white text-[18px]">{s.title}</span>
-          <p class="text-[#E9E9E9] text-[15px] leading-[1.4]">{s.text}</p>
+    <div class="flex flex-col lg:flex-row gap-[30px] items-start">
+      <div class="flex-1 prose prose-slate max-w-none">
+        {entry.body && entry.body.trim() ? <Content /> : <p>{service.shortDescription}</p>}
+      </div>
+      <div class="lg:w-[560px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="aspect-ratio:16/10;">
+        <img src="/images/home/s7-services.png" alt={service.title} class="w-full h-full object-cover" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Как происходит работа (6 этапов с коннектором) -->
+  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Как происходит работа с&nbsp;нами</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-[15px]">
+      {steps.map((s, i) => (
+        <div class="flex flex-col gap-[12px]">
+          <div class="inline-flex items-center self-start bg-[#333333] text-white rounded-[5px] relative" style="padding:8px 16px;">
+            <span class="text-[14px] font-medium">{i + 1} этап</span>
+            <span class="absolute top-1/2 -right-1.5 w-3 h-3 rounded-full bg-[#FFAE01] -translate-y-1/2 hidden lg:block"></span>
+          </div>
+          <p class="text-[#333333] text-[14px] leading-[1.4]">{s}</p>
         </div>
       ))}
     </div>
   </section>
 
   <!-- Преимущества -->
-  <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]"><AdvantagesBlock /></section>
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]"><AdvantagesBlock /></section>
 
   <!-- Выполненные работы -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:40px;padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[40px]">
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Выполненные работы</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
@@ -122,74 +173,155 @@ const jsonLd = {
         </div>
       ))}
     </div>
-    <p class="text-[#898989] text-[13px] mt-3">Фотоотчёты объектов — добавим реальные фото работ.</p>
-  </section>
-
-  <!-- CTA-баннер -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
-    <div class="relative bg-[#333333] rounded-[5px] overflow-hidden flex flex-col lg:flex-row items-center gap-6" style="padding:40px 50px;">
-      <span class="absolute font-[Montserrat] font-black text-[#FFAE01]/10 leading-none select-none pointer-events-none" style="font-size:220px;right:0;top:-60px;">%</span>
-      <div class="relative z-10 flex-1">
-        <h2 class="font-[Montserrat] font-semibold text-white text-[22px] lg:text-[28px] leading-[1.3] mb-2">Закажите {service.title.toLowerCase()} сейчас</h2>
-        <p class="text-[#E9E9E9] text-[15px]">Бесплатный замер и расчёт за 1 день. Гарантия лучшей цены.</p>
-      </div>
-      <div class="relative z-10 flex flex-col sm:flex-row gap-3 shrink-0">
-        <a href="tel:88003339495" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold rounded-[5px] transition-colors" style="height:50px;padding:0 30px;">Позвонить</a>
-        <a href="#zayavka" class="inline-flex items-center justify-center border border-white/40 hover:border-white text-white font-semibold rounded-[5px] transition-colors" style="height:50px;padding:0 30px;">Оставить заявку</a>
-      </div>
+    <div class="flex justify-center mt-6">
+      <a href="/proekty" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[16px] rounded-[5px] transition-colors" style="height:48px;padding:0 36px;">Посмотреть все работы</a>
     </div>
   </section>
 
-  <!-- Стоимость -->
+  <!-- Закажите прямо сейчас (тёмный баннер + форма) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
+    <div class="relative bg-[#333333] rounded-[5px] overflow-hidden" style="padding:40px;">
+      <span class="absolute font-[Montserrat] font-black text-[#FFAE01]/10 leading-none select-none pointer-events-none" style="font-size:220px;right:0;top:-60px;">%</span>
+      <h2 class="relative z-10 font-[Montserrat] font-semibold text-white text-[24px] lg:text-[28px] mb-5">Закажите {service.title.toLowerCase()} прямо сейчас</h2>
+      <form class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+        <input type="text" name="name" placeholder="Ваше имя *" class="h-[50px] px-4 bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] text-[15px] border border-[#565656] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+        <input type="tel" name="phone" required placeholder="Ваш телефон *" class="h-[50px] px-4 bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] text-[15px] border border-[#565656] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+        <input type="text" name="message" placeholder="Текст обращения" class="h-[50px] px-4 bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] text-[15px] border border-[#565656] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+        <button type="submit" class="h-[50px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold rounded-[5px] transition-colors">Заказать</button>
+      </form>
+      <p class="relative z-10 text-[#898989] text-[12px] mt-3">Отправляя заявку, вы&nbsp;соглашаетесь с&nbsp;политикой конфиденциальности</p>
+    </div>
+  </section>
+
+  <!-- Стоимость (таблица с табами) -->
   <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[30px]">
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Стоимость</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="bg-white rounded-[5px] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6" style="padding:40px;">
-      <div class="max-w-[760px]">
-        <p class="text-[#333333] text-[16px] leading-[1.5] mb-3">Стоимость рассчитывается индивидуально: зависит от площади, сложности и объёма работ. При заказе работ в&nbsp;полном объёме материалы — по&nbsp;оптовым ценам.</p>
-        {service.priceFrom && <p class="text-[#333333] text-[18px]">Ориентир: <span class="font-bold text-[#FFAE01]">{service.priceFrom}</span></p>}
+    <div class="flex gap-[10px] mb-4">
+      {priceTabs.map((t, i) => (
+        <button class={`rounded-[5px] text-[15px] font-medium ${i === 0 ? 'bg-[#FFAE01] text-[#333333]' : 'bg-white text-[#898989]'}`} style="padding:10px 22px;">{t}</button>
+      ))}
+    </div>
+    <div class="bg-white rounded-[5px] overflow-hidden">
+      <div class="flex items-center justify-between bg-[#333333] text-white text-[14px] font-medium" style="padding:14px 24px;">
+        <span>Наименование работ</span><span>Цена, ед. измерения</span>
       </div>
-      <a href="#zayavka" class="shrink-0 inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;padding:0 35px;">Узнать точную цену</a>
+      {priceRows.map((r, i) => (
+        <div class={`flex items-center justify-between text-[15px] ${i % 2 ? 'bg-[#F9F9F9]' : 'bg-white'}`} style="padding:14px 24px;">
+          <span class="text-[#333333]">{r}</span>
+          <span class="text-[#898989] whitespace-nowrap">от&nbsp;{price}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Что влияет на стоимость -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[30px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Что влияет на&nbsp;стоимость</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="flex flex-col lg:flex-row gap-[30px] items-stretch">
+      <div class="flex-1 flex flex-col gap-5">
+        <p class="text-[#333333] text-[16px] leading-[1.5]">
+          Стоимость работ всегда рассчитывается индивидуально для&nbsp;каждого заказа. При&nbsp;заказе работ в&nbsp;полном объёме материалы предоставляются по&nbsp;оптовым ценам. Стоимость зависит от&nbsp;площади, сложности конструкции, объёма работ и&nbsp;сроков их&nbsp;проведения.
+        </p>
+        <a href="#zayavka" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors self-start" style="height:50px;padding:0 35px;">Рассчитать стоимость</a>
+      </div>
+      <div class="lg:w-[520px] flex-shrink-0 relative rounded-[5px] overflow-hidden bg-[#333333]" style="min-height:240px;">
+        <img src="/images/home/s7-services.png" alt="" class="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <span class="absolute font-[Montserrat] font-black text-[#FFAE01] leading-none select-none" style="font-size:200px;left:20px;bottom:-50px;">₽</span>
+      </div>
     </div>
   </section>
 
   <!-- Спектр услуг -->
   {others.length > 0 && (
-    <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
       <div class="flex items-end gap-[25px] mb-[40px]">
-        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Предоставляем весь спектр услуг</h2>
+        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Предоставляем весь спектр необходимых услуг</h2>
         <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
         {others.map((o) => (
-          <a href={`/uslugi/${o.slug}`} class="group flex flex-col justify-between gap-4 bg-white border border-[#E9E9E9] rounded-[5px] hover:border-[#FFAE01] transition-colors" style="padding:25px;min-height:140px;">
-            <span class="font-[Montserrat] font-semibold text-[#333333] text-[18px] leading-snug">{o.title}</span>
-            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors self-end">
-              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </span>
+          <a href={`/uslugi/${o.slug}`} class="group flex flex-col gap-[18px] bg-white rounded-[5px] shadow-[0_4px_30px_rgba(0,0,0,0.06)]" style="padding:25px;">
+            <div class="flex items-center justify-between bg-[#333333] rounded-[5px]" style="padding:12px 16px;">
+              <span class="font-['Inter'] font-semibold text-white text-[15px] leading-tight">{o.title}</span>
+              <span class="flex items-center justify-center w-[26px] h-[26px] border border-white/40 rounded-[5px] flex-shrink-0 group-hover:bg-white transition-colors">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-white group-hover:text-[#333333]"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </span>
+            </div>
+            <p class="text-[#898989] text-[14px] leading-[1.4]">Профессиональный монтаж и&nbsp;расчёт под&nbsp;ваш&nbsp;объект с&nbsp;гарантией качества.</p>
           </a>
         ))}
       </div>
     </section>
   )}
 
-  <!-- Отзывы -->
+  <!-- Вам может понадобиться (сопутствующие) -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-[30px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Вам может понадобиться</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="flex flex-wrap gap-[10px] mb-5">
+      {['Сопутствующие товары', 'Распродажа', 'Хиты', 'Новинки'].map((t, i) => (
+        <button class={`rounded-[5px] text-[14px] font-medium ${i === 0 ? 'bg-[#FFAE01] text-[#333333]' : 'bg-[#E9E9E9] text-[#898989]'}`} style="padding:8px 18px;">{t}</button>
+      ))}
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-[20px]">
+      {accessories.map((a) => (
+        <a href="/catalog" class="group relative rounded-[5px] bg-white border border-[#E9E9E9] hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] transition-shadow overflow-hidden flex flex-col">
+          {a.old && <span class="absolute top-0 left-0 bg-[#C51212] text-white text-[11px] font-semibold px-[10px] py-[4px] z-10">Скидка</span>}
+          <div class="aspect-[4/3] bg-[#F5F5F5] flex items-center justify-center">
+            <svg class="w-12 h-12 text-[#D0D0D0]" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <div class="p-[15px] flex flex-col gap-[8px] flex-1">
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center gap-[4px] bg-[#333333] text-white text-[11px] font-semibold px-[7px] py-[3px] rounded-[3px]"><svg class="w-[11px] h-[11px] fill-[#FFAE01]" viewBox="0 0 20 20"><path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03 1.07 3.29c.3.92-.76 1.69-1.54 1.12L10 14.43l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29-2.8-2.03c-.78-.57-.38-1.81.59-1.81h3.46l1.07-3.29z"/></svg>5.0</span>
+              <span class={`text-[11px] font-medium ${a.stock === 'in' ? 'text-[#4AC71E]' : 'text-[#C51212]'}`}>{a.stock === 'in' ? 'В наличии' : 'Уточните'}</span>
+            </div>
+            <p class="text-[13px] text-[#333333] font-medium leading-[1.4] line-clamp-2 flex-1">{a.name}</p>
+            <div>
+              {a.old && <span class="block text-[11px] text-[#898989] line-through">{a.old}</span>}
+              <span class="font-bold text-[18px] text-[#333333]">{a.price}</span>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Наши специалисты сделают расчёт + форма -->
   <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
+    <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[32px] text-[#333333] leading-[1.3] mb-6" style="max-width:900px;">
+      Наши специалисты сделают расчёт оперативно и&nbsp;помогут подобрать материалы по&nbsp;самой выгодной цене!
+    </h2>
+    <form class="bg-white rounded-[5px] flex flex-col lg:flex-row items-stretch lg:items-center gap-4" style="padding:25px;">
+      <span class="text-[#898989] text-[14px] lg:max-w-[180px] flex-shrink-0">Мы работаем для&nbsp;вас с&nbsp;9 до&nbsp;21:00 ежедневно</span>
+      <input type="text" name="name" placeholder="Ваше имя *" class="flex-1 h-[50px] px-4 bg-[#F5F5F5] rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+      <input type="tel" name="phone" required placeholder="Ваш телефон *" class="flex-1 h-[50px] px-4 bg-[#F5F5F5] rounded-[5px] text-[16px] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+      <button type="submit" class="flex-shrink-0 h-[50px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold rounded-[5px] transition-colors px-7">Получить помощь специалистов</button>
+    </form>
+  </section>
+
+  <!-- Отзывы -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[40px]">
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0" style="max-width:892px;">Посмотрите что говорят наши клиенты</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
       {reviews.map((r) => (
-        <div class="bg-white rounded-[5px] flex flex-col gap-[15px]" style="padding:25px;min-height:220px;">
+        <div class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px]" style="padding:25px;min-height:220px;">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-[12px]">
               <div class="w-[50px] h-[50px] rounded-full bg-[#E9E9E9] flex items-center justify-center text-[#898989] text-[20px] font-semibold flex-shrink-0">{r.name.charAt(0)}</div>
-              <span class="text-[#333333] text-[16px] font-semibold">{r.name}</span>
+              <div class="flex flex-col"><span class="text-[#333333] text-[16px] font-semibold leading-tight">{r.name}</span><span class="text-[#898989] text-[12px]">{r.date}</span></div>
             </div>
-            <div class="flex items-center gap-[2px]">{[1,2,3,4,5].map(() => (<svg width="18" height="18" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>))}</div>
+            <div class="flex items-center gap-[2px]">{[1,2,3,4,5].map(() => (<svg width="16" height="16" viewBox="0 0 20 20" fill="#FFAE01"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5"/></svg>))}</div>
           </div>
           <p class="text-[#333333] text-[14px] leading-[1.4] flex-1">{r.text}</p>
           <a href="/otzyvy" class="text-[#333333] text-[13px] underline hover:text-[#FFAE01] transition-colors self-start">Читать весь отзыв</a>
@@ -198,40 +330,48 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- Специалисты -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
-    <div class="flex flex-col gap-[40px]">
-      <div class="flex flex-col gap-[15px]">
-        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22]">У&nbsp;нас работают только сертифицированные специалисты с&nbsp;опытом более 8&nbsp;лет</h2>
-        <p class="text-[#333333] text-[18px] leading-[1.3]" style="max-width:714px;">Ежегодно проходят обучение от&nbsp;заводов-производителей и&nbsp;прошли аттестацию на&nbsp;знание продукции</p>
+  <!-- Баннер «лучший поставщик» -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
+    <div class="flex flex-col lg:flex-row gap-[40px] items-start">
+      <div class="flex-1">
+        <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[32px] text-[#333333] leading-[1.3] mb-4">У-Стройка&nbsp;— лучший поставщик строительных материалов для&nbsp;кровли</h2>
+        <p class="text-[#333333] text-[15px] leading-[1.5]">У-Стройка&nbsp;— это материалы для&nbsp;кровли и&nbsp;фасадов от&nbsp;лучших поставщиков. Работаем на&nbsp;рынке с&nbsp;2014&nbsp;года. Более 30&nbsp;000 позиций кровли и&nbsp;фасада. Бренды Grandline, Docke, Металлпрофиль, АльтаПрофиль по&nbsp;лучшим ценам! Вернём разницу, если найдёте дешевле!</p>
       </div>
-      <div class="flex flex-col lg:flex-row gap-[20px]" style="min-height:400px;">
-        <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9]" style="flex:1042 1 0%;min-height:250px;">
-          <img src="/images/home/s10-team-main.png" alt="Специалисты компании" class="absolute inset-0 w-full h-full object-cover object-top" />
-        </div>
-        <div class="flex flex-col gap-[20px]" style="flex:738 1 0%;">
-          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9] flex-1" style="min-height:120px;"><img src="/images/home/s10-team-2.png" alt="Команда" class="absolute inset-0 w-full h-full object-cover" /></div>
-          <div class="relative rounded-[5px] overflow-hidden bg-[#E9E9E9] flex-1" style="min-height:120px;"><img src="/images/home/s10-team-3.png" alt="Мастера" class="absolute inset-0 w-full h-full object-cover" /></div>
+      <div class="relative lg:w-[640px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#464646]" style="height:300px;">
+        <img src="/images/home/s8-banner.png" alt="" class="absolute pointer-events-none" style="left:-88px;top:-120px;width:560px;height:760px;object-fit:cover;" />
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[#464646]/40 to-[#464646] pointer-events-none"></div>
+        <p class="absolute font-[Montserrat] font-semibold text-white text-[26px] leading-[1.3] z-10" style="right:35px;top:40px;width:280px;">Широкий ассортимент позиций кровли и&nbsp;фасада</p>
+        <div class="absolute flex items-center z-10" style="right:35px;top:200px;background:#FFAE01;border-radius:5px;padding:10px 18px;">
+          <span class="text-[#333333] font-bold text-[22px]">более 30&nbsp;000</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA + Все услуги -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:80px;">
-    <div class="bg-[#333333] text-white rounded-[5px] p-8 flex flex-col sm:flex-row items-center gap-6">
-      <div class="flex-1">
-        <h2 class="font-[Montserrat] font-bold text-xl lg:text-2xl mb-2">Заказать «{service.title}»</h2>
-        <p class="text-[#898989] text-sm">Бесплатный выезд замерщика. Расчёт за 1 день.</p>
-      </div>
-      <div class="flex flex-col sm:flex-row gap-3 shrink-0">
-        <a href="tel:88003339495" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap">Позвонить</a>
-        <a href="#zayavka" class="inline-flex items-center justify-center border border-[#464646] hover:border-white text-white font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap">Оставить заявку</a>
-      </div>
+  <!-- Новости и видео -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
+    <div class="flex items-end gap-[25px] mb-6">
+      <h2 class="font-[Montserrat] font-semibold text-[22px] lg:text-[28px] text-[#333333] leading-snug flex-shrink-0">Новости и&nbsp;видео</h2>
+      <div class="flex-1 h-px bg-[#E9E9E9] mb-2"></div>
     </div>
-    <a href="/uslugi" class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity mt-6">
-      <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-      Все услуги
-    </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {newsVideo.map((n) => (
+        <div class="group cursor-pointer flex flex-col gap-3">
+          <div class="relative aspect-video rounded-[5px] overflow-hidden bg-[#333333]">
+            {n.video && (
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="w-[54px] h-[54px] rounded-full bg-[#FFAE01]/90 flex items-center justify-center group-hover:bg-[#FFAE01] transition-colors"><svg class="w-5 h-5 text-[#333333] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+              </div>
+            )}
+          </div>
+          <p class="text-sm text-[#333333] font-medium leading-snug group-hover:text-[#FFAE01] transition-colors">{n.t}</p>
+          <span class="text-[#898989] text-[12px]">{n.date}</span>
+        </div>
+      ))}
+    </div>
+    <div class="flex justify-center gap-3 mt-6">
+      <a href="/novosti" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-sm rounded-[5px] transition-colors" style="height:48px;padding:0 30px;">Читать все новости</a>
+      <a href="/novosti" class="inline-flex items-center justify-center border border-[#333333] text-[#333333] hover:bg-[#333333] hover:text-white font-semibold text-sm rounded-[5px] transition-colors" style="height:48px;padding:0 30px;">Смотреть больше видео</a>
+    </div>
   </section>
 </BaseLayout>
