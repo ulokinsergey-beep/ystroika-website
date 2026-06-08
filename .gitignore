@@ -40,3 +40,6 @@ src/data/kroval-catalog-full.json
 # При деплое генерируются из API или копируются на сервер
 src/data/catalog/
 tmp-figma-audit/
+
+# Large Figma PDF exports — exceed GitHub 100MB limit (хранить локально)
+docs/figma-screens/*.pdf

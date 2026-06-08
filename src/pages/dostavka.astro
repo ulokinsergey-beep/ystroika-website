@@ -3,12 +3,42 @@
  * Страница «Доставка» — /dostavka
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://ystroika.ru/' },
+        { '@type': 'ListItem', position: 2, name: 'Доставка', item: 'https://ystroika.ru/dostavka/' },
+      ],
+    },
+    {
+      '@type': 'Service',
+      '@id': 'https://ystroika.ru/dostavka/#service',
+      name: 'Доставка строительных материалов',
+      provider: {
+        '@type': 'LocalBusiness',
+        name: 'У-Стройка',
+        url: 'https://ystroika.ru',
+        telephone: '+7-800-333-94-95',
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Москва' },
+        { '@type': 'AdministrativeArea', name: 'Московская область' },
+      ],
+    },
+  ],
+};
 ---
 
 <BaseLayout
   title="Доставка строительных материалов — У-Стройка"
   description="Доставка кровельных материалов, фасадных систем и водостоков по Москве и Московской области. Бесплатная доставка от 50 000 ₽. Звоните: 8-800-333-94-95."
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
   <div class="bg-[#f5f5f5] min-h-screen">
 
     <!-- Шапка -->
@@ -25,6 +55,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <a href="/dostavka/moskva/" class="bg-white border border-[#e5e5e5] rounded-[10px] p-5 hover:border-[#FFAE01] hover:shadow-sm transition-all">
+          <p class="text-xs uppercase tracking-wide text-[#898989] mb-2">Региональная страница</p>
+          <h2 class="text-lg font-bold text-slate-900 mb-2">Доставка по Москве</h2>
+          <p class="text-sm text-[#898989] leading-relaxed">Условия доставки материалов по Москве, сроки, зоны и расчет стоимости.</p>
+        </a>
+        <a href="/dostavka/moskovskaya-oblast/" class="bg-white border border-[#e5e5e5] rounded-[10px] p-5 hover:border-[#FFAE01] hover:shadow-sm transition-all">
+          <p class="text-xs uppercase tracking-wide text-[#898989] mb-2">Региональная страница</p>
+          <h2 class="text-lg font-bold text-slate-900 mb-2">Доставка по Московской области</h2>
+          <p class="text-sm text-[#898989] leading-relaxed">Популярные города МО, сроки, транспорт и расчет доставки до объекта.</p>
+        </a>
+      </div>
 
       <!-- Условия -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">

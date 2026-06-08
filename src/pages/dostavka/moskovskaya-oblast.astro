@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const cities = [
+  'Балашиха',
+  'Химки',
+  'Подольск',
+  'Мытищи',
+  'Люберцы',
+  'Красногорск',
+  'Одинцово',
+  'Домодедово',
+  'Королев',
+  'Раменское',
+  'Сергиев Посад',
+  'Коломна',
+  'Серпухов',
+  'Пушкино',
+  'Долгопрудный',
+  'Видное',
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://ystroika.ru/' },
+        { '@type': 'ListItem', position: 2, name: 'Доставка', item: 'https://ystroika.ru/dostavka/' },
+        { '@type': 'ListItem', position: 3, name: 'Доставка по Московской области', item: 'https://ystroika.ru/dostavka/moskovskaya-oblast/' },
+      ],
+    },
+    {
+      '@type': 'Service',
+      '@id': 'https://ystroika.ru/dostavka/moskovskaya-oblast/#service',
+      name: 'Доставка строительных материалов по Московской области',
+      areaServed: {
+        '@type': 'AdministrativeArea',
+        name: 'Московская область',
+      },
+      provider: {
+        '@type': 'LocalBusiness',
+        name: 'У-Стройка',
+        url: 'https://ystroika.ru',
+        telephone: '+7-800-333-94-95',
+      },
+      serviceType: 'Доставка кровельных, фасадных материалов и комплектующих',
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Доставка строительных материалов по Московской области"
+  description="Доставка кровельных, фасадных материалов, водостоков и комплектующих по Московской области. Привезем заказ на объект, склад или участок. Расчет доставки: 8-800-333-94-95."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="bg-[#f5f5f5] min-h-screen">
+    <div class="bg-white border-b border-[#e5e5e5]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
+        <nav class="flex flex-wrap items-center gap-1 text-sm text-[#898989] mb-4">
+          <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
+          <span class="text-[#d0d0d0]">/</span>
+          <a href="/dostavka/" class="hover:text-[#FFAE01] transition-colors">Доставка</a>
+          <span class="text-[#d0d0d0]">/</span>
+          <span class="text-slate-900 font-medium">Московская область</span>
+        </nav>
+        <h1 class="text-2xl lg:text-[32px] font-bold text-slate-900">Доставка строительных материалов по Московской области</h1>
+        <p class="mt-2 text-[#898989] max-w-3xl">
+          Привозим кровельные, фасадные материалы, водостоки и комплектующие в города Московской области.
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {[
+          ['Зона доставки', 'Московская область и ближайшие к ней направления'],
+          ['Сроки', 'Обычно 1-2 дня, точный срок зависит от адреса и наличия'],
+          ['Транспорт', 'Подбираем машину под объем, длину и вес материалов'],
+        ].map(([title, text]) => (
+          <div class="bg-white border border-[#e5e5e5] rounded-[10px] p-5">
+            <h2 class="font-semibold text-slate-900 mb-2">{title}</h2>
+            <p class="text-sm text-[#898989] leading-relaxed">{text}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="bg-white border border-[#e5e5e5] rounded-[10px] p-6 mb-8">
+        <h2 class="text-xl font-bold text-slate-900 mb-4">Популярные города доставки</h2>
+        <div class="flex flex-wrap gap-2">
+          {cities.map(city => (
+            <span class="rounded-full border border-[#e5e5e5] bg-[#fafafa] px-3 py-1.5 text-sm text-slate-700">
+              {city}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div class="bg-white border border-[#e5e5e5] rounded-[10px] p-6 mb-8">
+        <h2 class="text-xl font-bold text-slate-900 mb-4">Каталог с доставкой по области</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            ['Кровля', '/catalog/krovlya/'],
+            ['Фасад', '/catalog/fasad/'],
+            ['Водосток', '/catalog/vodostok/'],
+            ['Ограждения', '/catalog/ograzhdeniya/'],
+          ].map(([name, href]) => (
+            <a href={href} class="rounded-[8px] border border-[#e5e5e5] px-4 py-3 text-sm font-semibold text-slate-900 hover:border-[#FFAE01] hover:text-[#FFAE01] transition-colors">
+              {name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">Рассчитать доставку по Московской области</h2>
+          <p class="text-[#cbd5e1] text-sm">Назовите город, адрес и список материалов — менеджер рассчитает доставку.</p>
+        </div>
+        <a href="tel:88003339495" class="shrink-0 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold px-8 py-3 rounded-[5px] transition-colors whitespace-nowrap">
+          8-800-333-94-95
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
