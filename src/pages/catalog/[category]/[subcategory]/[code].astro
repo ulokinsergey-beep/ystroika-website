@@ -322,7 +322,7 @@ const jsonLd = {
 
           <!-- Кнопки действий -->
           <div class="flex gap-2">
-            <button data-add-cart data-kod={product.kod} data-name={product.name} data-url={productUrl} data-unit={product.unit}
+            <button data-add-cart data-kod={product.kod} data-name={product.name} data-url={Astro.url.pathname} data-unit={product.unit}
               class="flex-1 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold py-3 rounded-[3px] transition-colors text-sm">
               Добавить в корзину
             </button>
