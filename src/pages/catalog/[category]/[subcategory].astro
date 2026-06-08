@@ -497,8 +497,8 @@ const jsonLd = {
                     <!-- Переключатель вид: плитка / список -->
                     <div class="flex items-center border border-[#E9E9E9] rounded-[5px] overflow-hidden">
                       <button type="button" id="view-grid"
-                        class="view-toggle-btn w-8 h-8 flex items-center justify-center bg-[#FFAE01] text-black transition-colors"
-                        title="Плитка" aria-pressed="true">
+                        class="view-toggle-btn w-8 h-8 flex items-center justify-center bg-white text-[#898989] hover:text-[#333333] transition-colors"
+                        title="Плитка" aria-pressed="false">
                         <!-- Grid icon -->
                         <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                           <rect x="0" y="0" width="7" height="7" rx="1"/>
@@ -508,8 +508,8 @@ const jsonLd = {
                         </svg>
                       </button>
                       <button type="button" id="view-list"
-                        class="view-toggle-btn w-8 h-8 flex items-center justify-center bg-white text-[#898989] hover:text-[#333333] transition-colors"
-                        title="Список" aria-pressed="false">
+                        class="view-toggle-btn w-8 h-8 flex items-center justify-center bg-[#FFAE01] text-black transition-colors"
+                        title="Список" aria-pressed="true">
                         <!-- List icon -->
                         <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                           <rect x="0" y="1" width="16" height="3" rx="1"/>
@@ -523,7 +523,7 @@ const jsonLd = {
 
                 <!-- ── Сетка товаров (3 кол. на десктопе — по Figma) ─────── -->
                 <div
-                  class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3"
+                  class="flex flex-col gap-3"
                   id="products-grid"
                 >
                   {pageProducts.map((p: any) => (
@@ -873,7 +873,9 @@ const jsonLd = {
     // Восстановить вид из localStorage
     try {
       const saved = localStorage.getItem('catalog-view');
-      if (saved === 'list') setView('list');
+      // По Figma листинг по умолчанию — режим «список»; сетка только если пользователь явно выбрал
+      if (saved === 'grid') setView('grid');
+      else setView('list');
     } catch {}
 
     // ── Кнопка «Все теги» ────────────────────────────────────────────────

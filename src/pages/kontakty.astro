@@ -45,7 +45,7 @@ const jsonLd = {
     </nav>
     <div class="flex items-end gap-[25px]">
       <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
-        Контакты
+        Контактная информация
       </h1>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
@@ -106,39 +106,23 @@ const jsonLd = {
           <p class="text-[#333333] text-[14px] leading-[1.4] whitespace-pre-line">{props.details}</p>
         </div>
       )}
+
+      {messengers.map((m) => {
+        const color = m.name === 'WhatsApp' ? '#25D366' : m.name === 'Telegram' ? '#0088CC' : '#7360F2';
+        return (
+          <a href={m.link} target="_blank" rel="noopener noreferrer"
+             class="bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[15px] hover:shadow-md transition-shadow" style="padding:30px;min-height:200px;">
+            <span class="flex items-center justify-center w-[50px] h-[50px] rounded-full flex-shrink-0" style={`background:${color}`}>
+              <span class="text-white text-[20px] font-bold">{m.name.charAt(0)}</span>
+            </span>
+            <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{m.name}</h3>
+            <span class="text-[#333333] text-[16px]">{m.phone}</span>
+            <span class="text-[#FFAE01] text-[14px] font-semibold mt-auto">{m.buttonText} →</span>
+          </a>
+        );
+      })}
     </div>
   </section>
-
-  <!-- MESSENGERS: WhatsApp/Telegram/Viber -->
-  {messengers.length > 0 && (
-    <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
-      <div class="flex items-end gap-[25px] mb-[40px]">
-        <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
-          Мессенджеры
-        </h2>
-        <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
-        {messengers.map((m) => {
-          const color = m.name === 'WhatsApp' ? '#25D366' : m.name === 'Telegram' ? '#0088CC' : '#7360F2';
-          return (
-            <a href={m.link} target="_blank" rel="noopener noreferrer"
-               class="bg-white rounded-[5px] flex items-center gap-[20px] hover:shadow-lg transition-shadow" style="padding:25px;min-height:120px;">
-              <span class="flex items-center justify-center w-[60px] h-[60px] rounded-full flex-shrink-0" style={`background:${color}`}>
-                <span class="text-white text-[24px] font-bold">{m.name.charAt(0)}</span>
-              </span>
-              <div class="flex flex-col gap-[5px]">
-                <h3 class="font-[Montserrat] font-semibold text-[#333333] text-[18px]">{m.name}</h3>
-                <span class="text-[#333333] text-[16px]">{m.phone}</span>
-                <span class="text-[#FFAE01] text-[13px] font-semibold">{m.buttonText} →</span>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-    </section>
-  )}
 
   <!-- MAP placeholder + address (Yandex.Maps embed planned) -->
   <section id="map" class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:80px;">
@@ -158,4 +142,64 @@ const jsonLd = {
       </div>
     </div>
   </section>
+
+  <!-- SPECIALISTS + FORM (Figma 451:14320) — блок заявки 1-в-1 -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:80px;">
+    <!-- Заголовок + линия -->
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.1] flex-shrink-0" style="max-width:751px;">
+        Наши специалисты оперативно помогут решить любые вопросы
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <!-- Форма в #F5F5F5 боксе -->
+    <form id="contact-form" class="bg-[#F5F5F5] rounded-[5px] flex flex-col lg:flex-row lg:items-start gap-[25px]" style="padding:40px;">
+      <!-- Левый текст -->
+      <p class="font-[Inter] font-medium text-[20px] text-[#333333] leading-[1.3] flex-shrink-0" style="max-width:268px;">
+        Мы работаем для&nbsp;вас с&nbsp;9 до&nbsp;21:00 ежедневно
+      </p>
+
+      <div class="flex-1 flex flex-col gap-[20px]">
+        <!-- Имя + Телефон + Кнопка -->
+        <div class="flex flex-col lg:flex-row lg:items-end gap-[20px]">
+          <div class="flex flex-col gap-[6px] lg:w-[482px]">
+            <label for="cf-name" class="text-[14px] text-[#333333]">Ваше имя <span class="text-[#FFAE01]">*</span></label>
+            <input id="cf-name" type="text" name="name" placeholder="имя"
+                   class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#dcdcdc] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+          </div>
+          <div class="flex flex-col gap-[6px] lg:w-[482px]">
+            <label for="cf-phone" class="text-[14px] text-[#333333]">Ваш телефон <span class="text-[#FFAE01]">*</span></label>
+            <input id="cf-phone" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required
+                   class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#898989] border-0 focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+          </div>
+          <button type="submit"
+                  class="h-[50px] lg:w-[420px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors flex-shrink-0">
+            Получить помощь специалистов
+          </button>
+        </div>
+
+        <!-- Согласие -->
+        <label class="flex items-start gap-[10px] text-[13px] text-[#898989] cursor-pointer">
+          <input type="checkbox" required class="mt-[2px] w-[17px] h-[17px] accent-[#FFAE01] flex-shrink-0" />
+          <span>Ознакомился и&nbsp;согласен с&nbsp;<a href="/politika-konfidentsialnosti" class="underline hover:text-[#333333]">политикой конфиденциальности</a></span>
+        </label>
+
+        <p id="contact-form-success" class="hidden text-[#4AC71E] text-[15px] font-semibold">
+          Спасибо! Заявка отправлена — менеджер свяжется с вами в ближайшее время.
+        </p>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    const cf = document.getElementById('contact-form');
+    if (cf) {
+      cf.addEventListener('submit', (e) => {
+        e.preventDefault();
+        document.getElementById('contact-form-success')?.classList.remove('hidden');
+        cf.querySelectorAll('input, button').forEach((el) => { el.disabled = true; });
+      });
+    }
+  </script>
 </BaseLayout>
