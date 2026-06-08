@@ -32,13 +32,26 @@ const steps = [
   'Производим необходимые работы',
   'Сдаём точно в срок готовый проект',
 ];
-const priceTabs = ['Работы', 'Материалы'];
-const priceRows = [
-  'Выезд инженера и замер объекта',
-  'Подготовка сметы и проекта',
-  'Монтаж основной конструкции',
-  'Монтаж доборных элементов',
-  'Демонтаж старой конструкции',
+const priceTabs = ['Монтаж', 'Демонтаж'];
+// Таблица стоимости 1-в-1 со структурой Figma (401:16262): группы-подзаголовки + работы с «- » и СВОЕЙ ценой.
+// Цены реальные/разные по видам работ (Правило 4 — не одно значение во всех строках).
+const priceGroups = [
+  {
+    head: 'Монтаж стропильной системы:',
+    rows: [
+      { name: '- Монтаж мауэрлата и подстропильных балок', price: 'от 350 руб/м. пог.' },
+      { name: '- Монтаж стропильных ног и ригелей',          price: 'от 300 руб/м. кв.' },
+      { name: '- Монтаж обрешётки и контробрешётки',         price: 'от 250 руб/м. кв.' },
+    ],
+  },
+  {
+    head: 'Сопутствующие и доборные работы:',
+    rows: [
+      { name: '- Монтаж гидро- и пароизоляции',              price: 'от 150 руб/м. кв.' },
+      { name: '- Монтаж карнизных и фронтонных свесов',      price: 'от 400 руб/м. пог.' },
+      { name: '- Демонтаж старой стропильной конструкции',   price: 'от 200 руб/м. кв.' },
+    ],
+  },
 ];
 const accessories = [
   { name: 'Система вентиляционного выхода с регулируемым углом наклона', price: '2000 ₽/шт', old: '', stock: 'in',    qty: 1,  img: '/images/uslugi/products/ventvyhod.png' },
@@ -57,7 +70,20 @@ const reviews = [
   { name: 'Вадим',             date: '16.04.2021', text: 'Огромное спасибо за грамотное и профессиональное отношение. Приятное общение, своевременная доставка, итоговая цена порадовала.' },
   { name: 'Ольга',             date: '02.04.2020', text: 'Грамотная и профессиональная работа с клиентом. Хотелось бы, чтобы таких специалистов было больше. Спасибо за индивидуальный подход!' },
 ];
-const others = services.filter((s) => s.id !== entry.id).slice(0, 7).map((s) => ({ slug: s.id.replace(/\.mdx?$/, ''), title: s.data.title }));
+// Обрезка реального описания услуги до карточки (1-в-1 Figma: ~2-3 строки, без «хвоста»).
+const cardDesc = (text) => {
+  const t = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (t.length <= 165) return t;
+  const cut = t.slice(0, 165);
+  const lastDot = cut.lastIndexOf('. ');
+  if (lastDot > 90) return cut.slice(0, lastDot + 1);
+  return cut.slice(0, cut.lastIndexOf(' ')) + '…';
+};
+const others = services.filter((s) => s.id !== entry.id).slice(0, 7).map((s) => ({
+  slug: s.id.replace(/\.mdx?$/, ''),
+  title: s.data.title,
+  desc: cardDesc(s.data.shortDescription),
+}));
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Service', name: service.title, description: service.shortDescription, url: canonicalURL,
@@ -83,7 +109,7 @@ const jsonLd = {
     <div class="flex flex-col lg:flex-row gap-[20px] items-stretch">
       <!-- Левый блок: фото-крыша + тёмная info-карточка поверх -->
       <div class="relative flex-1 rounded-[5px] overflow-hidden" style="min-height:620px;">
-        <img src="/images/uslugi/hero-roofer.png" alt={service.title} class="absolute inset-0 w-full h-full object-cover object-bottom pointer-events-none" />
+        <img src="/images/uslugi/hero-roofer.png" alt={service.title} class="absolute inset-0 w-full h-full object-cover object-bottom pointer-events-none -scale-x-100" />
         <div class="relative z-10 inline-flex flex-col gap-[40px] bg-[#333333] rounded-[5px] m-[40px] lg:m-[70px]" style="padding:50px 60px;max-width:612px;">
           <div class="flex flex-col gap-[14px]">
             <h1 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[42px] leading-[1.1]">
@@ -132,11 +158,11 @@ const jsonLd = {
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.1] flex-shrink-0">{service.osnovaTitle ?? 'Подробнее об услуге'}</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="flex flex-col lg:flex-row gap-[40px] xl:gap-[91px] items-center">
-      <div class="flex-1 lg:max-w-[738px] text-[#333333] text-[16px] lg:text-[18px] leading-[25px] [&_p]:mb-[10px] [&_strong]:font-semibold">
+    <div class="flex flex-col lg:flex-row gap-[40px] xl:gap-[91px] items-start">
+      <div class="w-full lg:flex-[738_1_0%] text-[#333333] text-[16px] lg:text-[18px] leading-[25px] [&_p]:mb-[10px] [&_strong]:font-semibold">
         {entry.body && entry.body.trim() ? <Content /> : <p>{service.shortDescription}</p>}
       </div>
-      <div class="w-full lg:w-[969px] flex-shrink-0 rounded-[5px] overflow-hidden bg-[#464646]" style="height:431px;">
+      <div class="w-full lg:flex-[969_1_0%] rounded-[5px] overflow-hidden bg-[#464646] aspect-[969/431]">
         <img src={service.osnovaImage ?? '/images/home/s7-services.png'} alt={service.title} class="w-full h-full object-cover" />
       </div>
     </div>
@@ -190,18 +216,52 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- Закажите прямо сейчас (тёмный баннер + форма) -->
+  <!-- Закажите прямо сейчас (тёмный баннер + форма, 1-в-1 Figma 401:16138) -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
-    <div class="relative bg-[#333333] rounded-[5px] overflow-hidden" style="padding:40px;">
-      <span class="absolute font-[Montserrat] font-black text-[#FFAE01]/10 leading-none select-none pointer-events-none" style="font-size:220px;right:0;top:-60px;">%</span>
-      <h2 class="relative z-10 font-[Montserrat] font-semibold text-white text-[24px] lg:text-[28px] mb-5">Закажите {service.title.toLowerCase()} прямо сейчас</h2>
-      <form class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
-        <input type="text" name="name" placeholder="Ваше имя *" class="h-[50px] px-4 bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] text-[15px] border border-[#565656] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <input type="tel" name="phone" required placeholder="Ваш телефон *" class="h-[50px] px-4 bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] text-[15px] border border-[#565656] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <input type="text" name="message" placeholder="Текст обращения" class="h-[50px] px-4 bg-[#464646] text-white placeholder:text-[#898989] rounded-[5px] text-[15px] border border-[#565656] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        <button type="submit" class="h-[50px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold rounded-[5px] transition-colors">Заказать</button>
-      </form>
-      <p class="relative z-10 text-[#898989] text-[12px] mt-3">Отправляя заявку, вы&nbsp;соглашаетесь с&nbsp;политикой конфиденциальности</p>
+    <!-- Заголовок с разделителем как у других секций -->
+    <div class="flex items-end gap-[25px] mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.1] flex-shrink-0">Закажите {service.title.toLowerCase()} прямо сейчас</h2>
+      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+    <div class="bg-[#333333] rounded-[5px]" style="padding:40px 50px;">
+      <div class="flex flex-col lg:flex-row gap-[25px] items-start">
+        <p class="font-['Inter'] font-medium text-white text-[18px] leading-[1.3] flex-shrink-0 lg:w-[187px]">Отправьте онлайн-заявку и&nbsp;мы&nbsp;с&nbsp;вами свяжемся в&nbsp;течение 10&nbsp;минут</p>
+        <form class="flex-1 w-full flex flex-col gap-[20px]">
+          <!-- Ряд 1: имя, телефон, email -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
+            <div class="flex flex-col gap-[6px]">
+              <label class="font-['Inter'] text-[14px] text-white leading-[18px]">Ваше имя&nbsp;<span class="text-[#FFAE01]">*</span></label>
+              <input type="text" name="name" placeholder="Введите имя" class="h-[50px] px-[22px] bg-[#464646] text-white placeholder:text-[#898989] placeholder:opacity-70 rounded-[5px] text-[16px] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+            </div>
+            <div class="flex flex-col gap-[6px]">
+              <label class="font-['Inter'] text-[14px] text-white leading-[18px]">Ваш телефон&nbsp;<span class="text-[#FFAE01]">*</span></label>
+              <input type="tel" name="phone" required placeholder="+7 (___) ___-__-__" class="h-[50px] px-[22px] bg-[#464646] text-white placeholder:text-[#898989] placeholder:opacity-70 rounded-[5px] text-[16px] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+            </div>
+            <div class="flex flex-col gap-[6px]">
+              <label class="font-['Inter'] text-[14px] text-white leading-[18px]">Электронная почта</label>
+              <input type="email" name="email" placeholder="Email" class="h-[50px] px-[22px] bg-[#464646] text-white placeholder:text-[#898989] placeholder:opacity-70 rounded-[5px] text-[16px] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+            </div>
+          </div>
+          <!-- Ряд 2: текст обращения, прикрепить файл, заказать -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
+            <div class="flex flex-col gap-[6px]">
+              <label class="font-['Inter'] text-[14px] text-white leading-[18px]">Текст обращения</label>
+              <input type="text" name="message" placeholder="Напишите обращение" class="h-[50px] px-[22px] bg-[#464646] text-white placeholder:text-[#898989] placeholder:opacity-70 rounded-[5px] text-[16px] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
+            </div>
+            <label class="flex items-center justify-center gap-[10px] h-[50px] bg-[#898989] hover:bg-[#9a9a9a] rounded-[5px] cursor-pointer transition-colors self-end">
+              <svg class="w-[14px] h-[25px] text-[#333333]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              <span class="font-['Inter'] font-semibold text-[#333333] text-[18px]">Прикрепить файл</span>
+              <input type="file" name="file" class="hidden" />
+            </label>
+            <button type="submit" class="h-[50px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-['Inter'] font-semibold text-[18px] rounded-[5px] transition-colors self-end">Заказать монтаж</button>
+          </div>
+          <!-- Согласие -->
+          <label class="flex items-center gap-[10px] cursor-pointer">
+            <input type="checkbox" checked class="accent-[#FFAE01] w-[17px] h-[17px] flex-shrink-0" />
+            <span class="font-['Inter'] text-[#898989] text-[13px] leading-[1.3]">Ознакомился и&nbsp;согласен с&nbsp;<span class="underline">политикой конфиденциальности</span></span>
+          </label>
+        </form>
+      </div>
     </div>
   </section>
 
@@ -211,21 +271,30 @@ const jsonLd = {
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Стоимость</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="flex gap-[10px] mb-4">
+    <div class="flex gap-[20px] mb-[16px]">
       {priceTabs.map((t, i) => (
-        <button class={`rounded-[5px] text-[15px] font-medium ${i === 0 ? 'bg-[#FFAE01] text-[#333333]' : 'bg-white text-[#898989]'}`} style="padding:10px 22px;">{t}</button>
+        <button class={`rounded-[5px] text-[16px] ${i === 0 ? 'bg-[#FFAE01] text-[#333333] font-medium' : 'bg-white text-[#898989]'}`} style="padding:10px 26px;">{t}</button>
       ))}
     </div>
     <div class="bg-white rounded-[5px] overflow-hidden">
-      <div class="flex items-center justify-between bg-[#333333] text-white text-[14px] font-medium" style="padding:14px 24px;">
+      <div class="flex items-center justify-between bg-[#333333] text-white font-['Inter'] font-semibold text-[18px]" style="padding:30px;">
         <span>Наименование работ</span><span>Цена, ед. измерения</span>
       </div>
-      {priceRows.map((r, i) => (
-        <div class={`flex items-center justify-between text-[15px] ${i % 2 ? 'bg-[#F9F9F9]' : 'bg-white'}`} style="padding:14px 24px;">
-          <span class="text-[#333333]">{r}</span>
-          <span class="text-[#898989] whitespace-nowrap">от&nbsp;{price}</span>
-        </div>
-      ))}
+      {priceGroups.map((g, gi) => {
+        let rowIndex = 0;
+        return (<>
+          <div class="bg-[#E9E9E9] font-['Inter'] font-semibold text-[18px] text-[#333333]" style="padding:18px 30px;">{g.head}</div>
+          {g.rows.map((r) => {
+            const zebra = rowIndex++ % 2 === 0 ? 'bg-white' : 'bg-[#F5F5F5]';
+            return (
+              <div class={`flex items-center justify-between gap-4 ${zebra}`} style="padding:18px 30px;">
+                <span class="font-['Inter'] text-[16px] text-[#333333]">{r.name}</span>
+                <span class="font-['Inter'] font-semibold text-[18px] text-[#333333] whitespace-nowrap">{r.price}</span>
+              </div>
+            );
+          })}
+        </>);
+      })}
     </div>
   </section>
 
@@ -235,16 +304,18 @@ const jsonLd = {
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Что влияет на&nbsp;стоимость</h2>
       <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
     </div>
-    <div class="flex flex-col lg:flex-row gap-[30px] items-stretch">
-      <div class="flex-1 flex flex-col gap-5">
-        <p class="text-[#333333] text-[16px] leading-[1.5]">
-          Стоимость работ всегда рассчитывается индивидуально для&nbsp;каждого заказа. При&nbsp;заказе работ в&nbsp;полном объёме материалы предоставляются по&nbsp;оптовым ценам. Стоимость зависит от&nbsp;площади, сложности конструкции, объёма работ и&nbsp;сроков их&nbsp;проведения.
-        </p>
-        <a href="#zayavka" class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors self-start" style="height:50px;padding:0 35px;">Рассчитать стоимость</a>
+    <div class="flex flex-col lg:flex-row gap-[40px] xl:gap-[91px] items-center">
+      <div class="w-full lg:flex-[738_1_0%] flex flex-col gap-[30px]">
+        <div class="text-[#333333] text-[18px] leading-[1.3]">
+          <p class="font-semibold mb-[10px]">Стоимость монтажа стропильной системы всегда рассчитывается индивидуально для&nbsp;каждого заказа.</p>
+          <p>При&nbsp;заказе кровельных работ в&nbsp;полном объёме (стропильная конструкция, утепление, изоляция, монтаж металлочерепицы и&nbsp;водостоков) все&nbsp;материалы предоставляются заказчику по&nbsp;оптовым ценам. Стоимость монтажа находится в&nbsp;непосредственной зависимости от&nbsp;нескольких факторов. К&nbsp;ним относятся этажность дома, назначение кровли (утеплённая мансарда или&nbsp;холодный чердак), количество строительных работ и&nbsp;сроки их&nbsp;проведения.</p>
+        </div>
+        <a href="#zayavka" class="flex items-center justify-center w-full bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">Рассчитать стоимость</a>
       </div>
-      <div class="lg:w-[520px] flex-shrink-0 relative rounded-[5px] overflow-hidden bg-[#333333]" style="min-height:240px;">
-        <img src="/images/home/s7-services.png" alt="" class="absolute inset-0 w-full h-full object-cover opacity-40" />
-        <span class="absolute font-[Montserrat] font-black text-[#FFAE01] leading-none select-none" style="font-size:200px;left:20px;bottom:-50px;">₽</span>
+      <!-- Декор ₽ ПОД фото (z-order как в Figma 402:17928): ₽ full-opacity рендерится первым, фото-вырез сверху перекрывает его. -->
+      <div class="w-full lg:flex-[969_1_0%] relative rounded-[5px] overflow-hidden bg-[#464646] aspect-[969/297]">
+        <span class="absolute font-['Inter'] font-bold text-[#FFAE01] leading-none select-none pointer-events-none z-0" style="font-size:300px;left:96px;top:38px;line-height:0.9;">₽</span>
+        <img src="/images/uslugi/vliyaet-photo.png" alt="Монтаж стропильной системы" class="absolute object-cover pointer-events-none z-10" style="left:2.4%;top:-44.5%;width:98.7%;height:213%;" />
       </div>
     </div>
   </section>
@@ -256,19 +327,48 @@ const jsonLd = {
         <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Предоставляем весь спектр необходимых услуг</h2>
         <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
       </div>
+      {/* Ряд 1: 4 карточки (434px в Figma). Первая — фото-карточка (как экран 8 Figma): фото-фон + оранжевая шапка, без описания. */}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
-        {others.map((o) => (
-          <a href={`/uslugi/${o.slug}`} class="group flex flex-col gap-[18px] bg-white rounded-[5px] shadow-[0_4px_30px_rgba(0,0,0,0.06)]" style="padding:25px;">
-            <div class="flex items-center justify-between bg-[#333333] rounded-[5px]" style="padding:12px 16px;">
-              <span class="font-['Inter'] font-semibold text-white text-[15px] leading-tight">{o.title}</span>
-              <span class="flex items-center justify-center w-[26px] h-[26px] border border-white/40 rounded-[5px] flex-shrink-0 group-hover:bg-white transition-colors">
-                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-white group-hover:text-[#333333]"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-              </span>
-            </div>
-            <p class="text-[#898989] text-[14px] leading-[1.4]">Профессиональный монтаж и&nbsp;расчёт под&nbsp;ваш&nbsp;объект с&nbsp;гарантией качества.</p>
-          </a>
+        {others.slice(0, 4).map((o, idx) => (
+          idx === 0 ? (
+            <a href={`/uslugi/${o.slug}`} class="group relative flex flex-col bg-[#333333] rounded-[5px] overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.1)]" style="height:260px;">
+              <img src="/images/uslugi/spektr-card-1.png" alt={o.title} class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+              <div class="relative z-10 flex items-center justify-between bg-[#333333] rounded-[5px]" style="margin:30px 27px 0;height:50px;padding:0 20px;">
+                <span class="font-['Inter'] font-semibold text-[#FFAE01] text-[18px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{o.title}</span>
+                <span class="flex items-center justify-center w-[26px] h-[26px] flex-shrink-0 text-[#FFAE01]">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/></svg>
+                </span>
+              </div>
+            </a>
+          ) : (
+            <a href={`/uslugi/${o.slug}`} class="group flex flex-col gap-[20px] bg-white rounded-[5px] shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden" style="height:260px;padding:30px 35px;">
+              <div class="flex items-center justify-between bg-[#333333] rounded-[5px] flex-shrink-0" style="height:50px;padding:0 20px;">
+                <span class="font-['Inter'] font-semibold text-white text-[18px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{o.title}</span>
+                <span class="flex items-center justify-center w-[26px] h-[26px] flex-shrink-0 text-white group-hover:text-[#FFAE01] transition-colors">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/></svg>
+                </span>
+              </div>
+              <p class="font-['Inter'] text-[#333333] text-[16px] leading-[1.3] overflow-hidden">{o.desc}</p>
+            </a>
+          )
         ))}
       </div>
+      {/* Ряд 2: оставшиеся карточки шире (586px в Figma), тёмная шапка + реальное описание. */}
+      {others.length > 4 && (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px] mt-[20px]">
+          {others.slice(4).map((o) => (
+            <a href={`/uslugi/${o.slug}`} class="group flex flex-col gap-[20px] bg-white rounded-[5px] shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden" style="height:260px;padding:30px 35px;">
+              <div class="flex items-center justify-between bg-[#333333] rounded-[5px] flex-shrink-0" style="height:50px;padding:0 20px;">
+                <span class="font-['Inter'] font-semibold text-white text-[18px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{o.title}</span>
+                <span class="flex items-center justify-center w-[26px] h-[26px] flex-shrink-0 text-white group-hover:text-[#FFAE01] transition-colors">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/></svg>
+                </span>
+              </div>
+              <p class="font-['Inter'] text-[#333333] text-[16px] leading-[1.3] overflow-hidden">{o.desc}</p>
+            </a>
+          ))}
+        </div>
+      )}
     </section>
   )}
 
