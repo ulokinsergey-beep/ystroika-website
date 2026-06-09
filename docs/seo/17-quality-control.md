@@ -62,13 +62,23 @@
 
 ---
 
-## Реестр проверки (вести по страницам)
+## Реестр проверки (волна 1, P1 — вести по всем страницам)
 | Страница | G1 визуал | G2 контент | G3 SEO | G4 функц. | G5 perf | G6 доверие | Статус |
 |---|---|---|---|---|---|---|---|
 | / | | | | | | | |
+| /catalog/krovlya/ | | | | | | | |
+| /catalog/krovlya/metallocherepica/ | | | | | | | |
+| /catalog/krovlya/gibkaya-cherepica/ | | | | | | | |
+| /catalog/krovlya/profnastil/ | | | | | | | |
+| /catalog/fasad/ | | | | | | | |
+| /catalog/fasad/sajding-vinilovyj/ | | | | | | | |
+| /catalog/vodostok/ | | | | | | | |
 | /uslugi/montazh-krovli/ | | | | | | | |
-| … | | | | | | | |
-> Статус = «PASS» только когда все 6 gate'ов закрыты. До этого — «в работе», с перечнем незакрытого.
+| /uslugi/montazh-fasada/ | | | | | | | |
+| /uslugi/montazh-vodostoka/ | | | | | | | |
+| /kontakty/ | | | | | | | |
+> Волны 2–3 (`01-sitemap-pages.md` §9) добавлять в реестр по мере выпуска.
+> Ячейка: `✓` (закрыт) / `—` (не нужен) / `!` (проблема). Статус = «PASS» только когда все 6 gate'ов закрыты; иначе «в работе» с перечнем незакрытого.
 
 ---
 

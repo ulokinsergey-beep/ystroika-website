@@ -35,7 +35,12 @@
 | `/sertifikaty/` | Сертификаты | P3 | документы | WebPage |
 | `/komanda/` | Команда | P3 | контент | Person[] |
 | `/vakansii/` | Вакансии | P3 | IBLOCK 09 | JobPosting |
+| `/spets-usloviya/` | Спецусловия для подрядчиков (B2B) | P2 | контент | WebPage, Offer(B2B) |
+| `/spetspredlozheniya/` | Акции и спецпредложения | P2 | контент/каталог | WebPage, ItemList |
+| `/voprosy-otvety/` | FAQ-хаб (вопросы и ответы) | P2 | IBLOCK 12 + новый | FAQPage, Breadcrumb |
 | `/politika-konfidencialnosti/` | Политика ПД | — | юр-текст | WebPage (noindex опц.) |
+
+> `/spets-usloviya/`, `/spetspredlozheniya/`, `/voprosy-otvety/` — целевые URL для CTA с главной (`02-homepage.md` блоки 2, 8, 9). Должны существовать, иначе 404.
 
 ---
 
@@ -109,7 +114,7 @@
 ---
 
 ## 7. Гео-страницы (Local SEO) — см. `15-local-seo.md`
-`/{material|usluga}-{gorod}/` или `/geo/{gorod}/` — по маске сем-ядра §7. Только уникальные, не тонкие дубли. Приор. P2.
+**Единый паттерн: `/geo/{gorod}/`** (один на город). Материалы/услуги — блоками ВНУТРИ гео-страницы, чтобы не плодить тонкие дубли вида `/{material}-{gorod}/`. По маске сем-ядра §7. Только уникальные. Приор. P2.
 
 ---
 

@@ -48,3 +48,55 @@
 - llms.txt;
 - понятные заголовки H1/H2/H3;
 - структурированные блоки «Коротко», «Вывод», «FAQ».
+
+## 6. Мета и соцсети (OG / Twitter)
+На каждой странице:
+- `og:title`, `og:description`, `og:type`, `og:url`, `og:image` (1200×630), `og:site_name`, `og:locale=ru_RU`;
+- `twitter:card=summary_large_image`, `twitter:title`, `twitter:description`, `twitter:image`;
+- og-картинка — реальная (товар/услуга/логотип), не битая.
+
+## 7. Hreflang
+Сайт **одноязычный (ru, регион РФ)** → **hreflang НЕ нужен**. Не плодить языковые альтернативы. (Если позже появится англоязычная версия — добавить `x-default` + `ru`.)
+
+## 8. Пагинация
+- ЧПУ-страницы: `/catalog/krovlya/metallocherepica/?page=2` или `/.../page-2/` (выбрать один формат).
+- На каждой странице пагинации `canonical` — на **саму себя** (не на первую), чтобы не терять товары из индекса.
+- Не ставить `noindex` на страницы пагинации с уникальными товарами.
+- Ссылки «след/пред» — реальными `<a>`.
+
+## 9. Sitemap (split при росте)
+- `sitemap.xml` — индекс, ссылается на под-карты;
+- разбивать по типам: `sitemap-catalog.xml`, `sitemap-uslugi.xml`, `sitemap-baza-znaniy.xml`, `sitemap-geo.xml`;
+- лимит одной карты — 50 000 URL / 50 МБ; при превышении — дробить;
+- только индексируемые URL (без noindex/редиректов/404); `lastmod` актуальный.
+
+## 10. 301-редиректы со старого сайта
+- собрать карту «старый URL (Bitrix) → новый URL»;
+- 301 (постоянный) для каждой значимой старой страницы с трафиком/ссылками;
+- не делать цепочек редиректов (A→B→C); вести сразу на финальный URL;
+- битые старые URL без аналога → на ближайший раздел, не на главную скопом.
+
+## 11. noindex-страницы (список)
+- внутренний поиск `/poisk/`;
+- корзина/оформление (если появятся);
+- технические страницы фильтров-сортировок;
+- `/politika-konfidencialnosti/` — на усмотрение (часто index, но не в приоритете);
+- служебные/системные, страницы благодарности после формы.
+
+## 12. robots.txt (пример)
+```
+User-agent: *
+Disallow: /poisk/
+Disallow: /*sort=
+Disallow: /*?*utm_
+Allow: /
+Sitemap: https://ystroika.ru/sitemap.xml
+```
+
+## 13. Canonical для фильтров (примеры)
+- Значимый фильтр (категория+бренд) — `canonical` на **себя** (индексируемый URL):
+  `/catalog/krovlya/metallocherepica/?brand=grand-line` → canonical на себя.
+- Незначимый фасет/сортировка — `canonical` на **базовую категорию**:
+  `/catalog/krovlya/metallocherepica/?sort=price` → canonical `/catalog/krovlya/metallocherepica/`.
+- Комбинация многих фильтров без спроса — `noindex, follow` + canonical на базу.
+- Связано с фасетами листинга — `04-category-listing.md` блок B2/B5.

@@ -4,11 +4,11 @@
 
 ## 1. Приоритет 1 — коммерческие страницы
 Сначала:
-- /krovlya/metallocherepica/
-- /krovlya/gibkaya-cherepica/
-- /krovlya/profnastil/
-- /fasad/sajding-vinilovyj/
-- /vodostok/
+- /catalog/krovlya/metallocherepica/
+- /catalog/krovlya/gibkaya-cherepica/
+- /catalog/krovlya/profnastil/
+- /catalog/fasad/sajding-vinilovyj/
+- /catalog/vodostok/
 - /uslugi/montazh-krovli/
 - /uslugi/montazh-fasada/
 
@@ -29,7 +29,15 @@
 - Отзывы.
 - Команда.
 
-## 4. Шаблон проверки статьи
+## 4. План по неделям (волна 1, ориентир)
+- **Неделя 1:** главная + 3 P1-листинга (металлочерепица, гибкая черепица, профнастил) + раздел `/catalog/krovlya/`.
+- **Неделя 2:** 3 услуги (монтаж кровли/фасада/водостока) + `/catalog/fasad/sajding-vinilovyj/` + `/catalog/vodostok/` + контакты.
+- **Неделя 3:** 5 статей-сравнений/гайдов (из §2) + перелинковка в коммерцию + 2 калькулятора.
+- **Неделя 4:** бренд-страницы (топ-бренды) + trust-страницы (о компании, гарантии, отзывы) + первые гео-страницы.
+- Дальше — волна 2/3 по приоритетам `01-sitemap-pages.md` §9.
+> Перед запуском P1-страниц снять частотности (Wordstat/Key Collector) и уточнить приоритеты — `06-semantic-core.md`.
+
+## 5. Шаблон проверки статьи
 Перед публикацией проверить:
 - есть прямой ответ в первых 80 словах;
 - есть H2/H3 под вопросы;

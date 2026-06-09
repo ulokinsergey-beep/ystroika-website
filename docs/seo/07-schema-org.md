@@ -2,7 +2,7 @@
 
 > Единый реестр разметки: какой тип на какой странице, обязательные свойства,
 > где живёт код, как валидировать. Усиливает rich-сниппеты (Яндекс/Google) и
-> AEO/GEO-AI (машинопонимание сущностей). Обзор — `seo-architecture.md` §8.
+> AEO/GAIO (машинопонимание сущностей). Обзор — `seo-architecture.md` §8.
 > Формат — **JSON-LD** в `<head>` или конце `<body>`. Реализация в Astro —
 > переиспользуемые компоненты `src/components/schema/*`.
 
@@ -76,6 +76,71 @@
 `name`, `address`, `telephone`, `geo` (GeoCoordinates), `openingHoursSpecification`, `areaServed`, `priceRange`.
 
 ---
+
+## 3.1. Примеры JSON-LD (эталоны для разработчика)
+> Подставлять реальные данные; не публиковать выдуманные цены/рейтинги.
+
+**LocalBusiness (глобально / контакты):**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "У-Стройка",
+  "url": "https://ystroika.ru/",
+  "telephone": "+7-800-333-94-95",
+  "image": "https://ystroika.ru/og/logo.png",
+  "address": {"@type": "PostalAddress", "addressLocality": "Москва", "addressRegion": "Московская область", "addressCountry": "RU"},
+  "areaServed": ["Москва", "Московская область"],
+  "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "19:00"}],
+  "sameAs": ["https://yandex.ru/maps/org/...", "https://2gis.ru/..."]
+}
+```
+
+**Service (страница услуги):**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Монтаж кровли под ключ",
+  "serviceType": "Кровельные работы",
+  "provider": {"@type": "Organization", "name": "У-Стройка"},
+  "areaServed": ["Москва", "Московская область"],
+  "offers": {"@type": "Offer", "price": "300", "priceCurrency": "RUB", "description": "от 300 ₽/м²"}
+}
+```
+
+**Product + Offer (карточка товара):**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Металлочерепица Монтеррей",
+  "image": "https://ystroika.ru/img/monterrey.jpg",
+  "brand": {"@type": "Brand", "name": "Grand Line"},
+  "sku": "MC-MONT-8017",
+  "offers": {"@type": "Offer", "priceCurrency": "RUB", "price": "650", "availability": "https://schema.org/InStock", "url": "https://ystroika.ru/catalog/krovlya/metallocherepica/monterrey/", "seller": {"@type": "Organization", "name": "У-Стройка"}}
+}
+```
+
+**Article + FAQPage (статья базы знаний):**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Металлочерепица или гибкая черепица: что выбрать",
+  "author": {"@type": "Person", "name": "Имя Эксперта"},
+  "datePublished": "2026-06-01",
+  "dateModified": "2026-06-09",
+  "publisher": {"@type": "Organization", "name": "У-Стройка", "logo": {"@type": "ImageObject", "url": "https://ystroika.ru/og/logo.png"}}
+}
+```
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [{"@type": "Question", "name": "Что дешевле — металлочерепица или гибкая?", "acceptedAnswer": {"@type": "Answer", "text": "Прямой ответ 40–60 слов..."}}]
+}
+```
 
 ## 4. Реализация в Astro
 - Компоненты-обёртки: `src/components/schema/Organization.astro`, `Breadcrumbs.astro`, `ServiceSchema.astro`, `ArticleSchema.astro`, `FaqSchema.astro`, `ProductSchema.astro`.

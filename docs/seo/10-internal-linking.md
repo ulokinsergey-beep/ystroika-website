@@ -15,16 +15,16 @@
 ### Статьи-сравнения
 Пример: «Металлочерепица или профнастил»
 Ссылки:
-- /krovlya/metallocherepica/
-- /krovlya/profnastil/
-- /servisy/metallocherepitsa/
+- /catalog/krovlya/metallocherepica/
+- /catalog/krovlya/profnastil/
+- /servisy/raschet-metallocherepicy/
 - /uslugi/montazh-krovli/
 
 ### Статьи-инструкции
 Пример: «Как рассчитать металлочерепицу»
 Ссылки:
-- /servisy/metallocherepitsa/
-- /krovlya/metallocherepica/
+- /servisy/raschet-metallocherepicy/
+- /catalog/krovlya/metallocherepica/
 - /uslugi/montazh-krovli/
 
 ### Статьи про ошибки
@@ -50,3 +50,25 @@
 - Из каждой коммерческой страницы — ссылки на 2–3 связанные статьи базы знаний (обратная связка).
 - Бренд-страница ↔ категории этого бренда (двусторонне).
 - Гео-страница ↔ соответствующий раздел/услуга + соседние города.
+
+## 5. Таблица анкорных текстов (эталон)
+> Анкор = осмысленная фраза из кластера, ведёт на канонический URL (`01-sitemap-pages.md`).
+> Не использовать «тут»/«подробнее»; не ссылаться разными анкорами на конфликтные URL.
+
+| Анкорный текст | Целевой URL |
+|---|---|
+| металлочерепица купить в Москве | /catalog/krovlya/metallocherepica/ |
+| гибкая черепица цена | /catalog/krovlya/gibkaya-cherepica/ |
+| профнастил для крыши | /catalog/krovlya/profnastil/ |
+| виниловый сайдинг | /catalog/fasad/sajding-vinilovyj/ |
+| водосточные системы | /catalog/vodostok/ |
+| монтаж кровли под ключ | /uslugi/montazh-krovli/ |
+| монтаж фасада | /uslugi/montazh-fasada/ |
+| рассчитать металлочерепицу | /servisy/raschet-metallocherepicy/ |
+| рассчитать водосток | /servisy/raschet-vodostoka/ |
+| металлочерепица Grand Line | /brands/grand-line/ |
+| спецусловия для подрядчиков | /spets-usloviya/ |
+| акции и спецпредложения | /spetspredlozheniya/ |
+| вопросы и ответы | /voprosy-otvety/ |
+
+**Правило:** один смысл → один URL. Если для фразы нет канонического URL в `01-sitemap-pages.md` — сначала завести страницу, потом ставить ссылку (иначе 404/дубль).

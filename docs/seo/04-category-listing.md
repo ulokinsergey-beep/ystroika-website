@@ -77,6 +77,16 @@
 
 ---
 
+## Правило canonical/индексации (жёстко, см. `13-technical-seo.md` §13)
+Ошибка с фасетами = мусорные страницы в индексе. Поэтому:
+- **Значимый фильтр** (категория+бренд) → индексируется, `canonical` на себя:
+  `/catalog/krovlya/metallocherepica/?brand=grand-line` → canonical на себя.
+- **Сортировка/незначимый фасет** → `canonical` на базовую категорию:
+  `/catalog/krovlya/metallocherepica/?sort=price` → canonical `/catalog/krovlya/metallocherepica/`.
+- **Много фильтров без спроса** → `noindex, follow` + canonical на базу.
+- **Пагинация** → `canonical` на саму страницу (не на первую), без `noindex`.
+> Список значимых комбинаций согласовать ДО открытия фильтров в индекс.
+
 ## Чек-лист готовности (раздел/листинг)
 - [ ] 1-в-1 с Figma на 375/1280/1920.
 - [ ] H1 один, ВЧ/СЧ-ключ; уникальные title/description; крошки.
