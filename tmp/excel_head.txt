@@ -1,0 +1,12 @@
+SHEETS: ['Лист 1']
+DIMS: max_row=1762 max_col=28
+ROW1: (False, 'Категория', False, 'Подкатегория', False, 'Производитель ', False, 'Вид / Тип  ', 'Тип покрытия', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW2: (False, 'Кровля', False, None, False, None, False, 'Не готово', 1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW3: (False, None, True, 'Металлочерепица', False, None, False, 'Готово', datetime.datetime(2024, 1, 1, 0, 0), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW4: (False, None, False, None, True, 'Grand Line', True, 'Classic', 'ELITE+DESIGN', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW5: (False, None, False, None, False, None, True, 'Kamea', 'Pural+GreenCoat Pural Matt', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW6: (False, None, False, None, False, None, True, 'Kredo', 'Satin', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW7: (False, None, False, None, False, None, True, 'Kvinta plus', 'Drap', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW8: (False, None, False, None, False, None, True, 'Kvinta plus 3D', 'Стальной бархат', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW9: (False, None, False, None, False, None, True, 'Kvinta Uno', 'Ре 0,4', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+ROW10: (False, None, False, None, False, None, True, 'Modern', 'Ре Matt 0,4', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)

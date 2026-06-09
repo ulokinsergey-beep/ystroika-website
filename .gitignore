@@ -44,3 +44,6 @@ tmp-figma-audit/
 # Large Figma PDF exports — exceed GitHub 100MB limit (хранить локально)
 docs/figma-screens/*.pdf
 tmp-uslugi-shots/
+
+# Bitrix backup restore working dir (large SQL dump + extracted tar) — local only
+tmp-bitrix/

@@ -1,0 +1,120 @@
+[
+  {
+    "bitrixId": 341,
+    "title": "Большой опыт монтажных бригад и качественные проверенные материалы",
+    "slug": "bolshoy-opyt-montazhnykh-brigad-i-kachestvennye-proverennye-materialy",
+    "active": false,
+    "price": null,
+    "body": "",
+    "previewText": "5-летняя гарантия на проделанные работы Фасадные работы – важная часть оформления любого здания. Красивый и эстетичный фасад не только украсит Ваш дом, придав ему законченный внешний вид, но также повысит срок службы всей постройки, ведь фасадные материалы защищают стены от разрушительного воздействия внешней среды. Монтаж фасада – ответственный этап, от которого зависит долговечность стен и всего",
+    "bitrixImageIds": [
+      "978"
+    ]
+  },
+  {
+    "bitrixId": 345,
+    "title": "Профессиональный монтаж водосточной системы",
+    "slug": "professionalnyy-montazh-vodostochnoy-sistemy",
+    "active": false,
+    "price": "от 200 ₽",
+    "body": "",
+    "previewText": "Основная задача водосточной системы кровли — обеспечение управляемого стока осадков с поверхности крыши и отвод их на грунт или в систему ливневой канализации. При организованном стоке воды сохраняется привлекательный внешний вид здания, а фасад, цоколь и отмостка защищены от преждевременного разрушения. Поэтому все скатные кровли необходимо обустраивать системой водостока. Но нужно строго соблюда",
+    "bitrixImageIds": [
+      "982"
+    ]
+  },
+  {
+    "bitrixId": 346,
+    "title": "Монтаж стропильной системы в Москве «под ключ»",
+    "slug": "montazh-stropilnoy-sistemy-v-moskve-pod-klyuch",
+    "active": false,
+    "price": "от 300 руб/м2",
+    "body": "",
+    "previewText": "- БЕСПЛАТНО к вам приедет инженер для уточнения конструкции и материала кровли - БЕСПЛАТНО составим для Вас смету и подготовим проект кровли - ВЫЕЗД ЗАМЕРЩИКА в день обращения",
+    "bitrixImageIds": [
+      "983"
+    ]
+  },
+  {
+    "bitrixId": 347,
+    "title": "Монтаж кровли в Москве за 15 дней с гарантией до 15 лет «под ключ»",
+    "slug": "montazh-krovli-v-moskve-za-15-dney-s-garantiey-do-15-let-pod-klyuch",
+    "active": false,
+    "price": "от 499 руб/м2",
+    "body": "",
+    "previewText": "- БЕСПЛАТНО к вам приедет инженер для уточнения конструкции и материала кровли - БЕСПЛАТНО составим для Вас смету и подготовим проект кровли - ВЫЕЗД ЗАМЕРЩИКА в день обращения",
+    "bitrixImageIds": [
+      "984"
+    ]
+  },
+  {
+    "bitrixId": 396,
+    "title": "Расчёт кровли из металлочерепицы",
+    "slug": "kalkulyator-krovli",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  },
+  {
+    "bitrixId": 397,
+    "title": "Расчёт кровли из профнастила",
+    "slug": "kalkulyator-krovli",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  },
+  {
+    "bitrixId": 398,
+    "title": "Калькулятор гибкой черепицы",
+    "slug": "kalkulyator-krovli",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  },
+  {
+    "bitrixId": 399,
+    "title": "Расчёт фасадных панелей",
+    "slug": "kalkulyator-fasada",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  },
+  {
+    "bitrixId": 400,
+    "title": "Расчёт винилового сайдинга",
+    "slug": "kalkulyator-fasada",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  },
+  {
+    "bitrixId": 401,
+    "title": "Расчёт водостока",
+    "slug": "kalkulyator-vodostoka",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  },
+  {
+    "bitrixId": 402,
+    "title": "Расчёт фальцевой кровли",
+    "slug": "kalkulyator-krovli",
+    "active": true,
+    "price": null,
+    "body": "",
+    "previewText": "",
+    "bitrixImageIds": []
+  }
+]

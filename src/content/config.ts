@@ -31,6 +31,9 @@ const articles = defineCollection({
     readingTime: z.number().optional(),
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
+    // Bitrix file-ids (PREVIEW_PICTURE/DETAIL_PICTURE). Unresolved: the b_file table
+    // was not in the parsed dump, so id -> upload/iblock/<hash> mapping is unavailable.
+    bitrixImageIds: z.array(z.string()).optional(),
     published: z.boolean().default(true),
   }),
 });
@@ -58,6 +61,7 @@ const brands = defineCollection({
     country: z.string().optional(),
     categories: z.array(z.string()).default([]),
     order: z.number().default(0),
+    bitrixImageIds: z.array(z.string()).optional(),
     published: z.boolean().default(true),
   }),
 });
@@ -76,6 +80,7 @@ const projects = defineCollection({
     materials: z.array(z.string()).default([]),
     description: z.string().optional(),
     order: z.number().default(0),
+    bitrixImageIds: z.array(z.string()).optional(),
     published: z.boolean().default(true),
   }),
 });
