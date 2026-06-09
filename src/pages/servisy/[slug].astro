@@ -8,10 +8,10 @@ export function getStaticPaths() {
 }
 
 const { calc } = Astro.props;
-const areaLabel =
-  calc.kind === 'vodostok' ? 'Периметр кровли, м.п.'
-  : calc.kind === 'fasad' ? 'Площадь фасада, м²'
-  : 'Площадь кровли, м²';
+const total = calc.questions.length;
+
+// Все калькуляторы для блока «Воспользуйся нашими сервисами» (как в Figma).
+const services = calculators;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -23,103 +23,156 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout title={`${calc.title} — У-Стройка`} description={`${calc.short} Онлайн-расчёт за 1 день. Звоните: 8-800-333-94-95.`}>
+<BaseLayout title={`${calc.title} — У-Стройка`} description={`${calc.short.slice(0, 150)} Онлайн-расчёт за 1 день. Звоните: 8-800-333-94-95.`}>
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
 
   <!-- Крошки + заголовок -->
-  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:30px;">
-    <nav class="text-[14px] text-[#898989] mb-[20px]">
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:50px;padding-bottom:20px;">
+    <nav class="text-[14px] text-[#898989] mb-[18px]">
       <a href="/" class="hover:text-[#FFAE01]">Главная</a> <span class="mx-[8px]">/</span>
-      <a href="/servisy" class="hover:text-[#FFAE01]">Сервисы</a> <span class="mx-[8px]">/</span>
-      <span class="text-[#333333]">{calc.title}</span>
+      <a href="/servisy" class="hover:text-[#FFAE01]">Калькулятор</a> <span class="mx-[8px]">/</span>
+      <span class="text-[#333333]">{calc.navTitle}</span>
     </nav>
-    <div class="flex items-end gap-[25px]">
-      <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">
-        {calc.title}
-      </h1>
-      <div class="flex-1 bg-[#E9E9E9]" style="height:1.5px;margin-bottom:14px;"></div>
+    <h1 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.18]">
+      {calc.title}
+    </h1>
+    <p class="text-[#333333] text-[16px] lg:text-[18px] leading-[1.45] mt-[18px]" style="max-width:980px;">{calc.short}</p>
+  </section>
+
+  <!-- Квиз: сетка карточек-вопросов -->
+  <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:10px;padding-bottom:50px;">
+    <div id="calc-quiz" class="grid grid-cols-1 lg:grid-cols-2 gap-[20px] items-start" data-total={total}>
+      {calc.questions.map((q, i) => (
+        <div
+          class="calc-card bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[24px] lg:gap-[30px]"
+          data-step={i}
+          style={`padding:clamp(24px,3vw,60px);${i === 0 ? '' : 'display:none;'}`}
+        >
+          <div class="flex flex-col gap-[18px] lg:gap-[24px]">
+            <span class="font-[Inter] text-[#333333] text-[18px] lg:text-[20px] leading-[1.3]">Вопрос {i + 1}/{total}</span>
+            <div class="flex items-start gap-[10px]">
+              <span class="font-[Inter] font-semibold text-[#333333] text-[22px] lg:text-[28px] leading-[1.2] flex-shrink-0">{i + 1}.</span>
+              <h2 class="font-[Inter] font-semibold text-[#333333] text-[22px] lg:text-[28px] leading-[1.2]">{q.title}</h2>
+            </div>
+          </div>
+
+          {q.type === 'choice' && (
+            <div class="flex flex-wrap gap-[14px] lg:gap-[20px]">
+              {q.options!.map((opt, oi) => (
+                <button
+                  type="button"
+                  class={`calc-pill rounded-[5px] border text-[15px] lg:text-[18px] font-[Inter] font-medium transition-colors text-center ${
+                    oi === 0
+                      ? 'bg-[#333333] border-[#333333] text-white'
+                      : 'bg-transparent border-[#898989] text-[#898989] hover:border-[#333333] hover:text-[#333333]'
+                  }`}
+                  style="min-width:200px;padding:18px 24px;flex:1 1 auto;max-width:280px;"
+                  aria-pressed={oi === 0 ? 'true' : 'false'}
+                >{opt}</button>
+              ))}
+            </div>
+          )}
+
+          {q.type === 'inputs' && (
+            <div class="flex flex-col gap-[16px] lg:gap-[20px]">
+              {q.inputs!.map((inp) => (
+                <label class="flex flex-col gap-[6px]">
+                  <input
+                    type="text"
+                    inputmode="decimal"
+                    placeholder={inp.unit ? `${inp.label}, ${inp.unit}` : inp.label}
+                    class="bg-white rounded-[5px] border border-[#E9E9E9] px-[20px] text-[15px] lg:text-[16px] text-[#333333] placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01]"
+                    style="height:58px;"
+                  />
+                </label>
+              ))}
+              {q.helpLink && (
+                <button type="button" class="self-start bg-[#E9E9E9] hover:bg-[#dcdcdc] text-[#333333] text-[14px] lg:text-[16px] rounded-[5px] transition-colors" style="padding:14px 22px;">
+                  {q.helpLink}
+                </button>
+              )}
+            </div>
+          )}
+
+          {q.type === 'contact' && (
+            <form class="flex flex-col gap-[16px] lg:gap-[20px]" data-calc-form>
+              <input type="hidden" name="calculator" value={calc.title} />
+              <div class="flex flex-wrap gap-[14px] lg:gap-[20px]">
+                {q.options!.map((opt, oi) => (
+                  <button
+                    type="button"
+                    class={`calc-channel rounded-[5px] border text-[15px] lg:text-[18px] font-[Inter] font-medium transition-colors text-center ${
+                      oi === 0
+                        ? 'bg-[#333333] border-[#333333] text-white'
+                        : 'bg-transparent border-[#898989] text-[#898989] hover:border-[#333333] hover:text-[#333333]'
+                    }`}
+                    style="min-width:160px;padding:18px 22px;flex:1 1 auto;max-width:260px;"
+                    aria-pressed={oi === 0 ? 'true' : 'false'}
+                  >{opt}</button>
+                ))}
+              </div>
+              <label class="flex flex-col gap-[6px]">
+                <input type="text" name="name" required placeholder="Ваше имя"
+                  class="bg-white rounded-[5px] border border-[#E9E9E9] px-[20px] text-[15px] lg:text-[16px] text-[#333333] placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01]" style="height:58px;" />
+              </label>
+              <label class="flex flex-col gap-[6px]">
+                <input type="tel" name="phone" required placeholder="+7 (___) ___-__-__"
+                  class="bg-white rounded-[5px] border border-[#E9E9E9] px-[20px] text-[15px] lg:text-[16px] text-[#333333] placeholder:text-[#898989] focus:outline-none focus:border-[#FFAE01]" style="height:58px;" />
+              </label>
+              <label class="flex items-start gap-[10px] text-[#898989] text-[13px] lg:text-[14px] leading-[1.4] cursor-pointer">
+                <input type="checkbox" required class="mt-[2px] accent-[#FFAE01] w-[16px] h-[16px] flex-shrink-0" />
+                <span>Ознакомлен и&nbsp;соглашаюсь с&nbsp;<a href="/info/politika-konfidentsialnosti" class="underline hover:text-[#FFAE01]">политикой конфиденциальности</a> и&nbsp;обработкой персональных данных</span>
+              </label>
+              <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[16px] lg:text-[18px] rounded-[5px] transition-colors" style="height:60px;">
+                Получить расчёт
+              </button>
+            </form>
+          )}
+
+          {q.type !== 'contact' && (
+            <button type="button" class="calc-next self-start bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[15px] lg:text-[18px] rounded-[5px] transition-colors" style="padding:16px 34px;">
+              Далее
+            </button>
+          )}
+        </div>
+      ))}
     </div>
   </section>
 
-  <!-- Калькулятор: форма слева + инфо справа -->
+  <!-- Воспользуйся нашими сервисами -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-bottom:60px;">
-    <p class="text-[#333333] text-[18px] leading-[1.4] mb-[30px]" style="max-width:760px;">{calc.short}</p>
-
+    <div class="flex items-end gap-[25px] mb-[30px] lg:mb-[40px]">
+      <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[32px] text-[#333333] leading-[1.2] flex-shrink-0" style="max-width:560px;">
+        Воспользуйся нашими сервисами для быстрого расчёта вашего проекта
+      </h2>
+      <div class="flex-1 bg-[#E9E9E9] hidden lg:block" style="height:1px;margin-bottom:14px;"></div>
+    </div>
     <div class="flex flex-col lg:flex-row gap-[20px] items-stretch">
-      <!-- Форма -->
-      <form class="flex-1 bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[18px]" style="padding:35px;max-width:760px;">
-        <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[22px]">Параметры объекта</h2>
-
-        <label class="flex flex-col gap-[6px]">
-          <span class="text-[#898989] text-[13px]">{areaLabel}</span>
-          <input type="number" name="area" min="1" step="0.1" required placeholder="Например, 120"
-                 class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        </label>
-
-        <label class="flex flex-col gap-[6px]">
-          <span class="text-[#898989] text-[13px]">Тип объекта</span>
-          <select name="object_type" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]">
-            <option>Частный дом</option>
-            <option>Дача</option>
-            <option>Коммерческий объект</option>
-            <option>Другое</option>
-          </select>
-        </label>
-
-        <label class="flex flex-col gap-[6px]">
-          <span class="text-[#898989] text-[13px]">Когда планируете работы</span>
-          <select name="timing" class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]">
-            <option>В ближайший месяц</option>
-            <option>В этом сезоне</option>
-            <option>Пока просто считаю</option>
-          </select>
-        </label>
-
-        <div class="h-px bg-[#E9E9E9] my-1"></div>
-
-        <label class="flex flex-col gap-[6px]">
-          <span class="text-[#898989] text-[13px]">Ваше имя *</span>
-          <input type="text" name="name" required placeholder="Имя"
-                 class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        </label>
-        <label class="flex flex-col gap-[6px]">
-          <span class="text-[#898989] text-[13px]">Телефон *</span>
-          <input type="tel" name="phone" required placeholder="+7 (___) ___-__-__"
-                 class="h-[50px] px-4 bg-white rounded-[5px] text-[16px] text-[#333333] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
-        </label>
-        <label class="flex items-start gap-[10px] text-[#898989] text-[13px] leading-[1.4] cursor-pointer">
-          <input type="checkbox" required class="mt-[2px] accent-[#FFAE01] w-[16px] h-[16px] flex-shrink-0" />
-          <span>Согласен с&nbsp;политикой конфиденциальности и&nbsp;обработкой персональных данных</span>
-        </label>
-
-        <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">
-          Получить расчёт
-        </button>
-      </form>
-
-      <!-- Инфо -->
-      <div class="lg:w-[420px] flex-shrink-0 bg-[#333333] rounded-[5px] flex flex-col gap-[20px]" style="padding:35px;">
-        <h2 class="font-[Montserrat] font-semibold text-white text-[22px]">Как мы считаем</h2>
-        <ul class="flex flex-col gap-[14px]">
-          {[
-            'Учитываем геометрию кровли/фасада и все доборные элементы',
-            'Подбираем материалы под бюджет — с гарантией лучшей цены',
-            'Готовим смету за 1 день, выезд замерщика бесплатно',
-            'Менеджер на связи в мессенджерах до позднего вечера',
-          ].map((t) => (
-            <li class="flex items-start gap-[10px] text-[#E9E9E9] text-[15px] leading-[1.4]">
-              <span class="inline-flex items-center justify-center w-[20px] h-[20px] rounded-full bg-[#FFAE01] flex-shrink-0 mt-[1px]">
-                <svg width="11" height="11" fill="none" stroke="#333333" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-              </span>
-              {t}
-            </li>
-          ))}
-        </ul>
-        <div class="h-px bg-[#464646]"></div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[#898989] text-[13px]">Или позвоните:</span>
-          <a href="tel:88003339495" class="text-[#FFAE01] font-bold text-[22px] hover:opacity-80 transition-opacity">8-800-333-94-95</a>
-        </div>
+      <!-- Список калькуляторов -->
+      <div class="flex-1 flex flex-col gap-[12px] lg:gap-[16px]" style="max-width:571px;">
+        {services.map((s) => (
+          <a href={`/servisy/${s.slug}`}
+             class={`group flex items-center justify-between gap-[14px] rounded-[5px] transition-colors ${
+               s.slug === calc.slug
+                 ? 'bg-[#333333] text-white'
+                 : 'bg-[#F5F5F5] text-[#333333] hover:bg-[#FFAE01]/15'
+             }`} style="padding:16px 24px;min-height:60px;">
+            <span class="font-[Inter] font-medium text-[15px] lg:text-[18px] leading-snug">{s.navTitle}</span>
+            <span class={`flex items-center justify-center w-[30px] h-[30px] rounded-[5px] flex-shrink-0 transition-colors ${
+                 s.slug === calc.slug ? 'bg-white/15' : 'border border-[#333333] group-hover:bg-[#333333]'
+               }`}>
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                   class={s.slug === calc.slug ? 'text-white' : 'text-[#333333] group-hover:text-white'}>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H9M17 7v8"/>
+              </svg>
+            </span>
+          </a>
+        ))}
+      </div>
+      <!-- Фото -->
+      <div class="flex-1 rounded-[5px] overflow-hidden bg-[#F5F5F5]" style="min-height:300px;">
+        <img src="/images/servisy/calc-roof-photo.png" alt="Кровля и фасад дома У-Стройка"
+             class="w-full h-full object-cover" style="aspect-ratio:1024/683;" loading="lazy" />
       </div>
     </div>
   </section>
@@ -129,3 +182,52 @@ const jsonLd = {
     <AdvantagesBlock />
   </section>
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    var quiz = document.getElementById('calc-quiz');
+    if (!quiz) return;
+
+    // Выбор «пилюль» (одиночный выбор внутри группы вопроса).
+    quiz.querySelectorAll('.calc-card').forEach(function (card) {
+      ['.calc-pill', '.calc-channel'].forEach(function (sel) {
+        var group = card.querySelectorAll(sel);
+        group.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            group.forEach(function (b) {
+              b.classList.remove('bg-[#333333]', 'border-[#333333]', 'text-white');
+              b.classList.add('bg-transparent', 'border-[#898989]', 'text-[#898989]');
+              b.setAttribute('aria-pressed', 'false');
+            });
+            btn.classList.add('bg-[#333333]', 'border-[#333333]', 'text-white');
+            btn.classList.remove('bg-transparent', 'border-[#898989]', 'text-[#898989]');
+            btn.setAttribute('aria-pressed', 'true');
+          });
+        });
+      });
+    });
+
+    // Прогрессивное раскрытие: «Далее» показывает следующую карточку.
+    quiz.querySelectorAll('.calc-next').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var card = btn.closest('.calc-card');
+        var step = parseInt(card.getAttribute('data-step'), 10);
+        var next = quiz.querySelector('.calc-card[data-step="' + (step + 1) + '"]');
+        if (next) {
+          next.style.display = 'flex';
+          next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    });
+
+    // Заглушка отправки (бэкенд формы подключается отдельно).
+    var form = quiz.querySelector('[data-calc-form]');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) { btn.textContent = 'Заявка отправлена ✓'; btn.disabled = true; btn.style.opacity = '0.8'; }
+      });
+    }
+  })();
+</script>

@@ -95,6 +95,21 @@ const vacancies = defineCollection({
   }),
 });
 
+// Бейдж в hero-карточке: жирная часть + остаток строки.
+const heroBullet = z.object({ bold: z.string().default(''), rest: z.string().default('') });
+// Группа таблицы стоимости: подзаголовок + строки работ со СВОЕЙ ценой.
+const priceRow = z.object({ name: z.string(), price: z.string() });
+const priceGroup = z.object({ head: z.string(), rows: z.array(priceRow).default([]) });
+// Сопутствующий товар «вам может понадобиться».
+const accessory = z.object({
+  name: z.string(),
+  price: z.string(),
+  old: z.string().default(''),
+  stock: z.enum(['in', 'check']).default('check'),
+  qty: z.number().default(1),
+  img: z.string(),
+});
+
 const services = defineCollection({
   type: 'content',
   schema: z.object({
@@ -113,6 +128,34 @@ const services = defineCollection({
     includes: z.array(z.string()).default([]),
     order: z.number().default(0),
     published: z.boolean().default(true),
+
+    // --- Per-service данные для лендинга (data-driven шаблон [slug].astro) ---
+    // Заголовок hero ("... в Москве «под ключ»" собирается в шаблоне, тут можно переопределить целиком).
+    heroTitle: z.string().optional(),
+    // Подпись над ценой/в форме hero.
+    heroFormTitle: z.string().optional(),
+    heroFormText: z.string().optional(),
+    heroFormButton: z.string().optional(),
+    // Буллеты в тёмной карточке hero.
+    heroBullets: z.array(heroBullet).optional(),
+    // Заголовок секции «Основа» (osnovaTitle) + текст «Что влияет на стоимость».
+    osnovaImage2: z.string().optional(), // алиас, основной — osnovaImage
+    // Этапы работы.
+    steps: z.array(z.string()).optional(),
+    // Коллаж «Выполненные работы»: 4 фото.
+    workImages: z.array(z.string()).optional(),
+    // Стоимость: табы + группы.
+    priceTabs: z.array(z.string()).optional(),
+    priceGroups: z.array(priceGroup).optional(),
+    // «Что влияет на стоимость».
+    vliyaetTitle: z.string().optional(),
+    vliyaetLead: z.string().optional(),
+    vliyaetText: z.string().optional(),
+    vliyaetImage: z.string().optional(),
+    // Сопутствующие товары.
+    accessories: z.array(accessory).optional(),
+    // Заголовок секции CTA «Закажите …» и текст кнопки.
+    orderCtaButton: z.string().optional(),
   }),
 });
 

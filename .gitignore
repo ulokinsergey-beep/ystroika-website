@@ -43,3 +43,4 @@ tmp-figma-audit/
 
 # Large Figma PDF exports — exceed GitHub 100MB limit (хранить локально)
 docs/figma-screens/*.pdf
+tmp-uslugi-shots/

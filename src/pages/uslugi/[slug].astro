@@ -18,13 +18,21 @@ const service = entry.data;
 const serviceSlug = entry.id.replace(/\.mdx?$/, '');
 const canonicalURL = `https://ystroika.ru/uslugi/${serviceSlug}/`;
 const price = service.priceFrom || 'по запросу';
+const hasBody = !!(entry.body && entry.body.trim());
 
-const bullets = [
-  { bold: 'БЕСПЛАТНО', rest: ' к вам приедет инженер для уточнения конструкции и материала кровли' },
-  { bold: 'БЕСПЛАТНО', rest: ' составим для Вас смету и подготовим проект кровли' },
+// --- Per-service данные: всё берём из коллекции (service.*) с разумными фолбэками. ---
+// Фолбэки — нейтральные, общие для строительной услуги; реальную специфику задаёт .md.
+const heroImage = service.heroImage ?? '/images/uslugi/hero-roofer.png';
+const heroTitle = service.heroTitle ?? `${service.title} в&nbsp;Москве «под&nbsp;ключ»`;
+const heroFormTitle = service.heroFormTitle ?? 'Получите точный расчёт';
+const heroFormText = service.heroFormText ?? 'Получите предварительный расчёт стоимости под ваш объект. Наш специалист свяжется с вами в течение 10 минут';
+const heroFormButton = service.heroFormButton ?? 'Получить расчёт';
+const bullets = service.heroBullets ?? [
+  { bold: 'БЕСПЛАТНО', rest: ' выезд специалиста для уточнения объёма работ' },
+  { bold: 'БЕСПЛАТНО', rest: ' составим для Вас смету и подготовим проект' },
   { bold: 'ВЫЕЗД ЗАМЕРЩИКА', rest: ' в день обращения' },
 ];
-const steps = [
+const steps = service.steps ?? [
   'Делаем заявку в строительную компанию',
   'Производим оценку сроков и стоимости',
   'Формируем наиболее выгодное предложение',
@@ -32,33 +40,16 @@ const steps = [
   'Производим необходимые работы',
   'Сдаём точно в срок готовый проект',
 ];
-const priceTabs = ['Монтаж', 'Демонтаж'];
+const workImages = service.workImages ?? ['/images/uslugi/work-1.png', '/images/uslugi/work-2.png', '/images/uslugi/work-3.png', '/images/uslugi/work-4.png'];
+const priceTabs = service.priceTabs ?? ['Монтаж', 'Демонтаж'];
 // Таблица стоимости 1-в-1 со структурой Figma (401:16262): группы-подзаголовки + работы с «- » и СВОЕЙ ценой.
-// Цены реальные/разные по видам работ (Правило 4 — не одно значение во всех строках).
-const priceGroups = [
-  {
-    head: 'Монтаж стропильной системы:',
-    rows: [
-      { name: '- Монтаж мауэрлата и подстропильных балок', price: 'от 350 руб/м. пог.' },
-      { name: '- Монтаж стропильных ног и ригелей',          price: 'от 300 руб/м. кв.' },
-      { name: '- Монтаж обрешётки и контробрешётки',         price: 'от 250 руб/м. кв.' },
-    ],
-  },
-  {
-    head: 'Сопутствующие и доборные работы:',
-    rows: [
-      { name: '- Монтаж гидро- и пароизоляции',              price: 'от 150 руб/м. кв.' },
-      { name: '- Монтаж карнизных и фронтонных свесов',      price: 'от 400 руб/м. пог.' },
-      { name: '- Демонтаж старой стропильной конструкции',   price: 'от 200 руб/м. кв.' },
-    ],
-  },
-];
-const accessories = [
-  { name: 'Система вентиляционного выхода с регулируемым углом наклона', price: '2000 ₽/шт', old: '', stock: 'in',    qty: 1,  img: '/images/uslugi/products/ventvyhod.png' },
-  { name: 'Классические виниловые софиты',                               price: '1000 ₽/шт', old: '', stock: 'check', qty: 5,  img: '/images/uslugi/products/sofity.png' },
-  { name: 'Снегозадержатель',                                            price: '650 ₽/шт',  old: '900 ₽/шт', stock: 'check', qty: 8,  img: '/images/uslugi/products/snegozaderzhatel.png' },
-  { name: 'Аэроэлемент конька',                                          price: '4500 ₽/5м', old: '7000 ₽/5м', stock: 'in',  qty: 24, img: '/images/uslugi/products/aeroelement.png' },
-];
+// Цены реальные/разные по видам работ (Правило 4 — не одно значение во всех строках). Источник — service.priceGroups (.md).
+const priceGroups = service.priceGroups ?? [];
+const accessories = service.accessories ?? [];
+const vliyaetLead = service.vliyaetLead ?? `Стоимость работ «${service.title.toLowerCase()}» всегда рассчитывается индивидуально для каждого заказа.`;
+const vliyaetText = service.vliyaetText ?? '';
+const vliyaetImage = service.vliyaetImage ?? service.osnovaImage ?? '/images/home/s7-services.png';
+const orderCtaButton = service.orderCtaButton ?? 'Заказать';
 const newsVideo = [
   { t: 'Почему течёт крыша? / Зачем контробрешётке уплотнитель?',                                  date: '23 марта', video: false, img: '/images/uslugi/video/v1.png' },
   { t: 'Кровля из металлочерепицы / Фасад в виниловом сайдинге / Загородный дом из СИП панелей',   date: '20 марта', video: false, img: '/images/uslugi/video/v2.png' },
@@ -109,12 +100,10 @@ const jsonLd = {
     <div class="flex flex-col lg:flex-row gap-[20px] items-stretch">
       <!-- Левый блок: фото-крыша + тёмная info-карточка поверх -->
       <div class="relative flex-1 rounded-[5px] overflow-hidden" style="min-height:620px;">
-        <img src="/images/uslugi/hero-roofer.png" alt={service.title} class="absolute inset-0 w-full h-full object-cover object-bottom pointer-events-none -scale-x-100" />
+        <img src={heroImage} alt={service.title} class="absolute inset-0 w-full h-full object-cover object-bottom pointer-events-none -scale-x-100" />
         <div class="relative z-10 inline-flex flex-col gap-[40px] bg-[#333333] rounded-[5px] m-[40px] lg:m-[70px]" style="padding:50px 60px;max-width:612px;">
           <div class="flex flex-col gap-[14px]">
-            <h1 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[42px] leading-[1.1]">
-              {service.title} в&nbsp;Москве «под&nbsp;ключ»
-            </h1>
+            <h1 class="font-[Montserrat] font-semibold text-white text-[28px] lg:text-[42px] leading-[1.1]" set:html={heroTitle} />
             <div class="inline-flex items-center self-start bg-[#FFAE01] rounded-[5px]" style="padding:6px 13px;">
               <span class="text-[#333333] font-bold text-[28px] lg:text-[42px] leading-none whitespace-nowrap">{price}</span>
             </div>
@@ -131,8 +120,8 @@ const jsonLd = {
       <!-- Форма расчёта (правый блок, как в Figma) -->
       <form id="zayavka" class="lg:w-[564px] flex-shrink-0 bg-[#F5F5F5] rounded-[5px] flex flex-col gap-[20px] justify-center" style="padding:37px 41px;">
         <div class="flex flex-col gap-[20px]">
-          <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[24px] leading-[1.3]">Получите точный расчёт кровли</h2>
-          <p class="text-[#333333] text-[16px] leading-[1.3]">Получите предварительный расчёт стоимости кровли под&nbsp;ваш объект с&nbsp;точностью 99%. Наш&nbsp;специалист свяжется с&nbsp;вами в&nbsp;течение 10&nbsp;минут</p>
+          <h2 class="font-[Montserrat] font-semibold text-[#333333] text-[24px] leading-[1.3]">{heroFormTitle}</h2>
+          <p class="text-[#333333] text-[16px] leading-[1.3]">{heroFormText}</p>
         </div>
         <div class="flex flex-col gap-[15px]">
           <input type="tel" name="phone" required placeholder="+7 (___) ___-__-__" class="h-[50px] px-[22px] bg-white rounded-[5px] text-[16px] text-[#333333] placeholder:text-[#bdbdbd] border border-[#E9E9E9] focus:outline-none focus:ring-2 focus:ring-[#FFAE01]" />
@@ -143,7 +132,7 @@ const jsonLd = {
             <option>Металлочерепица</option><option>Профнастил</option><option>Мягкая кровля</option><option>Другое</option>
           </select>
         </div>
-        <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">Получить расчёт</button>
+        <button type="submit" class="bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">{heroFormButton}</button>
         <label class="flex items-center gap-[10px] text-[#898989] text-[13px] leading-[1.3] cursor-pointer">
           <input type="checkbox" checked class="accent-[#FFAE01] w-[17px] h-[17px] flex-shrink-0" />
           <span>Ознакомился и&nbsp;согласен с&nbsp;<span class="underline">политикой конфиденциальности</span></span>
@@ -199,16 +188,16 @@ const jsonLd = {
     <!-- Коллаж 1-в-1 по Figma: левое большое + центральное большое + правый столбец из двух -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]" style="grid-auto-rows:265px;">
       <div class="rounded-[5px] overflow-hidden lg:row-span-2" style="height:550px;">
-        <img src="/images/uslugi/work-1.png" alt="Выполненная работа — монтаж стропильной системы" class="w-full h-full object-cover" />
+        <img src={workImages[0]} alt={`Выполненная работа — ${service.title.toLowerCase()}`} class="w-full h-full object-cover" />
       </div>
       <div class="rounded-[5px] overflow-hidden lg:row-span-2" style="height:550px;">
-        <img src="/images/uslugi/work-2.png" alt="Выполненная работа — стропильная система" class="w-full h-full object-cover" />
+        <img src={workImages[1]} alt={`Выполненная работа — ${service.title.toLowerCase()}`} class="w-full h-full object-cover" />
       </div>
       <div class="rounded-[5px] overflow-hidden" style="height:265px;">
-        <img src="/images/uslugi/work-3.png" alt="Выполненная работа — кровельные работы" class="w-full h-full object-cover" />
+        <img src={workImages[2]} alt={`Выполненная работа — ${service.title.toLowerCase()}`} class="w-full h-full object-cover" />
       </div>
       <div class="rounded-[5px] overflow-hidden lg:col-start-3" style="height:265px;">
-        <img src="/images/uslugi/work-4.png" alt="Выполненная работа — каркас крыши" class="w-full h-full object-cover" />
+        <img src={workImages[3]} alt={`Выполненная работа — ${service.title.toLowerCase()}`} class="w-full h-full object-cover" />
       </div>
     </div>
     <div class="flex justify-center mt-[50px]">
@@ -253,7 +242,7 @@ const jsonLd = {
               <span class="font-['Inter'] font-semibold text-[#333333] text-[18px]">Прикрепить файл</span>
               <input type="file" name="file" class="hidden" />
             </label>
-            <button type="submit" class="h-[50px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-['Inter'] font-semibold text-[18px] rounded-[5px] transition-colors self-end">Заказать монтаж</button>
+            <button type="submit" class="h-[50px] bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-['Inter'] font-semibold text-[18px] rounded-[5px] transition-colors self-end">{orderCtaButton}</button>
           </div>
           <!-- Согласие -->
           <label class="flex items-center gap-[10px] cursor-pointer">
@@ -266,6 +255,7 @@ const jsonLd = {
   </section>
 
   <!-- Стоимость (таблица с табами) -->
+  {priceGroups.length > 0 && (
   <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[30px]">
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Стоимость</h2>
@@ -297,6 +287,7 @@ const jsonLd = {
       })}
     </div>
   </section>
+  )}
 
   <!-- Что влияет на стоимость -->
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
@@ -307,15 +298,15 @@ const jsonLd = {
     <div class="flex flex-col lg:flex-row gap-[40px] xl:gap-[91px] items-center">
       <div class="w-full lg:flex-[738_1_0%] flex flex-col gap-[30px]">
         <div class="text-[#333333] text-[18px] leading-[1.3]">
-          <p class="font-semibold mb-[10px]">Стоимость монтажа стропильной системы всегда рассчитывается индивидуально для&nbsp;каждого заказа.</p>
-          <p>При&nbsp;заказе кровельных работ в&nbsp;полном объёме (стропильная конструкция, утепление, изоляция, монтаж металлочерепицы и&nbsp;водостоков) все&nbsp;материалы предоставляются заказчику по&nbsp;оптовым ценам. Стоимость монтажа находится в&nbsp;непосредственной зависимости от&nbsp;нескольких факторов. К&nbsp;ним относятся этажность дома, назначение кровли (утеплённая мансарда или&nbsp;холодный чердак), количество строительных работ и&nbsp;сроки их&nbsp;проведения.</p>
+          <p class="font-semibold mb-[10px]">{vliyaetLead}</p>
+          {vliyaetText && <p>{vliyaetText}</p>}
         </div>
         <a href="#zayavka" class="flex items-center justify-center w-full bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors" style="height:50px;">Рассчитать стоимость</a>
       </div>
       <!-- Декор ₽ ПОД фото (z-order как в Figma 402:17928): ₽ full-opacity рендерится первым, фото-вырез сверху перекрывает его. -->
       <div class="w-full lg:flex-[969_1_0%] relative rounded-[5px] overflow-hidden bg-[#464646] aspect-[969/297]">
         <span class="absolute font-['Inter'] font-bold text-[#FFAE01] leading-none select-none pointer-events-none z-0" style="font-size:300px;left:96px;top:38px;line-height:0.9;">₽</span>
-        <img src="/images/uslugi/vliyaet-photo.png" alt="Монтаж стропильной системы" class="absolute object-cover pointer-events-none z-10" style="left:2.4%;top:-44.5%;width:98.7%;height:213%;" />
+        <img src={vliyaetImage} alt={service.title} class="absolute object-cover pointer-events-none z-10" style="left:2.4%;top:-44.5%;width:98.7%;height:213%;" />
       </div>
     </div>
   </section>
@@ -373,6 +364,7 @@ const jsonLd = {
   )}
 
   <!-- Вам может понадобиться (сопутствующие) -->
+  {accessories.length > 0 && (
   <section class="bg-white px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
     <div class="flex items-end gap-[25px] mb-[30px]">
       <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0">Вам может понадобиться</h2>
@@ -429,6 +421,7 @@ const jsonLd = {
       ))}
     </div>
   </section>
+  )}
 
   <!-- Наши специалисты сделают расчёт + форма -->
   <section class="bg-[#F5F5F5] px-4 sm:px-8 lg:px-[60px]" style="padding-top:60px;padding-bottom:60px;">
