@@ -13,6 +13,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ProductCard from '../../../components/catalog/ProductCard.astro';
 import AdvantagesBlock from '../../../components/AdvantagesBlock.astro';
 import ServicesCalculatorsBlock from '../../../components/ServicesCalculatorsBlock.astro';
+import BrandsBlock from '../../../components/BrandsBlock.astro';
+import CatalogSeoContent from '../../../components/CatalogSeoContent.astro';
 import { categories } from '../../../data/categories';
 import { catalogSlugAliases } from '../../../data/catalogSlugMap';
 
@@ -598,8 +600,12 @@ const jsonLd = {
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px]">
       <!-- Блок 9 — Сервисы расчёта (1-в-1 Figma 139:2506, переиспользуемый) -->
       <ServicesCalculatorsBlock />
+      <!-- Блок 10 — Бренды (1-в-1 Figma; имена-заглушки до лого-ассетов) -->
+      <BrandsBlock />
       <!-- Блок 11 — Преимущества (1-в-1 Figma, переиспользуемый компонент) -->
       <AdvantagesBlock />
+      <!-- Блоки 13–14 — SEO-контент: как подобрать материал + типы кровли -->
+      <CatalogSeoContent />
     </div>
   </div>
 

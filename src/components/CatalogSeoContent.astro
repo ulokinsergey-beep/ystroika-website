@@ -1,0 +1,106 @@
+---
+/**
+ * CatalogSeoContent — нижний SEO-контент страницы листинга (Figma: блоки 13–14).
+ * Блок 13 «Как правильно подобрать материал» (2-col: текст + фото + CTA).
+ * Блок 14 «Типы кровельных материалов» (интро + сетка типов со ссылками в листинги).
+ * Контент по docs/seo/09-content-guidelines (прямой ответ первым, без воды, факты честные).
+ * Дефолты — под кровлю; параметризуется пропами для других разделов.
+ */
+interface TypeItem { title: string; text: string; href: string; }
+interface Props {
+  chooseHeading?: string;
+  chooseLead?: string;
+  choosePoints?: { h: string; t: string }[];
+  choosePhoto?: string;
+  ctaHref?: string;
+  typesHeading?: string;
+  typesLead?: string;
+  types?: TypeItem[];
+}
+const {
+  chooseHeading = 'Как правильно подобрать материал для кровли?',
+  chooseLead = 'Кровельный материал подбирают под форму крыши, бюджет и условия эксплуатации. Для простых скатных крыш чаще берут металлочерепицу или профнастил, для сложных форм с изгибами — гибкую черепицу. Дальше смотрят на покрытие, гарантию производителя и совместимость с доборными элементами. Ниже — на что обратить внимание, чтобы не переплатить и не ошибиться.',
+  choosePoints = [
+    { h: 'Форма и уклон крыши', t: 'Простые скаты — листовые материалы (металлочерепица, профнастил). Сложная геометрия, купола, ендовы — гибкая черепица: меньше отходов и подрезки.' },
+    { h: 'Бюджет и срок службы', t: 'Чем толще сталь и качественнее покрытие, тем дольше служит кровля. Экономия на покрытии оборачивается коррозией и заменой раньше срока.' },
+    { h: 'Покрытие и цвет', t: 'Полиэстер — базовый вариант, матовые и гранулированные покрытия устойчивее к выцветанию и царапинам. Цвет подбирают под фасад и доборные элементы.' },
+    { h: 'Монтаж и комплектация', t: 'Считайте сразу с доборными элементами, крепежом и гидро-пароизоляцией — иначе смета вырастет. Поможем рассчитать полный комплект под ваш проект.' },
+  ],
+  choosePhoto = '/images/home/s7-services.png',
+  ctaHref = '/raschet',
+  typesHeading = 'Типы кровельных материалов для крыши',
+  typesLead = 'Коротко о видах кровли, которые мы поставляем по Москве и области. Нажмите на тип, чтобы перейти к ассортименту и ценам.',
+  types = [
+    { title: 'Металлочерепица', text: 'Универсальное покрытие для скатных крыш с видом натуральной черепицы. Лёгкая, быстрый монтаж.', href: '/catalog/krovlya/metallocherepitsa' },
+    { title: 'Гибкая черепица', text: 'Для крыш любой формы и сложности. Хорошая шумоизоляция, минимум отходов на сложной геометрии.', href: '/catalog/krovlya/gibkaya-cherepitsa' },
+    { title: 'Профнастил', text: 'Профилированные стальные листы для кровли и ограждений. Прочный и экономичный вариант.', href: '/catalog/krovlya/profnastil' },
+    { title: 'Фальцевая кровля', text: 'Металлическое покрытие с замковым соединением без сквозного крепежа — надёжная герметизация.', href: '/catalog/krovlya/faltsevaya' },
+    { title: 'Композитная черепица', text: 'Сочетает прочность металла и эстетику натуральных материалов. Лёгкая и долговечная.', href: '/catalog/krovlya/kompozitnaya-cherepitsa' },
+    { title: 'Комплектующие', text: 'Доборные элементы, снегозадержатели, крепёж и изоляция — всё для монтажа кровли.', href: '/catalog/krovlya/komplektuyushchie-krovli' },
+  ],
+} = Astro.props as Props;
+---
+
+<!-- Блок 13 — КАК ПОДОБРАТЬ (Figma: 2-col текст + фото) -->
+<section class="py-[40px] lg:py-[60px]">
+  <div class="flex flex-col gap-[40px]">
+    <div class="flex items-end gap-[25px]">
+      <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0"
+          style="max-width:900px;">{chooseHeading}</h2>
+      <div class="flex-1 bg-[#E9E9E9] hidden lg:block" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-[30px] lg:gap-[40px] items-start">
+      <!-- Текст слева -->
+      <div class="flex-1 min-w-0">
+        <p class="text-[#333333] text-[16px] leading-[1.5] mb-6">{chooseLead}</p>
+        <div class="flex flex-col gap-5">
+          {choosePoints.map(p => (
+            <div>
+              <h3 class="font-[Montserrat] font-semibold text-[18px] text-[#333333] mb-1.5">{p.h}</h3>
+              <p class="text-[#5a5a5a] text-[15px] leading-[1.5]">{p.t}</p>
+            </div>
+          ))}
+        </div>
+        <a href={ctaHref}
+           class="inline-flex items-center justify-center bg-[#FFAE01] hover:bg-[#e09d00] text-[#333333] font-semibold text-[18px] rounded-[5px] transition-colors mt-7"
+           style="height:50px;padding:0 40px;">
+          Заказать расчёт
+        </a>
+      </div>
+
+      <!-- Фото справа -->
+      <div class="w-full lg:w-[40%] shrink-0 relative rounded-[5px] overflow-hidden hidden lg:block" style="min-height:380px;">
+        <img src={choosePhoto} alt={chooseHeading} class="absolute inset-0 w-full h-full object-cover" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Блок 14 — ТИПЫ МАТЕРИАЛОВ (Figma: заголовок + сетка типов) -->
+<section class="py-[40px] lg:py-[60px]">
+  <div class="flex flex-col gap-[40px]">
+    <div class="flex items-end gap-[25px]">
+      <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0"
+          style="max-width:900px;">{typesHeading}</h2>
+      <div class="flex-1 bg-[#E9E9E9] hidden lg:block" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <p class="text-[#333333] text-[16px] leading-[1.5]" style="max-width:900px;">{typesLead}</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+      {types.map(t => (
+        <a href={t.href}
+           class="group bg-[#F5F5F5] rounded-[5px] p-6 transition-colors hover:bg-[#FFFBEB] border border-transparent hover:border-[#FFAE01]">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-[Montserrat] font-semibold text-[18px] text-[#333333] group-hover:text-[#333333]">{t.title}</h3>
+            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors flex-shrink-0">
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </span>
+          </div>
+          <p class="text-[#5a5a5a] text-[15px] leading-[1.5]">{t.text}</p>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

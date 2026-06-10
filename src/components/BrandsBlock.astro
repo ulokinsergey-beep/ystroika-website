@@ -1,0 +1,55 @@
+---
+/**
+ * BrandsBlock — блок «Работаем с известными и проверенными брендами».
+ * 1-в-1 Figma (страница категории): заголовок-ряд + сетка 4×2 ячеек-брендов.
+ * Лого-ассетов пока нет → в ячейке имя бренда (структура готова под <img> при появлении лого).
+ * Первая ячейка — выделенная тёмная (как в Figma). Переиспользуемый.
+ */
+interface Brand { name: string; slug?: string; logo?: string; href?: string; }
+interface Props { heading?: string; brands?: Brand[]; }
+const {
+  heading = 'Работаем с известными<br>и&nbsp;проверенными брендами',
+  brands = [
+    { name: 'GrandLine',       slug: 'grandline',     href: '/brendy' },
+    { name: 'DÖCKE',           slug: 'docke',         href: '/brendy' },
+    { name: 'Металл Профиль',  slug: 'metall-profil', href: '/brendy' },
+    { name: 'Stynergy',        slug: 'stynergy',      href: '/brendy' },
+    { name: 'ТЕХНОНИКОЛЬ',     slug: 'tehnonikol',    href: '/brendy' },
+    { name: 'Katepal',         slug: 'katepal',       href: '/brendy' },
+    { name: 'Tegola',          slug: 'tegola',        href: '/brendy' },
+    { name: 'Metrotile',       slug: 'metrotile',     href: '/brendy' },
+  ],
+} = Astro.props as Props;
+---
+
+<!-- РАБОТАЕМ С БРЕНДАМИ (Figma: страница категории) -->
+<section class="py-[40px] lg:py-[60px]">
+  <div class="flex flex-col gap-[40px]">
+    <!-- Heading row -->
+    <div class="flex items-end gap-[25px]">
+      <h2 class="font-[Montserrat] font-semibold text-[24px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0"
+          style="max-width:900px;" set:html={heading}></h2>
+      <div class="flex-1 bg-[#E9E9E9] hidden lg:block" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <!-- Сетка 4×2 -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[20px]">
+      {brands.map((b, i) => (
+        <a href={b.href ?? '/brendy'}
+           class={`group flex items-center justify-center rounded-[5px] border transition-colors h-[120px] lg:h-[140px] ${
+             i === 0
+               ? 'bg-[#333333] border-[#333333] hover:bg-[#464646]'
+               : 'bg-white border-[#E9E9E9] hover:border-[#FFAE01]'
+           }`}>
+          {b.logo ? (
+            <img src={b.logo} alt={b.name} class="max-h-[60%] max-w-[70%] object-contain" />
+          ) : (
+            <span class={`font-[Montserrat] font-semibold text-[18px] lg:text-[20px] ${
+              i === 0 ? 'text-white' : 'text-[#333333] group-hover:text-[#FFAE01]'
+            }`}>{b.name}</span>
+          )}
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
