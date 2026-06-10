@@ -1,0 +1,65 @@
+---
+/**
+ * ServicesCalculatorsBlock — блок «Воспользуйся нашими сервисами для расчёта».
+ * 1-в-1 Figma 139:2506 (1804×753): заголовок-ряд + 2 колонки
+ * (список ссылок-калькуляторов 571px слева + фото flex-1 справа).
+ * Источник разметки — главная (src/pages/index.astro, экран 7). Переиспользуемый.
+ */
+interface CalcLink { label: string; href: string; }
+interface Props {
+  heading?: string;
+  photo?: string;
+  photoAlt?: string;
+  links?: CalcLink[];
+}
+const {
+  heading = 'Воспользуйся нашими сервисами для быстрого расчёта вашего проекта',
+  photo = '/images/home/s7-services.png',
+  photoAlt = 'Кровельные работы',
+  links = [
+    { label: 'Расчёт кровли из металлочерепицы', href: '/servisy/metallocherepitsa' },
+    { label: 'Расчёт кровли из профнастила', href: '/servisy/profnastil' },
+    { label: 'Калькулятор гибкой черепицы', href: '/servisy/gibkaya-cherepitsa' },
+    { label: 'Расчёт фасадных панелей', href: '/servisy/fasadnye-paneli' },
+    { label: 'Расчёт винилового сайдинга', href: '/servisy/vinilovyy-sayding' },
+    { label: 'Расчёт водостока', href: '/servisy/vodostok' },
+    { label: 'Расчёт фальцевой кровли', href: '/servisy/faltsevaya-krovlya' },
+  ],
+} = Astro.props as Props;
+---
+
+<!-- КАЛЬКУЛЯТОРЫ / СЕРВИСЫ (Figma 139:2506) -->
+<section class="py-[40px] lg:py-[60px]">
+  <div class="flex flex-col gap-[50px]">
+    <!-- Heading row -->
+    <div class="flex items-end gap-[25px]">
+      <h2 class="font-[Montserrat] font-semibold text-[28px] lg:text-[42px] text-[#333333] leading-[1.22] flex-shrink-0"
+          style="max-width:1100px;" set:html={heading}></h2>
+      <div class="flex-1 bg-[#E9E9E9] hidden lg:block" style="height:1.5px;margin-bottom:14px;"></div>
+    </div>
+
+    <!-- 2-col row: links LEFT (571px fixed) + photo RIGHT (flex-1) -->
+    <div class="flex flex-col lg:flex-row gap-[20px]" style="min-height:610px;">
+
+      <!-- Left: vertical list of links, gap:20, each 571×70 -->
+      <div class="flex flex-col gap-[20px] flex-shrink-0" style="width:100%;max-width:571px;">
+        {links.map(calc => (
+          <a href={calc.href}
+             class="group flex items-center justify-between bg-[#F5F5F5] rounded-[5px] hover:bg-[#FFAE01] transition-colors flex-shrink-0"
+             style="height:70px;padding:0 25px;">
+            <span class="text-[#333333] text-[18px] font-medium">{calc.label}</span>
+            <span class="flex items-center justify-center w-[30px] h-[30px] border border-[#333333] rounded-[5px] group-hover:bg-[#333333] transition-colors flex-shrink-0">
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-[#333333] group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <!-- Right: large photo, fill remaining space, rounded 5px -->
+      <div class="flex-1 relative rounded-[5px] overflow-hidden hidden lg:block" style="min-height:400px;">
+        <img src={photo} alt={photoAlt} class="absolute inset-0 w-full h-full object-cover" />
+      </div>
+
+    </div>
+  </div>
+</section>
