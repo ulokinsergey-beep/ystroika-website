@@ -11,6 +11,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ProductCard from '../../../components/catalog/ProductCard.astro';
+import AdvantagesBlock from '../../../components/AdvantagesBlock.astro';
 import { categories } from '../../../data/categories';
 import { catalogSlugAliases } from '../../../data/catalogSlugMap';
 
@@ -590,6 +591,12 @@ const jsonLd = {
           <!-- └────────────────────────────────────────────────────────────┘ -->
         </div>
       </div>
+    </div>
+
+    <!-- ══ НИЖНИЕ КОНТЕНТ-БЛОКИ (Figma: под основной областью листинга) ═══════ -->
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px]">
+      <!-- Блок 11 — Преимущества (1-в-1 Figma, переиспользуемый компонент) -->
+      <AdvantagesBlock />
     </div>
   </div>
 
