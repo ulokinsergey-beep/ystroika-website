@@ -66,6 +66,32 @@ if (existsSync(dataPath)) {
   } catch {}
 }
 
+// ─── Döcke-товары из снимка (цена РРЦ + локальные фото, серверный рендер) ──
+// Снимок генерится scripts/catalog/generate-snapshot.mjs; см. docs/catalog-pricing-architecture.md
+const OKEI: Record<string, string> = { '796': 'шт', '778': 'упак', '006': 'м', '055': 'м²', '166': 'кг', '625': 'лист', '736': 'рул', '113': 'м³' };
+const snapPath = resolve('src/data/snapshots/catalog-snapshot-latest.json');
+if (existsSync(snapPath)) {
+  try {
+    const snap = JSON.parse(readFileSync(snapPath, 'utf-8'));
+    const pageCat = `${categorySlug}/${subcategorySlug}`;
+    const docke = snap
+      .filter((it: any) => it.category === pageCat)
+      .map((it: any) => ({
+        kod: it.vendor,
+        name: it.name,
+        artikul: it.vendor,
+        unit: OKEI[it.unit] ?? it.unit ?? 'шт',
+        brand: it.brand,
+        image: it.images?.[0] ?? null,
+        price: it.price,           // число | null («по запросу»)
+        serverPriced: true,
+        source: 'docke',
+      }));
+    // Döcke первыми: у них есть цена и фото (КровАльянс-цены сейчас недоступны)
+    allProducts = [...docke, ...allProducts];
+  } catch {}
+}
+
 // ─── Уникальные бренды (служебные группы КА отфильтрованы) ─────────────────
 const SKIP_BRANDS = new Set([
   '-', '--', '...', 'Вся кровля', 'Вся продукция',
@@ -543,6 +569,9 @@ const jsonLd = {
                       priceGroup={p.priceGroup}
                       categorySlug={categorySlug!}
                       subcategorySlug={subcategorySlug!}
+                      image={p.image ?? null}
+                      price={p.price}
+                      serverPriced={p.serverPriced ?? false}
                     />
                   ))}
                 </div>
@@ -621,6 +650,8 @@ const jsonLd = {
     }
 
     function fillCard(card, priceData, stockQty) {
+      // Серверная цена из снимка (Döcke) — клиентский JS её не перетирает
+      if (card.dataset.serverPriced) return;
       const skeleton   = card.querySelector('.price-skeleton');
       const loaded     = card.querySelector('.price-loaded');
       const noPrice    = card.querySelector('.no-price');

@@ -7,13 +7,21 @@ const BASE = process.env.DOCKE_BASE_URL || 'https://b2b.docke.ru';
 const LOGIN = process.env.DOCKE_LOGIN;
 const PASSWORD = process.env.DOCKE_PASSWORD;
 
-async function post(path, body, token) {
+async function post(path, body, token, retries = 3) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(BASE + path, { method: 'POST', headers, body: JSON.stringify(body) });
-  if (res.status === 401) throw new Error(`Döcke ${path}: 401 Unauthorized — проверь DOCKE_LOGIN/PASSWORD в .env`);
-  if (!res.ok) throw new Error(`Döcke ${path}: HTTP ${res.status} — ${(await res.text()).slice(0, 200)}`);
-  return res.json();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(BASE + path, { method: 'POST', headers, body: JSON.stringify(body) });
+      if (res.status === 401) throw Object.assign(new Error(`Döcke ${path}: 401 Unauthorized — проверь DOCKE_LOGIN/PASSWORD в .env`), { noRetry: true });
+      if (!res.ok) throw new Error(`Döcke ${path}: HTTP ${res.status} — ${(await res.text()).slice(0, 200)}`);
+      return await res.json();
+    } catch (e) {
+      // сетевые обрывы (fetch failed/timeout) ретраим; 401 — нет
+      if (e.noRetry || attempt > retries) throw e;
+      await new Promise(r => setTimeout(r, 1500 * attempt));
+    }
+  }
 }
 
 /** Авторизация → { token, agreeUuid, factoryUuid, raw } */

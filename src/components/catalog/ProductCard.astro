@@ -22,10 +22,17 @@ export interface Props {
   priceGroup?: string;
   categorySlug: string;
   subcategorySlug: string;
+  /** Серверные данные из снимка (Döcke): рендерятся сразу, клиентский JS их не перетирает */
+  image?: string | null;
+  price?: number | null;        // null = «по запросу»; undefined = цена грузится клиентским JS
+  serverPriced?: boolean;
 }
 
-const { kod, name, artikul, unit, brand, priceGroup, categorySlug, subcategorySlug } = Astro.props;
+const { kod, name, artikul, unit, brand, priceGroup, categorySlug, subcategorySlug,
+        image = null, price = undefined, serverPriced = false } = Astro.props;
 const productUrl = `/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(kod)}/`;
+const hasServerPrice = serverPriced && typeof price === 'number' && price > 0;
+const fmtPrice = hasServerPrice ? price!.toLocaleString('ru-RU') + ' ₽' : '';
 
 const displayBrand = brand || (() => {
   if (!priceGroup) return '';
@@ -37,6 +44,8 @@ const displayBrand = brand || (() => {
 <div
   class="group flex flex-col bg-white border border-[#E9E9E9] rounded-[5px] overflow-hidden hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] transition-shadow duration-200"
   data-product-kod={kod}
+  data-server-priced={serverPriced ? '1' : undefined}
+  data-price-value={hasServerPrice ? String(price) : undefined}
 >
   <!-- ── Фото ───────────────────────────────────────────── -->
   <a href={productUrl} class="relative block bg-[#F5F5F5] overflow-hidden" style="aspect-ratio:4/3;">
@@ -46,16 +55,22 @@ const displayBrand = brand || (() => {
       Скидка
     </span>
 
-    <!-- Placeholder фото товара -->
-    <div class="product-img-placeholder absolute inset-0 flex items-center justify-center">
-      <svg class="w-16 h-16 text-[#D0D0D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-      </svg>
-    </div>
+    {image ? (
+      <img class="product-img absolute inset-0 w-full h-full object-contain p-2" src={image} alt={name} loading="lazy" />
+    ) : (
+      <>
+        <!-- Placeholder фото товара -->
+        <div class="product-img-placeholder absolute inset-0 flex items-center justify-center">
+          <svg class="w-16 h-16 text-[#D0D0D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </div>
 
-    <!-- Реальное фото — вставляется JS если есть imageUrl -->
-    <img class="product-img hidden absolute inset-0 w-full h-full object-contain p-2" src="" alt={name} loading="lazy" />
+        <!-- Реальное фото — вставляется JS если есть imageUrl -->
+        <img class="product-img hidden absolute inset-0 w-full h-full object-contain p-2" src="" alt={name} loading="lazy" />
+      </>
+    )}
   </a>
 
   <!-- ── Контент ─────────────────────────────────────────── -->
@@ -112,23 +127,38 @@ const displayBrand = brand || (() => {
 
       <!-- Цены -->
       <div>
-        <!-- Скелетон (пока JS не загрузил) -->
-        <div class="price-skeleton">
-          <div class="h-[12px] w-[60px] bg-[#F0F0F0] rounded animate-pulse mb-[4px]"></div>
-          <div class="h-[18px] w-[90px] bg-[#F0F0F0] rounded animate-pulse"></div>
-        </div>
+        {serverPriced ? (
+          hasServerPrice ? (
+            <div class="price-loaded">
+              <div class="flex items-baseline gap-[3px]">
+                <p class="price-display text-[18px] font-bold text-[#333333] leading-none">{fmtPrice}</p>
+                <p class="text-[11px] text-[#898989] leading-none">/{unit}</p>
+              </div>
+            </div>
+          ) : (
+            <p class="no-price text-[12px] text-[#898989] italic">Цена по запросу</p>
+          )
+        ) : (
+          <>
+            <!-- Скелетон (пока JS не загрузил) -->
+            <div class="price-skeleton">
+              <div class="h-[12px] w-[60px] bg-[#F0F0F0] rounded animate-pulse mb-[4px]"></div>
+              <div class="h-[18px] w-[90px] bg-[#F0F0F0] rounded animate-pulse"></div>
+            </div>
 
-        <!-- Цена (заполняется JS) -->
-        <div class="price-loaded hidden">
-          <p class="original-price hidden text-[11px] text-[#898989] line-through leading-none mb-[3px]"></p>
-          <div class="flex items-baseline gap-[3px]">
-            <p class="price-display text-[18px] font-bold text-[#333333] leading-none"></p>
-            <p class="text-[11px] text-[#898989] leading-none">/{unit}</p>
-          </div>
-        </div>
+            <!-- Цена (заполняется JS) -->
+            <div class="price-loaded hidden">
+              <p class="original-price hidden text-[11px] text-[#898989] line-through leading-none mb-[3px]"></p>
+              <div class="flex items-baseline gap-[3px]">
+                <p class="price-display text-[18px] font-bold text-[#333333] leading-none"></p>
+                <p class="text-[11px] text-[#898989] leading-none">/{unit}</p>
+              </div>
+            </div>
 
-        <!-- Нет цены -->
-        <p class="no-price hidden text-[12px] text-[#898989] italic">Цена по запросу</p>
+            <!-- Нет цены -->
+            <p class="no-price hidden text-[12px] text-[#898989] italic">Цена по запросу</p>
+          </>
+        )}
       </div>
 
       <!-- Кнопки: избранное + корзина -->
