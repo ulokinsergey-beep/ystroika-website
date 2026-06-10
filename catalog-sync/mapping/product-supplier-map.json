@@ -120,6 +120,81 @@
           "active": true
         }
       ]
+    },
+    {
+      "productId": "metallocherepitsa-krovalians-00-00134456",
+      "brand": null,
+      "category": "metallocherepitsa",
+      "name": "П-Лист RR 32 Pural Matt BT GreenCoat S280GD+Z275MB 0.5*1250 (2000 ) (Упаковка: OД04)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "krovalians",
+          "supplierSku": "00-00134456",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "metallocherepitsa-krovalians-00-00135475",
+      "brand": null,
+      "category": "metallocherepitsa",
+      "name": "Orima Плоский лист 2000*1250 мм 0,5мм Pural BT RR32",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "krovalians",
+          "supplierSku": "00-00135475",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "metallocherepitsa-krovalians-00-00143698",
+      "brand": null,
+      "category": "metallocherepitsa",
+      "name": "П-Лист RR 21 Pural 0,5*1250 (2000 ) (Упаковка: OД04)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "krovalians",
+          "supplierSku": "00-00143698",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "metallocherepitsa-krovalians-00-00152943",
+      "brand": null,
+      "category": "metallocherepitsa",
+      "name": "Поддон 800*1200 мм для штрипсы",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "krovalians",
+          "supplierSku": "00-00152943",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "metallocherepitsa-krovalians-00-00154655",
+      "brand": null,
+      "category": "metallocherepitsa",
+      "name": "Панели кровельные Кликфальц 0,45 PE-Matt RAL 8017",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "krovalians",
+          "supplierSku": "00-00154655",
+          "priority": 1,
+          "active": true
+        }
+      ]
     }
   ]
 }

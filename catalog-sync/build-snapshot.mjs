@@ -7,16 +7,30 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import { fetchDockeRaw } from './adapters/docke.mjs';
 import { normalizeDocke } from './normalizers/docke.mjs';
+import { fetchKrovalPrices } from './adapters/krovalians.mjs';
+import { normalizeKrovalians } from './normalizers/krovalians.mjs';
 import { computeSellingPrice } from './lib/pricing.mjs';
 import { downloadImages } from './lib/images.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
+
+// Загрузка .env проекта (секреты адаптеров). Не перезаписывает уже заданные env.
+(function loadEnv() {
+  const p = resolve(ROOT, '../.env');
+  if (!existsSync(p)) return;
+  for (const line of readFileSync(p, 'utf-8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  }
+})();
 const SNAP_DIR = resolve(ROOT, 'snapshots');
 const arg = (k, d) => { const m = process.argv.find(a => a.startsWith(`--${k}=`)); return m ? m.split('=')[1] : d; };
 const LIMIT_PAGES = arg('limit-pages') ? Number(arg('limit-pages')) : null;
 const BOOTSTRAP_N = Number(arg('bootstrap', '0'));
+const BOOTSTRAP_KROVAL = Number(arg('bootstrap-kroval', '0'));
 const IMAGES = process.argv.includes('--images'); // скачивать картинки Döcke на сайт (самохостинг)
 
 const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -56,6 +70,42 @@ async function main() {
     }));
     writeFileSync(mapPath, JSON.stringify(mapping, null, 2), 'utf-8');
     console.log(`[mapping] bootstrap: засеяно ${mapping.products.length} товаров из реальных данных`);
+  }
+
+  // 2b. Bootstrap КровАльянс из локального каталога (опц.)
+  if (BOOTSTRAP_KROVAL > 0) {
+    const local = loadJson(resolve(ROOT, '../src/data/catalog/krovlya/metallocherepitsa.json'), { products: [] });
+    const seed = (local.products || []).filter(p => p.kod).slice(0, BOOTSTRAP_KROVAL);
+    for (const p of seed) {
+      mapping.products.push({
+        productId: `metallocherepitsa-krovalians-${slug(p.kod)}`,
+        brand: p.brand || null, category: 'metallocherepitsa', name: p.name || null, bootstrap: true,
+        links: [{ source: 'krovalians', supplierSku: p.kod, priority: 1, active: true }],
+      });
+    }
+    if (seed.length) writeFileSync(mapPath, JSON.stringify(mapping, null, 2), 'utf-8');
+    console.log(`[mapping] bootstrap КровАльянс: +${seed.length}`);
+  }
+
+  // 2c. КровАльянс: цены по kod из маппинга → idx
+  const krovalKods = [...new Set((mapping.products || []).flatMap(p =>
+    (p.links || []).filter(l => l.active && l.source === 'krovalians').map(l => l.supplierSku)))];
+  let krovalGot = 0;
+  if (krovalKods.length) {
+    try {
+      const retailField = rules.priceSource?.krovalians === 'discounted_price' ? 'discounted_price' : 'price';
+      const priceMap = await fetchKrovalPrices(krovalKods);
+      krovalGot = priceMap.size;
+      const metaByKod = new Map();
+      for (const p of mapping.products) for (const l of (p.links || [])) if (l.source === 'krovalians') metaByKod.set(l.supplierSku, p);
+      for (const kod of krovalKods) {
+        idx.set(`krovalians:${kod}`, normalizeKrovalians({ kod, priceEntry: priceMap.get(kod), meta: metaByKod.get(kod) }, { now, retailField }));
+      }
+      console.log(`[krovalians] цены: запрошено ${krovalKods.length}, получено ${krovalGot} (поле: ${retailField})`);
+    } catch (e) {
+      blockers.push({ source: 'krovalians', error: String(e.message || e) });
+      console.error('[krovalians] BLOCKER:', e.message);
+    }
   }
 
   // 3. Цена + проверки → snapshot
@@ -110,6 +160,11 @@ async function main() {
         products: normalized.length,
         withRrp: normalized.filter(n => n.basePrice != null).length,
         mapped: items.filter(i => i.priceSource === 'docke').length,
+      },
+      krovalians: {
+        requested: krovalKods.length,
+        got: krovalGot,
+        mapped: items.filter(i => i.priceSource === 'krovalians').length,
       },
     },
     snapshot: { total: items.length, withPrice: items.filter(i => i.price != null).length, byRequest: items.filter(i => i.price == null).length, images: imagesDownloaded, withImage: items.filter(i => i.image).length },

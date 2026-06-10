@@ -1,6 +1,6 @@
 {
   "priceMode": "rrp",
-  "priceSource": { "docke": "rrp", "krovalians": "retail" },
+  "priceSource": { "docke": "rrp", "krovalians": "price" },
   "rounding": { "step": 10, "mode": "up" },
   "overrides": {},
   "_note": "Цена продажи = РРЦ поставщика, округление вверх до 10 ₽. Процентная наценка выключена (каркас на будущее). overrides: productId -> {mode:'manual', price}."
