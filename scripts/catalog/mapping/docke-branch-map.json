@@ -1,0 +1,23 @@
+{
+  "_comment": "Верхняя ветка дерева Döcke (uuid потомка корня 'Продукция DOCKE') → категория сайта. null = не публикуем (служебное/снятое). Товар маппится по подъёму его category-uuid до верхней ветки. Редактируется вручную; позже — Directus.",
+  "branches": {
+    "42fce55c-73d7-11e8-80c6-d20f53a11b7a": "fasad/vinilovyy-sayding",
+    "6371cae4-73d7-11e8-80c6-d20f53a11b7a": "fasad/fasadnye-paneli",
+    "e61c56b2-909a-11eb-bbae-005056b927ef": "fasad/fasadnye-paneli",
+    "1bdb59ad-2380-11ed-bbd8-005056b927ef": "krovlya/gibkaya-cherepitsa",
+    "a89a2017-2381-11ed-bbd8-005056b927ef": "krovlya/gibkaya-cherepitsa",
+    "a76ad7ec-a0d0-11ea-bb9e-005056b94425": "krovlya/gibkaya-cherepitsa",
+    "0d4cef14-2380-11ed-bbd8-005056b927ef": "krovlya/komplektuyushchie-krovli",
+    "820557eb-dd19-11e8-bb98-00505691326f": "krovlya/komplektuyushchie-krovli",
+    "e0915491-9a85-11ee-861a-005056b927ef": "krovlya/komplektuyushchie-krovli",
+    "244b32b3-73af-11e8-80c6-d20f53a11b7a": "vodostok/plastikovy-vodostok",
+    "3e9c380b-fe91-11eb-bbb4-005056b927ef": "vodostok/metallicheskiy-vodostok",
+    "244b32b0-73af-11e8-80c6-d20f53a11b7a": "krovlya/komplektuyushchie-krovli",
+    "1fd04f5b-dded-11e8-bb98-00505691326f": "krovlya/komplektuyushchie-krovli",
+    "0799f008-f82a-11f0-b93a-005056b927ef": "krovlya/rulonnye-materialy",
+    "87ea1937-993d-11eb-bbae-005056b927ef": null,
+    "d34beb44-e832-11ee-861d-005056b927ef": null,
+    "e7102382-e1c8-11ee-861d-005056b927ef": null,
+    "18c6cc1f-7f21-11ef-b84f-005056b927ef": null
+  }
+}

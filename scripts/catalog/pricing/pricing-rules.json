@@ -1,0 +1,9 @@
+{
+  "_comment": "Правила публичной цены. Сейчас: цена = РРЦ поставщика, округление вверх до 10 ₽. Наценка/скачок отключены (каркас на будущее).",
+  "priceMode": "rrp",
+  "priceSource": { "docke": "rrp", "krovalians": "retail" },
+  "rounding": { "step": 10, "mode": "up" },
+  "markup": { "enabled": false, "defaultPercent": 0, "byCategory": {}, "byBrand": {} },
+  "jumpGuard": { "enabled": false, "maxPercent": 50 },
+  "overrides": {}
+}

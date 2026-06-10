@@ -55,3 +55,7 @@ catalog-sync/snapshots/
 
 # Картинки поставщиков — генерируются sync на сервере
 public/images/catalog/docke/
+
+# Снимки каталога/цен (регенерируются scripts/catalog/generate-snapshot.mjs)
+src/data/snapshots/
+src/data/catalog-images-manifest.json
