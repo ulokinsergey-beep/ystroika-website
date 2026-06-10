@@ -52,3 +52,6 @@ tmp-bitrix/
 catalog-sync/.env
 catalog-sync/snapshots/
 .env
+
+# Картинки поставщиков — генерируются sync на сервере
+public/images/catalog/docke/

@@ -10,12 +10,14 @@ import { fileURLToPath } from 'node:url';
 import { fetchDockeRaw } from './adapters/docke.mjs';
 import { normalizeDocke } from './normalizers/docke.mjs';
 import { computeSellingPrice } from './lib/pricing.mjs';
+import { downloadImages } from './lib/images.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SNAP_DIR = resolve(ROOT, 'snapshots');
 const arg = (k, d) => { const m = process.argv.find(a => a.startsWith(`--${k}=`)); return m ? m.split('=')[1] : d; };
 const LIMIT_PAGES = arg('limit-pages') ? Number(arg('limit-pages')) : null;
 const BOOTSTRAP_N = Number(arg('bootstrap', '0'));
+const IMAGES = process.argv.includes('--images'); // скачивать картинки Döcke на сайт (самохостинг)
 
 const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -58,6 +60,7 @@ async function main() {
 
   // 3. Цена + проверки → snapshot
   const items = [];
+  const pics = []; // {key: productId, url} для скачивания картинок
   for (const prod of (mapping.products || [])) {
     const link = (prod.links || []).filter(l => l.active).sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))[0];
     if (!link) { warnings.push({ productId: prod.productId, msg: 'нет активного источника' }); continue; }
@@ -73,6 +76,7 @@ async function main() {
       continue;
     }
 
+    if (norm?.picture) pics.push({ key: prod.productId, url: norm.picture });
     items.push({
       productId: prod.productId,
       brand: prod.brand ?? norm?.brand ?? null,
@@ -82,8 +86,20 @@ async function main() {
       currency: 'RUB',
       priceSource: sellingPrice != null ? link.source : null,
       availability: 'unknown',             // остатки не тянем (§8)
+      image: null,                         // локальный путь после скачивания (--images)
       updatedAt: now,
     });
+  }
+
+  // 3b. Картинки на сайт (самохостинг). Только при --images.
+  let imagesDownloaded = 0;
+  if (IMAGES && pics.length) {
+    const map = await downloadImages(pics, ROOT, { concurrency: 6 });
+    for (const it of items) {
+      const web = map.get(it.productId);
+      if (web) { it.image = web; imagesDownloaded++; }
+    }
+    console.log(`[images] скачано на сайт: ${imagesDownloaded}/${pics.length}`);
   }
 
   // 4. Отчёт
@@ -96,7 +112,7 @@ async function main() {
         mapped: items.filter(i => i.priceSource === 'docke').length,
       },
     },
-    snapshot: { total: items.length, withPrice: items.filter(i => i.price != null).length, byRequest: items.filter(i => i.price == null).length },
+    snapshot: { total: items.length, withPrice: items.filter(i => i.price != null).length, byRequest: items.filter(i => i.price == null).length, images: imagesDownloaded, withImage: items.filter(i => i.image).length },
     warnings, blockers,
   };
 
