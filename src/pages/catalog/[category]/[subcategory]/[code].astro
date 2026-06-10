@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import { categories } from '../../../../data/categories';
 import { fetchPrices, fetchStock } from '../../../../lib/kroval';
+import { snapshotItemByVendor, snapshotItemsFor, humanUnit } from '../../../../lib/snapshot';
 import ProductCard from '../../../../components/catalog/ProductCard.astro';
 import AdvantagesBlock from '../../../../components/AdvantagesBlock.astro';
 
@@ -32,6 +33,34 @@ if (existsSync(dataPath)) {
   } catch {}
 }
 
+// ─── Fallback: Döcke-товар из снимка (Фаза 2B) ──────────────────────────────
+// Цена/фото уже в снимке — живые запросы к API не нужны.
+let snapItem = null;
+if (!product) {
+  snapItem = snapshotItemByVendor(code!) ?? null;
+  if (snapItem && snapItem.category === `${categorySlug}/${subcategorySlug}`) {
+    product = {
+      kod: snapItem.vendor,
+      name: snapItem.name ?? snapItem.vendor,
+      artikul: snapItem.vendor,
+      unit: humanUnit(snapItem.unit),
+      brand: snapItem.brand ?? '',
+      image: snapItem.images[0] ?? null,
+      description: null,
+    };
+    relatedProducts = snapshotItemsFor(categorySlug!, subcategorySlug!)
+      .filter(i => i.vendor !== code)
+      .slice(0, 4)
+      .map(i => ({
+        kod: i.vendor, name: i.name ?? i.vendor, artikul: i.vendor,
+        unit: humanUnit(i.unit), brand: i.brand ?? '',
+        image: i.images[0] ?? null, price: i.price, serverPriced: true,
+      }));
+  } else {
+    snapItem = null;
+  }
+}
+
 if (!product) {
   return new Response(null, { status: 404 });
 }
@@ -41,18 +70,25 @@ const relatedKods = relatedProducts.map((p: any) => p.kod).filter(Boolean);
 let priceData: { price: number; discounted_price: number } | null = null;
 let stockData: Record<string, number> = {};
 
-try {
-  const [prices, stocks] = await Promise.allSettled([
-    fetchPrices([product.kod]),
-    fetchStock([product.kod]),
-  ]);
-  if (prices.status === 'fulfilled' && prices.value.length > 0) {
-    priceData = prices.value[0];
+if (snapItem) {
+  // Döcke: цена из снимка (РРЦ→округление); null = «по запросу». Остатки не тянем.
+  if (snapItem.price && snapItem.price > 0) {
+    priceData = { price: snapItem.price, discounted_price: 0 };
   }
-  if (stocks.status === 'fulfilled') {
-    stockData = stocks.value;
-  }
-} catch {}
+} else {
+  try {
+    const [prices, stocks] = await Promise.allSettled([
+      fetchPrices([product.kod]),
+      fetchStock([product.kod]),
+    ]);
+    if (prices.status === 'fulfilled' && prices.value.length > 0) {
+      priceData = prices.value[0];
+    }
+    if (stocks.status === 'fulfilled') {
+      stockData = stocks.value;
+    }
+  } catch {}
+}
 
 const basePrice = priceData?.price ?? null;
 const discountedPrice = (priceData?.discounted_price ?? 0) > 0 ? priceData!.discounted_price : null;
@@ -227,16 +263,20 @@ const jsonLd = {
               </div>
             ))}
           </div>
-          <!-- Основное фото -->
-          <div class="relative flex-1 min-h-[340px] lg:min-h-[400px] bg-[#f5f5f5] rounded-[5px] flex items-center justify-center">
+          <!-- Основное фото (реальное из снимка, иначе заглушка) -->
+          <div class="relative flex-1 min-h-[340px] lg:min-h-[400px] bg-[#f5f5f5] rounded-[5px] flex items-center justify-center overflow-hidden">
             {hasDiscount && (
               <div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-[3px] z-10">
                 Скидка
               </div>
             )}
-            <svg class="w-20 h-20 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
+            {product.image ? (
+              <img src={product.image} alt={product.name} class="absolute inset-0 w-full h-full object-contain p-6" />
+            ) : (
+              <svg class="w-20 h-20 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            )}
           </div>
         </div>
 
