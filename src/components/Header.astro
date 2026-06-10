@@ -1,4 +1,6 @@
 ---
+import { categories } from '../data/categories';
+
 const currentPath = Astro.url.pathname;
 
 // Figma: header 1 → menu (White links) + 3D-тур (Orange accent)
@@ -201,15 +203,56 @@ const navLinks = [
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
-        <!-- Dropdown placeholder -->
-        <div class="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-[#E0E0E0] hidden group-hover:block z-50 py-2">
-          <a href="/catalog/krovlya" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Кровля</a>
-          <a href="/catalog/fasad" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Фасад</a>
-          <a href="/catalog/vodostok" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Водосточные системы</a>
-          <a href="/catalog/uteplenie" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Утепление</a>
-          <a href="/catalog/fasadnye-paneli" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Фасадные панели</a>
-          <a href="/catalog/vodostochnye-sistemy" class="block px-4 py-2.5 text-[15px] text-[#333333] hover:bg-[#F5F5F5]">Водосточные системы</a>
-          <a href="/catalog" class="block px-4 py-2.5 text-[15px] text-[#FFAE01] font-medium hover:bg-[#F5F5F5]">Весь каталог →</a>
+        <!-- ── МЕГА-МЕНЮ КАТАЛОГА (Figma: «Каталог при нажатии») ── -->
+        <!-- Левая колонка категорий + правая колонка подкатегорий активной категории -->
+        <div
+          id="catalog-megamenu"
+          class="absolute top-full left-0 mt-1 bg-white rounded-[5px] shadow-xl border border-[#E9E9E9] hidden group-hover:flex z-50 overflow-hidden"
+          style="min-width:600px;"
+        >
+          <!-- Левая колонка: категории -->
+          <div class="w-[260px] flex-shrink-0 py-2 border-r border-[#F0F0F0]">
+            {categories.map((cat, i) => (
+              <a
+                href={`/catalog/${cat.slug}`}
+                data-cat-row={cat.slug}
+                class={`cat-row flex items-center justify-between gap-2 mx-2 px-3 h-[42px] rounded-[5px] text-[15px] transition-colors ${
+                  i === 0 ? 'bg-[#333333] text-white font-medium' : 'text-[#333333] hover:bg-[#F5F5F5]'
+                }`}
+              >
+                <span class="leading-snug">{cat.title}</span>
+                <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </a>
+            ))}
+          </div>
+
+          <!-- Правая колонка: подкатегории активной категории -->
+          <div class="flex-1 min-w-[280px] py-3 px-4">
+            {categories.map((cat, i) => (
+              <div data-cat-panel={cat.slug} class={`cat-panel ${i === 0 ? '' : 'hidden'}`}>
+                {cat.subcategories && cat.subcategories.length > 0 ? (
+                  <ul class="flex flex-col gap-0.5">
+                    {cat.subcategories.map(sub => (
+                      <li>
+                        <a
+                          href={`/catalog/${cat.slug}/${sub.slug}`}
+                          class="block px-3 py-2 text-[15px] text-[#333333] rounded-[5px] hover:text-[#FFAE01] hover:bg-[#FFFBEB] transition-colors"
+                        >
+                          {sub.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <a href={`/catalog/${cat.slug}`} class="block px-3 py-2 text-[15px] text-[#898989] hover:text-[#FFAE01]">
+                    Смотреть раздел «{cat.title}» →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -299,4 +342,23 @@ const navLinks = [
   const toggle = document.getElementById('menu-toggle');
   const menu = document.getElementById('mobile-menu');
   toggle?.addEventListener('click', () => menu?.classList.toggle('hidden'));
+
+  // ── Мега-меню каталога: наведение на категорию → её подкатегории ──
+  const catRows = document.querySelectorAll('[data-cat-row]');
+  const catPanels = document.querySelectorAll('[data-cat-panel]');
+  const ACTIVE = ['bg-[#333333]', 'text-white', 'font-medium'];
+  const IDLE = ['text-[#333333]', 'hover:bg-[#F5F5F5]'];
+  function activateCat(slug) {
+    catRows.forEach(row => {
+      const on = row.getAttribute('data-cat-row') === slug;
+      ACTIVE.forEach(c => row.classList.toggle(c, on));
+      IDLE.forEach(c => row.classList.toggle(c, !on));
+    });
+    catPanels.forEach(panel => {
+      panel.classList.toggle('hidden', panel.getAttribute('data-cat-panel') !== slug);
+    });
+  }
+  catRows.forEach(row => {
+    row.addEventListener('mouseenter', () => activateCat(row.getAttribute('data-cat-row')));
+  });
 </script>
