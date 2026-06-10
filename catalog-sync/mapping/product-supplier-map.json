@@ -1,0 +1,125 @@
+{
+  "_note": "Маппинг productId сайта -> поставщики. Курируется вручную (позже в Directus). Пустой = build сделает bootstrap из реальных данных для первого прогона (флаг bootstrap:true).",
+  "products": [
+    {
+      "productId": "gibkaya-cherepitsa-docke-zrsm-1025",
+      "brand": "Döcke Pie",
+      "category": "gibkaya-cherepitsa",
+      "name": "Гибкая черепица Docke PIE СТАНДАРТ/ СОТА/ Зелёный",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "ZRSM-1025",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "fasadnye-paneli-docke-pfbe-1045",
+      "brand": "Döcke",
+      "category": "fasadnye-paneli",
+      "name": "Docke ПРЕМИУМ БЕРГ Панель (Серый)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "PFBE-1045",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "fasadnye-paneli-docke-pfbu-1029",
+      "brand": "Döcke",
+      "category": "fasadnye-paneli",
+      "name": "Docke ПРЕМИУМ БУРГ Панель (Земляной)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "PFBU-1029",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "gibkaya-cherepitsa-docke-zrsz-1079",
+      "brand": "Döcke Pie",
+      "category": "gibkaya-cherepitsa",
+      "name": "Гибкая черепица Docke PIE ПРЕМИУМ/ ЦЮРИХ/ Арахис",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "ZRSZ-1079",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "fasadnye-paneli-docke-pfsr-1155",
+      "brand": "Döcke",
+      "category": "fasadnye-paneli",
+      "name": "Docke ПРЕМИУМ ШТЕРН Панель (Антик)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "PFSR-1155",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "gibkaya-cherepitsa-docke-zrsy-1079",
+      "brand": "Döcke Pie",
+      "category": "gibkaya-cherepitsa",
+      "name": "Коньково-карнизная черепица Docke PIE ПРЕМИУМ// Брауни-Арахис",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "ZRSY-1079",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "metallicheskiy-vodostok-docke-pvls-1044",
+      "brand": "Döcke",
+      "category": "metallicheskiy-vodostok",
+      "name": "Docke ЛЮКС Соединитель желобов (Пломбир)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "PVLS-1044",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "productId": "fasadnye-paneli-docke-pfbe-1023",
+      "brand": "Döcke",
+      "category": "fasadnye-paneli",
+      "name": "Docke ПРЕМИУМ БЕРГ Панель (Коричневый)",
+      "bootstrap": true,
+      "links": [
+        {
+          "source": "docke",
+          "supplierSku": "PFBE-1023",
+          "priority": 1,
+          "active": true
+        }
+      ]
+    }
+  ]
+}
