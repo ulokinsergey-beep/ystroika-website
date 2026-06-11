@@ -1,0 +1,73 @@
+{
+  "name": "У-Стройка: обновление снимка каталога",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "weeks", "weeksInterval": 1, "triggerAtDay": [1], "triggerAtHour": 5, "triggerAtMinute": 0 }
+          ]
+        }
+      },
+      "name": "Еженедельно (пн 05:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "refresh-snapshot",
+        "options": {}
+      },
+      "name": "Кнопка (webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "command": "cd /data/ystroika-catalog && node --env-file=.env scripts/catalog/generate-snapshot.mjs && node --env-file=.env scripts/catalog/download-images.mjs"
+      },
+      "name": "Генерация снимка + картинки",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [260, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "DONE-IMAGES",
+              "operator": { "type": "string", "operation": "contains" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "Успех?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [520, 100]
+    },
+    {
+      "parameters": {
+        "command": "echo \"SNAPSHOT-REFRESH FAILED $(date)\" >> /data/ystroika-catalog/refresh-errors.log"
+      },
+      "name": "Записать ошибку в лог",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [780, 220]
+    }
+  ],
+  "connections": {
+    "Еженедельно (пн 05:00)": { "main": [[{ "node": "Генерация снимка + картинки", "type": "main", "index": 0 }]] },
+    "Кнопка (webhook)": { "main": [[{ "node": "Генерация снимка + картинки", "type": "main", "index": 0 }]] },
+    "Генерация снимка + картинки": { "main": [[{ "node": "Успех?", "type": "main", "index": 0 }]] },
+    "Успех?": { "main": [[], [{ "node": "Записать ошибку в лог", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
