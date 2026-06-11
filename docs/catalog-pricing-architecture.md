@@ -180,6 +180,18 @@ URL = `productId` (никогда SKU поставщика). title/description/J
 
 ---
 
+
+### Grand Line (изучено 2026-06-11, ждёт ключа)
+- **Public API GLM**: `https://client.grandline.ru/go/api/public` (Swagger изучен).
+  Эндпоинты: `GET /nomenclatures` (каталог, до 20 000/стр), `GET /v2/prices/` (цены),
+  `GET /v2/remnants/` (остатки — не тянем), `GET /catalog/get-nomenclature-files/{UID}/` (файлы/картинки).
+- **Авторизация**: query-параметр `api_key` (DealerApiKey). Логин/пароль портала к API не подходят (проверено).
+- Для `/v2/prices/` обязательны также `branch_id_1c` (филиал) и `agreement_id_1c` (договор).
+- **Блокер**: DealerApiKey + branch/agreement UID выдаёт менеджер. Менеджер аккаунта —
+  Ревякова Татьяна (КровАльянс, revyakova@krovalians.ru, +7-925-176-62-10): аккаунт GL заведён через КА.
+  У аккаунта `isNoPrices: true` — попросить открыть цены.
+- Доступы — в credentials.md / .env (`GRANDLINE_*`). Логин-флоу портала: `POST /api/auth/token/` {login, password} → JWT (работает).
+
 ## 12. Роли поставщиков (избегаем дыр в ассортименте)
 - **Döcke** — специализированный: гибкая черепица, сайдинг, водосток, фасад **бренда Döcke** (~18 800 SKU, прайс 4035, ключ `vendor`).
 - **КровАльянс** — широкий каталог (остальные бренды).
