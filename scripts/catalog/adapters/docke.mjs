@@ -57,9 +57,21 @@ export async function fetchRrpPrices({ token, agreeUuid, factoryUuid }) {
 // `page` = номер страницы. offset:200, page:1 → 200 товаров, pagecount=94.
 const PAGE_SIZE = 200;
 
+/** Вызов с авто-reauth: JWT живёт недолго — при 401 в длинном прогоне переавторизуемся и повторяем. */
+async function postWithReauth(ctx, path, body) {
+  try {
+    return await post(path, body, ctx.token);
+  } catch (e) {
+    if (!/401/.test(e.message || '')) throw e;
+    const fresh = await authDocke();
+    ctx.token = fresh.token; // обновляем токен в общем контексте прогона
+    return await post(path, body, ctx.token);
+  }
+}
+
 /** Одна страница каталога → { products[], pagecount } */
-export async function fetchCatalogPage({ token, agreeUuid }, page = 1, pageSize = PAGE_SIZE) {
-  const r = await post('/api/client/product/get', { agree_uuid: agreeUuid, offset: pageSize, page }, token);
+export async function fetchCatalogPage(ctx, page = 1, pageSize = PAGE_SIZE) {
+  const r = await postWithReauth(ctx, '/api/client/product/get', { agree_uuid: ctx.agreeUuid, offset: pageSize, page });
   return { products: r.products || [], pagecount: r.pagecount || 1 };
 }
 
