@@ -17,6 +17,17 @@ export function normalizeDockeProduct(raw, rrpMap, now) {
   else pushPic(raw.picture);
   const images = pics.map(u => (u.startsWith('http') ? u : `https://b2b.docke.ru${u.startsWith('/') ? '' : '/'}${u}`));
 
+  // характеристики: только заполненные поля поставщика (ничего не выдумываем)
+  const SPEC_FIELDS = ['length', 'width', 'thickness', 'area', 'material', 'series',
+    'country_of_origin', 'warranty', 'weight', 'piece_amount_in_pack',
+    'm2_area_in_pack', 'm2_amount_in_pack', 'packaging_volume', 'shingle_count_in_pack',
+    'foundation', 'topping', 'bitumen_type', 'm2_roll_area', 'sold_in_pack'];
+  const specs = {};
+  for (const f of SPEC_FIELDS) {
+    const v = raw[f];
+    if (v !== null && v !== undefined && v !== '' && v !== '0') specs[f] = v;
+  }
+
   return {
     source: 'docke',
     supplierSku: vendor,
@@ -25,6 +36,7 @@ export function normalizeDockeProduct(raw, rrpMap, now) {
     name: raw.nomenclature || null,
     collection: raw.collection || null,
     color: raw.color || null,
+    specs,
     unit: rrp?.measure ?? raw.measure ?? null,
     basePrice: rrp ? rrp.price : null,        // РРЦ; нет цены → null (на сайте «по запросу»)
     currency: 'RUB',

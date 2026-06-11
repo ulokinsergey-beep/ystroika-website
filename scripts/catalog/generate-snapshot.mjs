@@ -68,6 +68,8 @@ for (const raw of rawProducts) {
     priceSource: price ? 'docke-rrp' : null,
     availability: 'unknown',
     images: (localImgs && localImgs.length) ? localImgs : n.images,
+    specs: n.specs ?? {},
+    description: n.description ?? null,
     updatedAt: now,
   });
 }

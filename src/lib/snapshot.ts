@@ -22,7 +22,36 @@ export interface SnapshotItem {
   priceSource: string | null;
   availability: string;      // "unknown" — остатки не тянем
   images: string[];          // локальные пути или URL поставщика
+  specs?: Record<string, string>;  // характеристики поставщика (только заполненные)
+  description?: string | null;
   updatedAt: string;
+}
+
+/** Подписи и единицы характеристик Döcke для карточки (только уверенные единицы). */
+export const SPEC_LABELS: Record<string, { label: string; unit?: string }> = {
+  length: { label: 'Длина', unit: 'мм' },
+  width: { label: 'Ширина', unit: 'мм' },
+  thickness: { label: 'Толщина', unit: 'мм' },
+  area: { label: 'Рабочая площадь', unit: 'м²' },
+  material: { label: 'Состав' },
+  series: { label: 'Серия' },
+  country_of_origin: { label: 'Страна производства' },
+  warranty: { label: 'Гарантия' },
+  foundation: { label: 'Основа' },
+  topping: { label: 'Посыпка' },
+  bitumen_type: { label: 'Тип битума' },
+  m2_roll_area: { label: 'Площадь рулона', unit: 'м²' },
+};
+
+/** Подписи блока «Информация об упаковке». */
+export const PACK_LABELS: Record<string, { label: string; unit?: string }> = {
+  piece_amount_in_pack: { label: 'Кол-во в упаковке', unit: 'шт' },
+  shingle_count_in_pack: { label: 'Гонтов в упаковке', unit: 'шт' },
+  m2_area_in_pack: { label: 'Площадь в упаковке', unit: 'м²' },
+  m2_amount_in_pack: { label: 'Площадь одной панели', unit: 'м²' },
+  weight: { label: 'Вес', unit: 'кг' },
+  packaging_volume: { label: 'Объём упаковки', unit: 'м³' },
+  sold_in_pack: { label: 'Продаётся упаковкой' },
 }
 
 const SNAPSHOT_PATH = resolve('src/data/snapshots/catalog-snapshot-latest.json');

@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import { categories } from '../../../../data/categories';
 import { fetchPrices, fetchStock } from '../../../../lib/kroval';
-import { snapshotItemByVendor, snapshotItemsFor, humanUnit } from '../../../../lib/snapshot';
+import { snapshotItemByVendor, snapshotItemsFor, humanUnit, SPEC_LABELS, PACK_LABELS } from '../../../../lib/snapshot';
 import ProductCard from '../../../../components/catalog/ProductCard.astro';
 import AdvantagesBlock from '../../../../components/AdvantagesBlock.astro';
 
@@ -98,6 +98,32 @@ const discountPercent = hasDiscount ? Math.round((1 - discountedPrice! / basePri
 
 const stockQty = product.kod ? (stockData[product.kod] ?? null) : null;
 const inStock = stockQty !== null ? stockQty > 0 : null;
+
+// ─── Характеристики из снимка (Döcke): только реальные поля поставщика ─────
+const snapSpecs: Record<string, string> = (snapItem?.specs as Record<string, string>) ?? {};
+function specRow(k: string, map: Record<string, { label: string; unit?: string }>) {
+  const v = snapSpecs[k];
+  if (!v) return null;
+  const m = map[k];
+  if (!m) return null;
+  return { label: m.label, value: m.unit ? `${v} ${m.unit}` : String(v) };
+}
+const snapSpecRows: { label: string; value: string }[] = [];
+const snapPackRows: { label: string; value: string }[] = [];
+if (snapItem) {
+  const hasDims = snapSpecs.length && snapSpecs.width;
+  if (hasDims) snapSpecRows.push({ label: 'Рабочие размеры', value: `${snapSpecs.length}×${snapSpecs.width} мм` });
+  for (const k of ['thickness', 'area', 'material', 'series', 'foundation', 'topping', 'bitumen_type', 'm2_roll_area', 'country_of_origin', 'warranty']) {
+    const r = specRow(k, SPEC_LABELS);
+    if (r) snapSpecRows.push(r);
+  }
+  if (!hasDims) for (const k of ['length', 'width']) { const r = specRow(k, SPEC_LABELS); if (r) snapSpecRows.push(r); }
+  if (snapItem.collection) snapSpecRows.push({ label: 'Коллекция', value: snapItem.collection });
+  if (snapItem.color) snapSpecRows.push({ label: 'Цвет', value: snapItem.color });
+  for (const k of Object.keys(PACK_LABELS)) { const r = specRow(k, PACK_LABELS); if (r) snapPackRows.push(r); }
+}
+// короткая форма гарантии для мини-панели («50 лет» из длинного текста)
+const warrantyShort = snapSpecs.warranty ? (snapSpecs.warranty.match(/^\d+\s*(?:лет|год[а]?)/)?.[0] ?? null) : null;
 
 // Парсим характеристики из названия
 const widthMatch = product.name?.match(/\(ширина\s+([\d.,]+)м?\)/i);
@@ -403,19 +429,19 @@ const jsonLd = {
         <div class="grid grid-cols-2 border border-[#E9E9E9] rounded-[5px]">
           <div class="px-4 py-3 border-r border-b border-[#E9E9E9]">
             <div class="text-xs text-[#898989] mb-1">Цвет</div>
-            <div class="font-semibold text-[#333333] text-sm">{colorRal ?? '—'}</div>
+            <div class="font-semibold text-[#333333] text-sm">{snapItem?.color ?? colorRal ?? '—'}</div>
           </div>
           <div class="px-4 py-3 border-b border-[#E9E9E9]">
-            <div class="text-xs text-[#898989] mb-1">Покрытие</div>
-            <div class="font-semibold text-[#333333] text-sm">{coatingFound ?? '—'}</div>
+            <div class="text-xs text-[#898989] mb-1">{snapItem ? 'Серия' : 'Покрытие'}</div>
+            <div class="font-semibold text-[#333333] text-sm">{snapItem ? (snapSpecs.series ?? '—') : (coatingFound ?? '—')}</div>
           </div>
           <div class="px-4 py-3 border-r border-[#E9E9E9]">
             <div class="text-xs text-[#898989] mb-1">Толщина</div>
-            <div class="font-semibold text-[#333333] text-sm">{thickness ? `${thickness} мм` : '—'}</div>
+            <div class="font-semibold text-[#333333] text-sm">{snapItem ? (snapSpecs.thickness ? `${snapSpecs.thickness} мм` : '—') : (thickness ? `${thickness} мм` : '—')}</div>
           </div>
           <div class="px-4 py-3">
             <div class="text-xs text-[#898989] mb-1">Гарантия</div>
-            <div class="font-semibold text-[#333333] text-sm">20 лет</div>
+            <div class="font-semibold text-[#333333] text-sm">{snapItem ? (warrantyShort ?? '—') : '20 лет'}</div>
           </div>
         </div>
 
@@ -438,13 +464,19 @@ const jsonLd = {
         <!-- Описание -->
         <div data-tab-content="0" class="p-6">
           <div class="prose prose-sm max-w-none text-[#333333]">
-            <p>
-              <strong>{product.name}</strong> — профессиональный кровельный материал{product.brand ? ` производства ${product.brand}` : ''}.
-              {isByArea && ` Эффективная ширина листа — ${effectiveWidth} м.`}
-              {coatingFound && ` Покрытие: ${coatingFound}.`}
-              {thickness && ` Толщина металла: ${thickness} мм.`}
-            </p>
-            <p>Подходит для жилых домов, дач, коттеджей, хозяйственных построек.</p>
+            {snapItem?.description ? (
+              <p><strong>{product.name}</strong> — {snapItem.description}</p>
+            ) : (
+              <>
+                <p>
+                  <strong>{product.name}</strong> — профессиональный кровельный материал{product.brand ? ` производства ${product.brand}` : ''}.
+                  {isByArea && ` Эффективная ширина листа — ${effectiveWidth} м.`}
+                  {coatingFound && ` Покрытие: ${coatingFound}.`}
+                  {thickness && ` Толщина металла: ${thickness} мм.`}
+                </p>
+                <p>Подходит для жилых домов, дач, коттеджей, хозяйственных построек.</p>
+              </>
+            )}
           </div>
         </div>
 
@@ -496,8 +528,30 @@ const jsonLd = {
                   <td class="py-2.5 font-medium text-[#333333]">{colorRal}</td>
                 </tr>
               )}
+              {snapSpecRows.map(r => (
+                <tr class="border-b border-[#f5f5f5]">
+                  <td class="py-2.5 pr-4 text-[#898989]">{r.label}</td>
+                  <td class="py-2.5 font-medium text-[#333333]">{r.value}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
+
+          {snapPackRows.length > 0 && (
+            <>
+              <h3 class="font-bold text-[#333333] text-base mt-6 mb-2">Информация об упаковке</h3>
+              <table class="w-full text-sm">
+                <tbody>
+                  {snapPackRows.map(r => (
+                    <tr class="border-b border-[#f5f5f5]">
+                      <td class="py-2.5 pr-4 text-[#898989] w-1/2">{r.label}</td>
+                      <td class="py-2.5 font-medium text-[#333333]">{r.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
         </div>
 
         <!-- Отзывы -->
