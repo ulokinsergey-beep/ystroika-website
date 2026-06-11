@@ -4,7 +4,7 @@
  * сгенерированный scripts/catalog/generate-snapshot.mjs. Никаких живых запросов
  * к API поставщиков из страниц. Нет снимка → пустой список (сайт не падает).
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export interface SnapshotItem {
@@ -37,12 +37,17 @@ export function humanUnit(unit: string | null): string {
   return OKEI[unit] ?? unit;
 }
 
+// Кэш с инвалидацией по mtime: обновлённый по cron/n8n снимок подхватывается
+// без рестарта процесса (важно для прода).
 let cache: SnapshotItem[] | null = null;
+let cacheMtime = 0;
 export function loadSnapshot(): SnapshotItem[] {
-  if (cache) return cache;
-  if (!existsSync(SNAPSHOT_PATH)) return (cache = []);
+  if (!existsSync(SNAPSHOT_PATH)) return [];
+  const mtime = statSync(SNAPSHOT_PATH).mtimeMs;
+  if (cache && mtime === cacheMtime) return cache;
   try {
     cache = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf-8')) as SnapshotItem[];
+    cacheMtime = mtime;
   } catch {
     cache = [];
   }
