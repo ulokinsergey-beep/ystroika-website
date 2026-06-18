@@ -6,8 +6,9 @@ import { Agent, fetch as undiciFetch } from 'undici';
 
 const E = process.env;
 const BASE = E.KROVAL_BASE_URL || 'https://b2b.krovalians.ru:8080/kroval/hs/api';
-// Legacy TLS renegotiation + без проверки серта (как в src/lib/kroval.ts)
-const agent = new Agent({ connect: { rejectUnauthorized: false } });
+// Legacy TLS renegotiation + без проверки серта (как в src/lib/kroval.ts).
+// Каталог ~200МБ → отключаем body/headers timeout, иначе undici рвёт долгую загрузку.
+const agent = new Agent({ connect: { rejectUnauthorized: false }, bodyTimeout: 0, headersTimeout: 0 });
 
 function headers() {
   if (!E.KROVAL_USER || !E.KROVAL_PASSWORD || !E.KROVAL_API_KEY) throw new Error('КровАльянс: нет KROVAL_USER/PASSWORD/API_KEY в .env');

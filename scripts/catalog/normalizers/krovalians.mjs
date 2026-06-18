@@ -23,6 +23,19 @@ export function normalizeKrovaliansProduct(raw, priceMap, now) {
   if (raw['ДлинаИспользовать'] === 'Да') { const v = ratio(raw['ДлинаЧислитель'], raw['ДлинаЗнаменатель']); if (v) specs.length = `${v} ${raw['ДлинаЕдиницаИзмерения'] || ''}`.trim(); }
   if (raw['ПлощадьИспользовать'] === 'Да') { const v = ratio(raw['ПлощадьЧислитель'], raw['ПлощадьЗнаменатель']); if (v) specs.area = `${v} ${raw['ПлощадьЕдиницаИзмерения'] || ''}`.trim(); }
   if (raw['ОбъемИспользовать'] === 'Да') { const v = ratio(raw['ОбъемЧислитель'], raw['ОбъемЗнаменатель']); if (v) specs.volume = `${v} ${raw['ОбъемЕдиницаИзмерения'] || ''}`.trim(); }
+  if (raw['Марка'] && String(raw['Марка']).trim()) specs.mark = String(raw['Марка']).trim();
+
+  // упаковка (берём базовую/первую): кол-во в упаковке, вес, габариты, складская группа
+  const pack = {};
+  const pk = Array.isArray(raw['Упаковки']) ? raw['Упаковки'][0] : null;
+  if (pk) {
+    if (pk['Числитель'] && Number(pk['Числитель']) > 1) pack.qtyInPack = `${pk['Числитель']} ${pk['ЕдиницаИзмерения'] || 'шт'}`.trim();
+    if (pk['Вес'] && Number(pk['Вес']) > 0) pack.weight = `${pk['Вес']} ${pk['ВесЕдиницаИзмерения'] || 'кг'}`.trim();
+    if (pk['СкладскаяГруппа']) pack.storageGroup = pk['СкладскаяГруппа'];
+    if (pk['Типоразмер']) pack.size = pk['Типоразмер'];
+    const dims = [pk['Высота'], pk['Ширина'], pk['Глубина']].filter(x => x && Number(String(x).replace(',', '.')) > 0);
+    if (dims.length === 3) pack.dimensions = `${pk['Высота']}×${pk['Ширина']}×${pk['Глубина']} ${pk['ВысотаЕдиницаИзмерения'] || 'м'}`;
+  }
 
   return {
     source: 'krovalians',
@@ -38,6 +51,7 @@ export function normalizeKrovaliansProduct(raw, priceMap, now) {
     supplierCategories: raw['ЦеноваяГруппа'] ? [raw['ЦеноваяГруппа']] : [],
     images: [],                                 // у КА фото нет
     specs,
+    pack: Object.keys(pack).length ? pack : undefined,  // данные упаковки (если есть)
     description: null,                          // у КА описаний нет
     updatedAt: now,
     priceGroup: raw['ЦеноваяГруппа'] || null,   // строка для маппинга категории

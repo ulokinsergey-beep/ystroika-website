@@ -7,9 +7,19 @@ import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { authDocke, fetchRrpPrices, fetchCatalogPage } from './adapters/docke.mjs';
 import { normalizeDockeProduct } from './normalizers/docke.mjs';
+import { fetchKatalog as kaKatalog, fetchPrices as kaPrices } from './adapters/krovalians.mjs';
+import { normalizeKrovaliansProduct } from './normalizers/krovalians.mjs';
 import { makeProductId, resolveCategoryByTree, inferCategory, applyPrice } from './lib.mjs';
 
 const PAGES = (() => { const i = process.argv.indexOf('--pages'); return i > -1 ? parseInt(process.argv[i + 1]) : Infinity; })();
+// КровАльянс включаем только в полном прогоне (не в --pages пробе) и если не --docke-only
+const WITH_KROVAL = PAGES === Infinity && !process.argv.includes('--docke-only');
+
+function kaCategory(priceGroup, rules) {
+  const hay = (priceGroup || '').toLowerCase();
+  for (const r of rules) if (r.match.some(k => hay.includes(k.toLowerCase()))) return r.category;
+  return null;
+}
 const OUT = resolve('src/data/snapshots');
 mkdirSync(OUT, { recursive: true });
 
@@ -21,6 +31,7 @@ const rootUuid = (catTree.find(c => !c.parent_uuid) || {}).uuid;
 const branchMap = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/docke-branch-map.json'), 'utf-8')).branches;
 // keyword-fallback для товаров, чья ветка не резолвится по дереву (новые/битые uuid)
 const catRules = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/docke-category-rules.json'), 'utf-8')).rules;
+const kaRules = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/krovalians-category-rules.json'), 'utf-8')).rules;
 const imgManifestPath = resolve('src/data/catalog-images-manifest.json');
 const imgManifest = existsSync(imgManifestPath) ? JSON.parse(readFileSync(imgManifestPath, 'utf-8')) : {};
 
@@ -74,10 +85,51 @@ for (const raw of rawProducts) {
   });
 }
 
+// ─── ИСТОЧНИК 2: КровАльянс (полный прогон) ─────────────────────────────────
+let ka = { raw: 0, normalized: 0, mapped: 0, unmapped: 0, withPrice: 0, noPrice: 0 };
+if (WITH_KROVAL) {
+  console.log('КровАльянс: каталог (≈200МБ, может занять минуты)…');
+  const kaRawAll = await kaKatalog();
+  const kaLeaf = kaRawAll.filter(p => p && p['Код'] && p['ЭтоГруппа'] === false);
+  ka.raw = kaLeaf.length;
+  console.log(`  товаров (не групп): ${kaLeaf.length}. Цены…`);
+  const kaKods = kaLeaf.map(p => String(p['Код']));
+  const kaPriceMap = await kaPrices(kaKods);
+  console.log(`  цен получено: ${kaPriceMap.size}. Нормализация + маппинг…`);
+  for (const raw of kaLeaf) {
+    const n = normalizeKrovaliansProduct(raw, kaPriceMap, now);
+    if (!n.supplierSku) continue;
+    ka.normalized++;
+    const productId = makeProductId(n);
+    const category = kaCategory(n.priceGroup, kaRules);
+    if (!category) { ka.unmapped++; continue; }
+    ka.mapped++;
+    byCategory[category] = (byCategory[category] || 0) + 1;
+    const price = applyPrice({ ...n, category }, rules, productId);
+    if (price && price > 0) ka.withPrice++; else ka.noPrice++;
+    publicItems.push({
+      productId, category, source: 'krovalians',
+      vendor: n.supplierSku, brand: n.brand, name: n.name,
+      collection: null, color: null, unit: n.unit,
+      price: price ?? null, currency: 'RUB',
+      priceSource: price ? 'krovalians' : null,
+      availability: 'unknown',
+      images: [],
+      specs: { ...(n.specs || {}), ...(n.pack || {}) },
+      description: null,
+      updatedAt: now,
+    });
+  }
+  console.log(`  КА: сопоставлено ${ka.mapped}, с ценой ${ka.withPrice}, без категории ${ka.unmapped}`);
+}
+
 const report = {
   generatedAt: now,
   pagesProcessed: totalPages, pagesTotal: first.pagecount,
-  sources: { docke: { rawProducts: rawProducts.length, rrpPositions: rrp.size, normalized, mapped, unmapped, withPrice, noPrice } },
+  sources: {
+    docke: { rawProducts: rawProducts.length, rrpPositions: rrp.size, normalized, mapped, unmapped, withPrice, noPrice },
+    ...(WITH_KROVAL ? { krovalians: ka } : {}),
+  },
   byCategory,
   unmappedSample,
   warnings: [

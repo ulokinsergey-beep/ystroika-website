@@ -1,0 +1,19 @@
+{
+  "_comment": "Категория сайта для товара КровАльянс по строке ЦеноваяГруппа (priceGroup), первое совпадение. Нет совпадения → не в публичный снимок. Редактируется вручную; позже — Directus.",
+  "rules": [
+    { "category": "krovlya/metallocherepitsa", "match": ["металлочерепиц", "/мч/", "монтеррей", "каскад"] },
+    { "category": "krovlya/gibkaya-cherepitsa", "match": ["гибкая черепиц", "мягкая кровл", "/гч/", "битумн черепиц", "шинглас"] },
+    { "category": "krovlya/profnastil", "match": ["профнастил", "профлист"] },
+    { "category": "krovlya/faltsevaya", "match": ["фальц", "кликфальц"] },
+    { "category": "krovlya/ondulin", "match": ["ондулин", "еврошифер"] },
+    { "category": "krovlya/kompozitnaya-cherepitsa", "match": ["композит"] },
+    { "category": "fasad/metallicheskiy-sayding", "match": ["металлосайдинг", "металлический сайдинг", "сайдинг металл"] },
+    { "category": "fasad/vinilovyy-sayding", "match": ["виниловый сайдинг", "сайдинг"] },
+    { "category": "fasad/fasadnye-paneli", "match": ["фасадные панел", "фасадная панел", "цокольн", "фасадная плитка"] },
+    { "category": "fasad/sofity", "match": ["софит", "подшив"] },
+    { "category": "vodostok/metallicheskiy-vodostok", "match": ["водосток металл", "металлич водосток"] },
+    { "category": "vodostok/plastikovy-vodostok", "match": ["водосток", "водосточн", "желоб", "воронка"] },
+    { "category": "krovlya/komplektuyushchie-krovli", "match": ["снегозадерж", "крепеж", "крепёж", "саморез", "доборн", "конёк", "конек", "ендов", "планка", "примыкан", "уплотнит", "аэратор", "проходк", "вент.выход", "мансардн"] },
+    { "category": "uteplenie", "match": ["утеплит", "изоляц", "мембран", "плёнк", "пленк", "пароизол", "гидроизол", "базальт"] }
+  ]
+}
