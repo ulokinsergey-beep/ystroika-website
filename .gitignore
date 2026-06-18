@@ -59,3 +59,6 @@ public/images/catalog/docke/
 # Снимки каталога/цен (регенерируются scripts/catalog/generate-snapshot.mjs)
 src/data/snapshots/
 src/data/catalog-images-manifest.json
+
+# КА нормализованный кэш (регенерируется kroval-fetch-cache.mjs)
+src/data/catalog/kroval-normalized-cache.json

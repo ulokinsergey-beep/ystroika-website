@@ -15,8 +15,8 @@ const PAGES = (() => { const i = process.argv.indexOf('--pages'); return i > -1 
 // КровАльянс включаем только в полном прогоне (не в --pages пробе) и если не --docke-only
 const WITH_KROVAL = PAGES === Infinity && !process.argv.includes('--docke-only');
 
-function kaCategory(priceGroup, rules) {
-  const hay = (priceGroup || '').toLowerCase();
+function kaCategory(name, priceGroup, rules) {
+  const hay = `${name || ''} ${priceGroup || ''}`.toLowerCase();
   for (const r of rules) if (r.match.some(k => hay.includes(k.toLowerCase()))) return r.category;
   return null;
 }
@@ -88,20 +88,26 @@ for (const raw of rawProducts) {
 // ─── ИСТОЧНИК 2: КровАльянс (полный прогон) ─────────────────────────────────
 let ka = { raw: 0, normalized: 0, mapped: 0, unmapped: 0, withPrice: 0, noPrice: 0 };
 if (WITH_KROVAL) {
-  console.log('КровАльянс: каталог (≈200МБ, может занять минуты)…');
-  const kaRawAll = await kaKatalog();
-  const kaLeaf = kaRawAll.filter(p => p && p['Код'] && p['ЭтоГруппа'] === false);
-  ka.raw = kaLeaf.length;
-  console.log(`  товаров (не групп): ${kaLeaf.length}. Цены…`);
-  const kaKods = kaLeaf.map(p => String(p['Код']));
-  const kaPriceMap = await kaPrices(kaKods);
-  console.log(`  цен получено: ${kaPriceMap.size}. Нормализация + маппинг…`);
-  for (const raw of kaLeaf) {
-    const n = normalizeKrovaliansProduct(raw, kaPriceMap, now);
+  // Источник нормализованных КА-товаров: кэш на диске (быстро) или живой API.
+  const cachePath = resolve('src/data/catalog/kroval-normalized-cache.json');
+  let kaItems;
+  if (existsSync(cachePath)) {
+    kaItems = JSON.parse(readFileSync(cachePath, 'utf-8')).items || [];
+    console.log(`КровАльянс: из кэша ${kaItems.length} товаров (kroval-normalized-cache.json).`);
+  } else {
+    console.log('КровАльянс: каталог (≈200МБ, минуты)…');
+    const kaRawAll = await kaKatalog();
+    const kaLeaf = kaRawAll.filter(p => p && p['Код'] && p['ЭтоГруппа'] === false);
+    const kaPriceMap = await kaPrices(kaLeaf.map(p => String(p['Код'])));
+    kaItems = kaLeaf.map(p => { const n = normalizeKrovaliansProduct(p, kaPriceMap, now); const { raw, ...c } = n; return c; });
+    console.log(`  товаров ${kaItems.length}, цен ${kaPriceMap.size}. Маппинг…`);
+  }
+  ka.raw = kaItems.length;
+  for (const n of kaItems) {
     if (!n.supplierSku) continue;
     ka.normalized++;
     const productId = makeProductId(n);
-    const category = kaCategory(n.priceGroup, kaRules);
+    const category = kaCategory(n.name, n.priceGroup, kaRules);
     if (!category) { ka.unmapped++; continue; }
     ka.mapped++;
     byCategory[category] = (byCategory[category] || 0) + 1;
