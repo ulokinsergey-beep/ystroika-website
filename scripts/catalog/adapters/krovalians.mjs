@@ -7,8 +7,27 @@ import { Agent, fetch as undiciFetch } from 'undici';
 const E = process.env;
 const BASE = E.KROVAL_BASE_URL || 'https://b2b.krovalians.ru:8080/kroval/hs/api';
 // Legacy TLS renegotiation + без проверки серта (как в src/lib/kroval.ts).
-// Каталог ~200МБ → отключаем body/headers timeout, иначе undici рвёт долгую загрузку.
-const agent = new Agent({ connect: { rejectUnauthorized: false }, bodyTimeout: 0, headersTimeout: 0 });
+// Каталог ~200МБ → отключаем body/headers timeout; connect-таймаут больше (сервер КА бывает медленный).
+const agent = new Agent({ connect: { rejectUnauthorized: false, timeout: 60000 }, bodyTimeout: 0, headersTimeout: 0 });
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+/** Запрос с ретраями (сервер КА под нагрузкой даёт connect/timeout). */
+async function postRetry(path, body, tries = 4) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await undiciFetch(`${BASE}${path}`, { method: 'POST', headers: headers(), body, dispatcher: agent });
+      if (r.status === 401) throw new Error(`КровАльянс ${path}: 401 (логин/пароль/API_Key/регистр)`);
+      if (!r.ok) throw new Error(`КровАльянс ${path}: HTTP ${r.status}`);
+      return r;
+    } catch (e) {
+      lastErr = e;
+      if (String(e.message).includes('401')) throw e;        // авторизацию не ретраим
+      await sleep(1500 * (i + 1));                            // backoff 1.5/3/4.5с
+    }
+  }
+  throw lastErr;
+}
 
 function headers() {
   if (!E.KROVAL_USER || !E.KROVAL_PASSWORD || !E.KROVAL_API_KEY) throw new Error('КровАльянс: нет KROVAL_USER/PASSWORD/API_KEY в .env');
@@ -19,9 +38,7 @@ function headers() {
 
 /** Полный каталог номенклатуры → массив сырых товаров (ЭтоГруппа:false). Большой (~200МБ). */
 export async function fetchKatalog() {
-  const r = await undiciFetch(`${BASE}/katalog`, { method: 'POST', headers: headers(), body: '{"katalog":"full"}', dispatcher: agent });
-  if (r.status === 401) throw new Error('КровАльянс /katalog: 401 — проверь логин/пароль/API_Key (и регистр заголовка)');
-  if (!r.ok) throw new Error(`КровАльянс /katalog: HTTP ${r.status}`);
+  const r = await postRetry('/katalog', '{"katalog":"full"}', 3);
   const data = await r.json();
   return data['КаталогНоменклатуры'] || [];
 }
@@ -63,20 +80,28 @@ export async function fetchKatalogSample(maxItems = 200) {
   return items;
 }
 
-/** Цены по кодам (батч ≤150) → Map(kod → {price, discounted_price}). soglashenie обязателен. */
+/** Цены по кодам (батч ≤150) → Map(kod → {price, discounted_price}). soglashenie обязателен.
+ *  Устойчиво к сбоям: пачка с ошибкой после ретраев пропускается (эти коды → «по запросу»),
+ *  весь прогон не валится. Возвращает {map, failedBatches}. */
 export async function fetchPrices(kods) {
   const sogl = E.KROVAL_SOGLASHENIE;
   if (!sogl) throw new Error('КровАльянс /price: нет KROVAL_SOGLASHENIE в .env');
   const out = new Map();
+  let failedBatches = 0;
   for (let i = 0; i < kods.length; i += 150) {
     const batch = kods.slice(i, i + 150);
-    const r = await undiciFetch(`${BASE}/price`, { method: 'POST', headers: headers(), body: JSON.stringify({ nomenclatures: batch, soglashenie: sogl }), dispatcher: agent });
-    if (r.status === 401) throw new Error('КровАльянс /price: 401');
-    if (!r.ok) throw new Error(`КровАльянс /price: HTTP ${r.status}`);
-    const d = await r.json();
-    for (const p of (d.prices || [])) {
-      if (p.kod != null) out.set(String(p.kod), { price: Number(p.price) || 0, discounted_price: Number(p.discounted_price) || 0 });
+    try {
+      const r = await postRetry('/price', JSON.stringify({ nomenclatures: batch, soglashenie: sogl }));
+      const d = await r.json();
+      for (const p of (d.prices || [])) {
+        if (p.kod != null) out.set(String(p.kod), { price: Number(p.price) || 0, discounted_price: Number(p.discounted_price) || 0 });
+      }
+    } catch (e) {
+      if (String(e.message).includes('401')) throw e;
+      failedBatches++;                                       // пропускаем пачку, не валим прогон
     }
+    await sleep(150);                                        // пауза, чтобы не перегружать сервер КА
   }
+  out.failedBatches = failedBatches;
   return out;
 }
