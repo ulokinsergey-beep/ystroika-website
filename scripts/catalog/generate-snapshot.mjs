@@ -112,7 +112,9 @@ if (WITH_KROVAL) {
     ka.mapped++;
     byCategory[category] = (byCategory[category] || 0) + 1;
     const price = applyPrice({ ...n, category }, rules, productId);
-    if (price && price > 0) ka.withPrice++; else ka.noPrice++;
+    // КА без цены = тонкая карточка (у КА нет фото/описаний) — НЕ публикуем (SEO: не плодить тонкое).
+    if (!price || price <= 0) { ka.noPrice++; continue; }
+    ka.withPrice++;
     publicItems.push({
       productId, category, source: 'krovalians',
       vendor: n.supplierSku, brand: n.brand, name: n.name,
