@@ -35,6 +35,19 @@ const kaRules = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/krovali
 const imgManifestPath = resolve('src/data/catalog-images-manifest.json');
 const imgManifest = existsSync(imgManifestPath) ? JSON.parse(readFileSync(imgManifestPath, 'utf-8')) : {};
 
+// Прошлый снимок: какие КА-товары уже опубликованы. ПРАВИЛО САЙТА: товар КА, уже бывший
+// на сайте и потерявший цену при обновлении, НЕ удаляем — оставляем как «по запросу»
+// (сохраняем URL/индексацию). Новый КА-товар без цены — не публикуем. См. docs/site-rules.md.
+const prevSnapPath = resolve('src/data/snapshots/catalog-snapshot-latest.json');
+const prevKaPublished = new Set();
+if (existsSync(prevSnapPath)) {
+  try {
+    for (const it of JSON.parse(readFileSync(prevSnapPath, 'utf-8'))) {
+      if (it.source === 'krovalians' && it.productId) prevKaPublished.add(it.productId);
+    }
+  } catch {}
+}
+
 const now = new Date().toISOString();
 const stamp = now.replace(/[:.]/g, '-');
 
@@ -112,15 +125,17 @@ if (WITH_KROVAL) {
     ka.mapped++;
     byCategory[category] = (byCategory[category] || 0) + 1;
     const price = applyPrice({ ...n, category }, rules, productId);
-    // КА без цены = тонкая карточка (у КА нет фото/описаний) — НЕ публикуем (SEO: не плодить тонкое).
-    if (!price || price <= 0) { ka.noPrice++; continue; }
-    ka.withPrice++;
+    const retained = (!price || price <= 0) && prevKaPublished.has(productId);
+    // КА без цены: новый товар — НЕ публикуем (тонкая карточка, у КА нет фото/описаний);
+    // но если товар УЖЕ был на сайте — оставляем как «по запросу» (не теряем URL/SEO).
+    if ((!price || price <= 0) && !retained) { ka.noPrice++; continue; }
+    if (retained) ka.retained = (ka.retained || 0) + 1; else ka.withPrice++;
     publicItems.push({
       productId, category, source: 'krovalians',
       vendor: n.supplierSku, brand: n.brand, name: n.name,
       collection: null, color: null, unit: n.unit,
-      price: price ?? null, currency: 'RUB',
-      priceSource: price ? 'krovalians' : null,
+      price: price && price > 0 ? price : null, currency: 'RUB',
+      priceSource: price && price > 0 ? 'krovalians' : null,
       availability: 'unknown',
       images: [],
       specs: { ...(n.specs || {}), ...(n.pack || {}) },
@@ -128,7 +143,7 @@ if (WITH_KROVAL) {
       updatedAt: now,
     });
   }
-  console.log(`  КА: сопоставлено ${ka.mapped}, с ценой ${ka.withPrice}, без категории ${ka.unmapped}`);
+  console.log(`  КА: сопоставлено ${ka.mapped}, с ценой ${ka.withPrice}, без категории ${ka.unmapped}${ka.retained ? `, сохранено без цены ${ka.retained}` : ''}`);
 }
 
 const report = {
