@@ -19,45 +19,40 @@ if (!category || !subcategory) {
   return new Response(null, { status: 404 });
 }
 
-const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
 let product: any = null;
 let relatedProducts: any[] = [];
 
-if (existsSync(dataPath)) {
-  try {
-    const raw = readFileSync(dataPath, 'utf-8');
-    const data = JSON.parse(raw);
-    const list = data.products ?? [];
-    product = list.find((p: any) => p.kod === code);
-    relatedProducts = list.filter((p: any) => p.kod !== code).slice(0, 4);
-  } catch {}
-}
-
-// ─── Fallback: Döcke-товар из снимка (Фаза 2B) ──────────────────────────────
-// Цена/фото уже в снимке — живые запросы к API не нужны.
-let snapItem = null;
-if (!product) {
-  snapItem = snapshotItemByVendor(code!) ?? null;
-  if (snapItem && snapItem.category === `${categorySlug}/${subcategorySlug}`) {
-    product = {
-      kod: snapItem.vendor,
-      name: snapItem.name ?? snapItem.vendor,
-      artikul: snapItem.vendor,
-      unit: humanUnit(snapItem.unit),
-      brand: snapItem.brand ?? '',
-      image: snapItem.images[0] ?? null,
-      description: null,
-    };
-    relatedProducts = snapshotItemsFor(categorySlug!, subcategorySlug!)
-      .filter(i => i.vendor !== code)
-      .slice(0, 4)
-      .map(i => ({
-        kod: i.vendor, name: i.name ?? i.vendor, artikul: i.vendor,
-        unit: humanUnit(i.unit), brand: i.brand ?? '',
-        image: i.images[0] ?? null, price: i.price, serverPriced: true,
-      }));
-  } else {
-    snapItem = null;
+// ─── ИСТОЧНИК 1 (авторитетный): СНИМОК. Сайт читает только снимок — цена/фото/ТХ оттуда.
+let snapItem = snapshotItemByVendor(code!) ?? null;
+if (snapItem && snapItem.category === `${categorySlug}/${subcategorySlug}`) {
+  product = {
+    kod: snapItem.vendor,
+    name: snapItem.name ?? snapItem.vendor,
+    artikul: snapItem.vendor,
+    unit: humanUnit(snapItem.unit),
+    brand: snapItem.brand ?? '',
+    image: snapItem.images[0] ?? null,
+    description: snapItem.description ?? null,
+  };
+  relatedProducts = snapshotItemsFor(categorySlug!, subcategorySlug!)
+    .filter(i => i.vendor !== code)
+    .slice(0, 4)
+    .map(i => ({
+      kod: i.vendor, name: i.name ?? i.vendor, artikul: i.vendor,
+      unit: humanUnit(i.unit), brand: i.brand ?? '',
+      image: i.images[0] ?? null, price: i.price, serverPriced: true,
+    }));
+} else {
+  snapItem = null;
+  // ─── ИСТОЧНИК 2 (запасной): старый локальный файл + живой API — для товаров, ещё не в снимке.
+  const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
+  if (existsSync(dataPath)) {
+    try {
+      const data = JSON.parse(readFileSync(dataPath, 'utf-8'));
+      const list = data.products ?? [];
+      product = list.find((p: any) => p.kod === code);
+      relatedProducts = list.filter((p: any) => p.kod !== code).slice(0, 4);
+    } catch {}
   }
 }
 
@@ -162,22 +157,43 @@ const standardLengths = [
 
 const canonicalURL = `https://ystroika.ru/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(code!)}/`;
 
-const jsonLd = {
-  '@context': 'https://schema.org',
+// Product + (Offer только при реальной цене — не выдумываем price/availability, см. docs/seo/07) + BreadcrumbList
+const hasRealPrice = typeof displayPrice === 'number' && displayPrice > 0;
+const productImg = product.image && product.image.startsWith('/') ? `https://ystroika.ru${product.image}` : (product.image || undefined);
+const productLd: any = {
   '@type': 'Product',
   'name': product.name,
   'sku': product.kod,
   'mpn': product.artikul || undefined,
-  'description': `${product.name} — купить в Москве и МО. Код: ${product.kod}.${product.brand ? ' Производитель: ' + product.brand + '.' : ''}`,
+  'image': productImg,
+  'description': `${product.name} — купить в Москве и МО.${product.brand ? ' Производитель: ' + product.brand + '.' : ''}`,
   'brand': product.brand ? { '@type': 'Brand', 'name': product.brand } : undefined,
-  'offers': {
+};
+if (hasRealPrice) {
+  productLd.offers = {
     '@type': 'Offer',
     'url': canonicalURL,
     'priceCurrency': 'RUB',
-    'price': displayPrice ?? undefined,
-    'availability': inStock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+    'price': String(displayPrice),
     'seller': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://ystroika.ru' },
-  },
+    // availability не указываем: остатки не отслеживаем (не выдумываем наличие)
+  };
+}
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    productLd,
+    {
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://ystroika.ru/' },
+        { '@type': 'ListItem', position: 2, name: 'Каталог', item: 'https://ystroika.ru/catalog/' },
+        { '@type': 'ListItem', position: 3, name: category.title, item: `https://ystroika.ru/catalog/${categorySlug}/` },
+        { '@type': 'ListItem', position: 4, name: subcategory.title, item: `https://ystroika.ru/catalog/${categorySlug}/${subcategorySlug}/` },
+        { '@type': 'ListItem', position: 5, name: product.name, item: canonicalURL },
+      ],
+    },
+  ],
 };
 ---
 
