@@ -1,0 +1,68 @@
+{
+  "_comment": "КА priceGroup (путь категории поставщика) → категория сайта (categories.ts). Маппинг по ПРЕФИКСУ пути, выбирается самое длинное совпадение. Построено по мастер-структуре Excel «Структура каталога» (дерево КА совпадает). Нет совпадения → не публикуем. Döcke этим НЕ затрагивается.",
+  "map": {
+    "Кров.Мат./МЧ": "krovlya/metallocherepitsa",
+    "Кров.Мат./ГЧ": "krovlya/gibkaya-cherepitsa",
+    "Кров.Мат./Композитная": "krovlya/kompozitnaya-cherepitsa",
+    "Кров.Мат./Черепица": "krovlya/cherepitsa-braas",
+    "Кров.Мат./Наплавляемая": "krovlya/rulonnye-materialy",
+    "Кров.Мат./Медный фальц": "krovlya/faltsevaya",
+
+    "Фас.мат./Сайдинг винил": "fasad/vinilovyy-sayding",
+    "Фас.мат./Сайдинг метал": "fasad/metallicheskiy-sayding",
+    "Фас.мат./Сайдинг фиброцем": "fasad/fibrocementnyy-sayding",
+    "Фас.мат./Сайдинг хризотилцем": "fasad/fibrocementnyy-sayding",
+    "Фас.мат./Сайдинг": "fasad/vinilovyy-sayding",
+    "Фас.мат./Фасадные панели": "fasad/fasadnye-paneli",
+    "Фас.мат./Фасадная плитка": "fasad/fasadnaya-plitka",
+    "Фас.мат./Софиты": "fasad/dobornye-elementy",
+    "Фас.мат./Подсистема": "fasad/podsistema",
+    "Фас.мат./Фасадные кассеты": "fasad/dobornye-elementy",
+
+    "Водосточные системы/Сталь": "vodostok/metallicheskiy-vodostok",
+    "Водосточные системы/Оцинковка": "vodostok/metallicheskiy-vodostok",
+    "Водосточные системы/Медь": "vodostok/metallicheskiy-vodostok",
+    "Водосточные системы/Аквасистем": "vodostok/metallicheskiy-vodostok",
+    "Водосточные системы/ПВХ": "vodostok/plastikovy-vodostok",
+    "Система наземного водосбора": "vodostok/plastikovy-vodostok",
+
+    "Профнастил/Штакетник": "ograzhdeniya/zabory",
+    "Профнастил/Панельные ограждения": "ograzhdeniya/zabory",
+    "Профнастил/Модульные ограждения": "ograzhdeniya/zabory",
+    "Профнастил/GL Дачный": "krovlya/profnastil",
+    "Профнастил/Optima": "krovlya/profnastil",
+    "Профнастил/Неопроф": "krovlya/profnastil",
+    "Профнастил, штакетник": "ograzhdeniya/zabory",
+    "Заборы": "ograzhdeniya/zabory",
+
+    "Кров.аксессуары/ЭБК": "krovlya/komplektuyushchie-krovli",
+    "Кров.аксессуары/Саморезы": "komplektuyushchie/krepezh",
+    "Кров.аксессуары/Перф крепеж": "komplektuyushchie/krepezh",
+    "Кров.аксессуары/Герм.ленты": "komplektuyushchie/germetiki",
+    "Кров.аксессуары/Герметики": "komplektuyushchie/germetiki",
+    "Кров.аксессуары/монтажная пена": "komplektuyushchie/germetiki",
+    "Кров.аксессуары/Уплотнители": "krovlya/komplektuyushchie-krovli",
+    "Кров.аксессуары/Eurovent": "krovlya/komplektuyushchie-krovli",
+    "Кров.аксессуары/Home Pro": "krovlya/komplektuyushchie-krovli",
+    "Кров.аксессуары/GL": "krovlya/komplektuyushchie-krovli",
+    "Кров.аксессуары/DR": "krovlya/komplektuyushchie-krovli",
+    "Кров.аксессуары/Краска": "krovlya/komplektuyushchie-krovli",
+
+    "Мансарда": "ventilyatsiya/mansardnye",
+    "Кров.вентиляция": "ventilyatsiya/aeratory",
+    "Аэраторы": "ventilyatsiya/aeratory",
+
+    "утеплители": "uteplenie/mineralnaya",
+    "Утеплители": "uteplenie/mineralnaya",
+    "ОСП": "uteplenie/osb",
+    "Изоляция": "komplektuyushchie/plenki",
+    "ПВП- Мембраны": "komplektuyushchie/plenki",
+    "Геотекстиль": "komplektuyushchie/plenki",
+
+    "Дымоходы": "krovlya/komplektuyushchie-krovli",
+    "Террасная доска": "blagoustrojstvo/terrasa",
+    "Терасная доска": "blagoustrojstvo/terrasa",
+    "Декоративное уличное покрытия": "blagoustrojstvo/terrasa",
+    "Напольные покрытия": "blagoustrojstvo/terrasa"
+  }
+}

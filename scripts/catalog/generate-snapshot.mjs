@@ -15,10 +15,17 @@ const PAGES = (() => { const i = process.argv.indexOf('--pages'); return i > -1 
 // КровАльянс включаем только в полном прогоне (не в --pages пробе) и если не --docke-only
 const WITH_KROVAL = PAGES === Infinity && !process.argv.includes('--docke-only');
 
-function kaCategory(name, priceGroup, rules) {
-  const hay = `${name || ''} ${priceGroup || ''}`.toLowerCase();
-  for (const r of rules) if (r.match.some(k => hay.includes(k.toLowerCase()))) return r.category;
-  return null;
+// КА-категория по мастер-структуре Excel: самое длинное совпадение префикса priceGroup.
+function kaCategory(priceGroup, pgMap) {
+  const pg = (priceGroup || '').trim();
+  if (!pg) return null;
+  let best = null, bestLen = -1;
+  for (const prefix in pgMap) {
+    if (pg === prefix || pg.startsWith(prefix + '/') || pg.startsWith(prefix)) {
+      if (prefix.length > bestLen) { best = pgMap[prefix]; bestLen = prefix.length; }
+    }
+  }
+  return best;
 }
 const OUT = resolve('src/data/snapshots');
 mkdirSync(OUT, { recursive: true });
@@ -31,7 +38,7 @@ const rootUuid = (catTree.find(c => !c.parent_uuid) || {}).uuid;
 const branchMap = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/docke-branch-map.json'), 'utf-8')).branches;
 // keyword-fallback для товаров, чья ветка не резолвится по дереву (новые/битые uuid)
 const catRules = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/docke-category-rules.json'), 'utf-8')).rules;
-const kaRules = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/krovalians-category-rules.json'), 'utf-8')).rules;
+const kaPgMap = JSON.parse(readFileSync(resolve('scripts/catalog/mapping/krovalians-pricegroup-map.json'), 'utf-8')).map;
 const imgManifestPath = resolve('src/data/catalog-images-manifest.json');
 const imgManifest = existsSync(imgManifestPath) ? JSON.parse(readFileSync(imgManifestPath, 'utf-8')) : {};
 
@@ -120,7 +127,7 @@ if (WITH_KROVAL) {
     if (!n.supplierSku) continue;
     ka.normalized++;
     const productId = makeProductId(n);
-    const category = kaCategory(n.name, n.priceGroup, kaRules);
+    const category = kaCategory(n.priceGroup, kaPgMap);
     if (!category) { ka.unmapped++; continue; }
     ka.mapped++;
     byCategory[category] = (byCategory[category] || 0) + 1;
