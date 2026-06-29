@@ -8,11 +8,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:staging": "node scripts/build-staging.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.5",
     "@astrojs/sitemap": "^3.7.2",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "5.18.1",

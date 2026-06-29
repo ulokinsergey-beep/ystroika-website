@@ -1,14 +1,9 @@
 ---
 /**
- * Страница подкатегории каталога — SSR.
- * Layout: левый сайдбар (разделы, цена, бренды) + правая сетка товаров — по Figma.
- * Фильтры: ?brand=, ?sort=, ?per_page=, ?page=, ?price_min=, ?price_max=
- * Цены + наличие: клиентский JS через /api/catalog/prices и /api/catalog/stock
+ * Подкатегория каталога — СТАТИЧЕСКАЯ (Timeweb MVP).
+ * Рендерит небольшой курируемый demo-набор (src/data/catalog-demo.json).
+ * Полный листинг с фильтрами/пагинацией/поиском по 31.8k — позже на Cloudflare SSR.
  */
-export const prerender = false;
-
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ProductCard from '../../../components/catalog/ProductCard.astro';
 import AdvantagesBlock from '../../../components/AdvantagesBlock.astro';
@@ -16,147 +11,32 @@ import ServicesCalculatorsBlock from '../../../components/ServicesCalculatorsBlo
 import BrandsBlock from '../../../components/BrandsBlock.astro';
 import CatalogSeoContent from '../../../components/CatalogSeoContent.astro';
 import { categories } from '../../../data/categories';
-import { catalogSlugAliases } from '../../../data/catalogSlugMap';
 import { catalogSeoContent } from '../../../data/catalogSeoContent';
-import { snapshotItemsFor, humanUnit } from '../../../lib/snapshot';
+import { demoItemsFor, toCard } from '../../../lib/demo';
 
-const { category: categorySlug, subcategory: subcategorySlug } = Astro.params;
-
-// ─── 301-редиректы для target slug-алиасов ──────────────────────────────────
-// Если входящий slug совпадает с "targetCategory/targetSubcategory" из маппинга,
-// отдаём 301 на currentCategory/currentSubcategory.
-const alias = catalogSlugAliases.find(a =>
-  a.targetCategory === categorySlug &&
-  (a.targetSubcategory ?? '') === (subcategorySlug ?? '')
-);
-if (alias) {
-  const dest = `/catalog/${alias.currentCategory}/${alias.currentSubcategory ?? subcategorySlug}/`;
-  const qs = Astro.url.search;
-  return new Response(null, {
-    status: 301,
-    headers: { Location: dest + qs, 'Cache-Control': 'public, max-age=31536000' },
-  });
-}
-
-const category = categories.find(c => c.slug === categorySlug);
-const subcategory = category?.subcategories?.find(s => s.slug === subcategorySlug);
-
-if (!category || !subcategory) {
-  return new Response(null, { status: 404 });
-}
-
-// ─── Вспомогательная: извлечь бренд из товара ──────────────────────────────
-function getBrand(p: any): string {
-  if (p.brand && p.brand.trim()) return p.brand.trim();
-  if (p.priceGroup) {
-    const parts = (p.priceGroup as string).split('/').map((s: string) => s.trim());
-    if (parts.length >= 3) return parts[2];
-    if (parts.length === 2) return parts[1];
+export function getStaticPaths() {
+  const paths: { params: { category: string; subcategory: string }; props: { category: any; subcategory: any } }[] = [];
+  for (const category of categories) {
+    for (const subcategory of (category.subcategories ?? [])) {
+      paths.push({
+        params: { category: category.slug, subcategory: subcategory.slug },
+        props: { category, subcategory },
+      });
+    }
   }
-  return '';
+  return paths;
 }
 
-// ─── Загрузить данные из pre-generated JSON ─────────────────────────────────
-let allProducts: any[] = [];
-const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
-if (existsSync(dataPath)) {
-  try {
-    const raw = readFileSync(dataPath, 'utf-8');
-    const data = JSON.parse(raw);
-    allProducts = data.products ?? [];
-  } catch {}
-}
+const { category, subcategory } = Astro.props;
+const categorySlug = category.slug;
+const subcategorySlug = subcategory.slug;
 
-// ─── Döcke из снимка (Фаза 2B): цена/фото уже в данных, рендер серверный ────
-// Идут первыми: у них реальная РРЦ-цена и фото (КровАльянс ждёт восстановления API).
-const snapItems = snapshotItemsFor(categorySlug!, subcategorySlug!).map(i => ({
-  kod: i.vendor,
-  name: i.name ?? i.vendor,
-  artikul: i.vendor,
-  unit: humanUnit(i.unit),
-  brand: i.brand ?? '',
-  priceGroup: '',
-  image: i.images[0] ?? null,
-  price: i.price,            // null = «по запросу»
-  serverPriced: true,
-}));
-allProducts = [...snapItems, ...allProducts];
+// demo-товары подкатегории (курируемые, с серверной ценой из снимка)
+const products = demoItemsFor(categorySlug, subcategorySlug).map(toCard);
+const totalCount = products.length;
+const seo = catalogSeoContent[categorySlug];
 
-// ─── Уникальные бренды (служебные группы КА отфильтрованы) ─────────────────
-const SKIP_BRANDS = new Set([
-  '-', '--', '...', 'Вся кровля', 'Вся продукция',
-  'Упаковка', 'Доставка товара, Услуги', 'Аренда, хранение',
-  'Бонус(ПАПКА)', 'Распродажи',
-]);
-
-const brandCountMap: Record<string, number> = {};
-for (const p of allProducts) {
-  const b = getBrand(p);
-  if (!b) continue;
-  if (/[\x00-\x1f\x7f\uDC00-\uDFFF�]/.test(b)) continue;
-  if (SKIP_BRANDS.has(b)) continue;
-  if (b.includes(',') && b.length > 40) continue;
-  brandCountMap[b] = (brandCountMap[b] ?? 0) + 1;
-}
-const availableBrands = Object.entries(brandCountMap)
-  .filter(([, count]) => count >= 5)
-  .sort((a, b) => b[1] - a[1])
-  .map(([name, count]) => ({ name, count }));
-
-// ─── URL-параметры ──────────────────────────────────────────────────────────
-const selectedBrand = Astro.url.searchParams.get('brand') ?? '';
-const sortParam     = Astro.url.searchParams.get('sort') ?? 'popular';
-const perPageParam  = parseInt(Astro.url.searchParams.get('per_page') ?? '60');
-const PAGE_SIZE     = [30, 40, 50, 60].includes(perPageParam) ? perPageParam : 60;
-const page          = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1'));
-const priceMin      = Astro.url.searchParams.get('price_min') ?? '';
-const priceMax      = Astro.url.searchParams.get('price_max') ?? '';
-
-// ─── Фильтр по бренду (серверный) ───────────────────────────────────────────
-let products = selectedBrand
-  ? allProducts.filter((p: any) => getBrand(p) === selectedBrand)
-  : allProducts;
-
-// ─── Серверная сортировка (имя; по цене — клиентская) ───────────────────────
-if (sortParam === 'name_asc') {
-  products = [...products].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-} else if (sortParam === 'name_desc') {
-  products = [...products].sort((a, b) => b.name.localeCompare(a.name, 'ru'));
-}
-
-const totalCount  = products.length;
-const totalPages  = Math.ceil(totalCount / PAGE_SIZE);
-const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-const kodsBatch   = pageProducts.map((p: any) => p.kod).filter(Boolean);
-
-// ─── Построение URL с сохранением/заменой параметров ────────────────────────
-function buildUrl(params: Record<string, string | null>) {
-  const base = `/catalog/${categorySlug}/${subcategorySlug}`;
-  const sp = new URLSearchParams();
-  if (selectedBrand) sp.set('brand', selectedBrand);
-  if (sortParam && sortParam !== 'popular') sp.set('sort', sortParam);
-  if (PAGE_SIZE !== 60) sp.set('per_page', String(PAGE_SIZE));
-  if (priceMin) sp.set('price_min', priceMin);
-  if (priceMax) sp.set('price_max', priceMax);
-  sp.set('page', String(page));
-  for (const [k, v] of Object.entries(params)) {
-    if (v === null) sp.delete(k);
-    else sp.set(k, v);
-  }
-  if (sp.get('page') === '1') sp.delete('page');
-  const qs = sp.toString();
-  return qs ? `${base}?${qs}` : base;
-}
-
-const allSubcategories = category.subcategories ?? [];
-// Категорийный SEO-контент (блоки 13–14). Нет ключа → блок не рендерится.
-const seo = catalogSeoContent[categorySlug!];
-const hasFilters = !!(selectedBrand || priceMin || priceMax);
-
-const canonicalURL = new URL(
-  `/catalog/${categorySlug}/${subcategorySlug}/`,
-  'https://y-stroika.ru'
-).href;
+const canonicalURL = new URL(`/catalog/${categorySlug}/${subcategorySlug}/`, 'https://y-stroika.ru').href;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -174,9 +54,8 @@ const jsonLd = {
       "@type": "CollectionPage",
       "@id": canonicalURL,
       "name": `${subcategory.title} — купить в Москве · У-Стройка`,
-      "description": `${subcategory.title} в Москве и МО. ${totalCount > 0 ? totalCount + ' позиций' : ''}. Широкий ассортимент, доставка 1 день, гарантия лучшей цены.`,
+      "description": `${subcategory.title} в Москве и МО. Широкий ассортимент, доставка 1 день, гарантия лучшей цены.`,
       "url": canonicalURL,
-      "numberOfItems": totalCount,
     }
   ]
 };
@@ -184,16 +63,15 @@ const jsonLd = {
 
 <BaseLayout
   title={`${subcategory.title} — купить в Москве`}
-  description={`${subcategory.title} — купить в Москве и МО по выгодным ценам. ${subcategory.brands?.length ? `Бренды: ${subcategory.brands.join(', ')}.` : ''} ${totalCount} позиций. Доставка 1 день. Звоните: 8-800-333-94-95.`}
+  description={`${subcategory.title} — купить в Москве и МО по выгодным ценам. ${subcategory.brands?.length ? `Бренды: ${subcategory.brands.join(', ')}.` : ''} Доставка 1 день. Звоните: 8-800-333-94-95.`}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+  <link rel="canonical" slot="head" href={canonicalURL} />
 
   <div class="bg-white min-h-screen">
 
-    <!-- ══ Breadcrumb + Заголовок ═════════════════════════════════════════ -->
+    <!-- Breadcrumb + Заголовок -->
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] pt-5 pb-4">
-
-      <!-- Breadcrumb (разделитель • как в Figma) -->
       <nav class="flex flex-wrap items-center gap-1.5 text-sm text-[#898989] mb-3">
         <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
         <span class="text-[#d0d0d0]">•</span>
@@ -203,39 +81,22 @@ const jsonLd = {
         <span class="text-[#d0d0d0]">•</span>
         <span class="text-[#333333]">{subcategory.title}</span>
       </nav>
-
-      <h1 class="text-2xl lg:text-[28px] font-bold text-[#333333] leading-snug">
-        {subcategory.title}
-      </h1>
+      <h1 class="text-2xl lg:text-[28px] font-bold text-[#333333] leading-snug">{subcategory.title}</h1>
     </div>
 
-    <!-- ══ Hero-баннер: фото категории + тёмная панель с описанием ════════ -->
+    <!-- Hero-баннер -->
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] pb-5">
       <div class="flex min-h-[210px] rounded-[5px] overflow-hidden">
-
-        <!-- Левая часть — фото подкатегории (если есть) или плейсхолдер -->
         <div class="flex-1 bg-[#E9E9E9] relative flex items-center justify-center overflow-hidden">
           {subcategory.image ? (
-            <img
-              src={subcategory.image}
-              alt={subcategory.title}
-              class="absolute inset-0 w-full h-full object-cover"
-            />
+            <img src={subcategory.image} alt={subcategory.title} class="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div class="text-[120px] opacity-20 select-none">{category.icon}</div>
           )}
           <div class="absolute inset-0 bg-gradient-to-r from-transparent to-[#33333322]"></div>
         </div>
-
-        <!-- Правая часть — тёмная панель с описанием -->
         <div class="relative w-[42%] shrink-0 bg-[#333333] px-8 py-7 text-white flex flex-col justify-center">
-          <!-- % бейдж -->
-          <div class="absolute top-4 right-4 w-10 h-10 bg-[#FFAE01] rounded-full flex items-center justify-center shrink-0">
-            <span class="text-black text-sm font-bold leading-none">%</span>
-          </div>
-
-          <h2 class="text-lg font-bold mb-3 pr-12">{subcategory.title}</h2>
-
+          <h2 class="text-lg font-bold mb-3 pr-4">{subcategory.title}</h2>
           {subcategory.description ? (
             <p class="text-[#C0C0C0] text-sm leading-relaxed line-clamp-5">{subcategory.description}</p>
           ) : (
@@ -244,746 +105,75 @@ const jsonLd = {
               Доставка по Москве и МО 1–2 дня. Гарантия лучшей цены.
             </p>
           )}
-
-          {totalCount > 0 && (
-            <p class="text-[#898989] text-xs mt-4">
-              {totalCount.toLocaleString('ru-RU')} позиций в наличии
-            </p>
-          )}
         </div>
       </div>
     </div>
 
-    <!-- ══ «Часто ищут» — бренды/теги ═════════════════════════════════════ -->
-    {availableBrands.length > 1 && (
-      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] pb-5">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-sm text-[#898989] shrink-0 mr-1">Часто ищут:</span>
-
-          <!-- «Все» -->
-          <a
-            href={buildUrl({ brand: null, page: '1' })}
-            class={`inline-flex items-center px-3.5 py-1.5 rounded-[5px] text-sm font-medium transition-colors whitespace-nowrap ${
-              !selectedBrand
-                ? 'bg-[#FFAE01] text-black'
-                : 'bg-white border border-[#E9E9E9] text-[#333333] hover:border-[#FFAE01] hover:text-[#FFAE01]'
-            }`}
-          >
-            Все
-          </a>
-
-          {availableBrands.slice(0, 7).map(b => (
-            <a
-              href={buildUrl({ brand: selectedBrand === b.name ? null : b.name, page: '1' })}
-              class={`inline-flex items-center px-3.5 py-1.5 rounded-[5px] text-sm font-medium transition-colors whitespace-nowrap ${
-                selectedBrand === b.name
-                  ? 'bg-[#FFAE01] text-black'
-                  : 'bg-white border border-[#E9E9E9] text-[#333333] hover:border-[#FFAE01] hover:text-[#FFAE01]'
-              }`}
-            >
-              {b.name}
-            </a>
-          ))}
-
-          <!-- Кнопка «Все теги» как в Figma -->
-          {availableBrands.length > 7 && (
-            <button
-              type="button"
-              id="show-all-tags"
-              class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-[5px] text-sm font-medium bg-[#333333] text-white hover:bg-[#464646] transition-colors whitespace-nowrap"
-            >
-              Все теги
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-          )}
-        </div>
-
-        <!-- Скрытые дополнительные теги -->
-        {availableBrands.length > 7 && (
-          <div id="extra-tags" class="hidden flex-wrap gap-2 mt-2">
-            {availableBrands.slice(7).map(b => (
-              <a
-                href={buildUrl({ brand: selectedBrand === b.name ? null : b.name, page: '1' })}
-                class={`inline-flex items-center px-3.5 py-1.5 rounded-[5px] text-sm font-medium transition-colors whitespace-nowrap ${
-                  selectedBrand === b.name
-                    ? 'bg-[#FFAE01] text-black'
-                    : 'bg-white border border-[#E9E9E9] text-[#333333] hover:border-[#FFAE01] hover:text-[#FFAE01]'
-                }`}
-              >
-                {b.name}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    )}
-
-    <!-- ══ Основная область: bg-[#F5F5F5] ════════════════════════════════ -->
+    <!-- Основная область -->
     <div class="bg-[#F5F5F5]">
       <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
 
-        <div class="flex gap-6 items-start">
-
-          <!-- ┌─ ЛЕВЫЙ САЙДБАР ─────────────────────────────────────────────┐ -->
-          <aside class="w-[260px] shrink-0 hidden lg:block" id="catalog-sidebar">
-            <form method="get" action={`/catalog/${categorySlug}/${subcategorySlug}`} id="filter-form">
-
-              <!-- Подкатегории раздела -->
-              {allSubcategories.length > 1 && (
-                <div class="bg-white rounded-[5px] border border-[#E9E9E9] overflow-hidden mb-3">
-                  {allSubcategories.map(s => (
-                    <a
-                      href={`/catalog/${categorySlug}/${s.slug}`}
-                      class={`flex items-center justify-between px-4 py-3 text-sm transition-colors border-b border-[#F5F5F5] last:border-b-0 ${
-                        s.slug === subcategorySlug
-                          ? 'bg-[#333333] text-white font-semibold'
-                          : 'text-[#333333] hover:text-[#FFAE01] hover:bg-[#FFFBEB]'
-                      }`}
-                    >
-                      <span class="leading-snug">{s.title}</span>
-                      {s.slug !== subcategorySlug && (
-                        <svg class="w-3.5 h-3.5 shrink-0 text-[#C0C0C0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                      )}
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              <!-- Цена -->
-              <div class="bg-white rounded-[5px] border border-[#E9E9E9] p-4 mb-3">
-                <h3 class="text-xs font-bold text-[#333333] uppercase tracking-wider mb-4">Цена, ₽</h3>
-                <div class="relative h-1.5 bg-[#E9E9E9] rounded-full mb-5 mx-2 select-none" id="price-track">
-                  <div class="absolute inset-y-0 bg-[#FFAE01] rounded-full" id="price-slider-fill" style="left:0;right:0;"></div>
-                  <button type="button" id="price-handle-min" aria-label="Минимальная цена"
-                    class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#FFAE01] rounded-full shadow cursor-grab active:cursor-grabbing touch-none z-10" style="left:0%;"></button>
-                  <button type="button" id="price-handle-max" aria-label="Максимальная цена"
-                    class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#FFAE01] rounded-full shadow cursor-grab active:cursor-grabbing touch-none z-10" style="left:100%;"></button>
-                </div>
-                <div class="flex items-center gap-2">
-                  <div class="flex-1">
-                    <label class="text-[10px] text-[#898989] uppercase tracking-wide block mb-1">От</label>
-                    <input type="number" name="price_min" value={priceMin} placeholder="0" min="0"
-                      class="w-full h-9 px-3 text-sm border border-[#E9E9E9] rounded-[5px] focus:outline-none focus:border-[#FFAE01] transition-colors"
-                      id="price-min-input" />
-                  </div>
-                  <span class="text-[#d0d0d0] mt-5 text-lg leading-none">—</span>
-                  <div class="flex-1">
-                    <label class="text-[10px] text-[#898989] uppercase tracking-wide block mb-1">До</label>
-                    <input type="number" name="price_max" value={priceMax} placeholder="∞" min="0"
-                      class="w-full h-9 px-3 text-sm border border-[#E9E9E9] rounded-[5px] focus:outline-none focus:border-[#FFAE01] transition-colors"
-                      id="price-max-input" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Производитель -->
-              {availableBrands.length > 0 && (
-                <div class="bg-white rounded-[5px] border border-[#E9E9E9] p-4 mb-3">
-                  <h3 class="text-xs font-bold text-[#333333] uppercase tracking-wider mb-3">Производитель</h3>
-                  <ul class="space-y-2" id="brand-list">
-                    <li class="flex items-center gap-2.5">
-                      <input type="radio" name="brand" value="" id="brand-all" checked={!selectedBrand}
-                        class="w-4 h-4 accent-[#FFAE01] cursor-pointer" />
-                      <label for="brand-all" class="flex flex-1 items-center justify-between cursor-pointer">
-                        <span class="text-sm text-[#333333]">Все бренды</span>
-                        <span class="text-xs text-[#898989]">{allProducts.length.toLocaleString('ru-RU')}</span>
-                      </label>
-                    </li>
-                    {availableBrands.map((b, i) => (
-                      <li class={`flex items-center gap-2.5 ${i >= 8 ? 'brand-extra hidden' : ''}`}>
-                        <input type="radio" name="brand" value={b.name} id={`brand-${i}`} checked={selectedBrand === b.name}
-                          class="w-4 h-4 accent-[#FFAE01] cursor-pointer shrink-0" />
-                        <label for={`brand-${i}`} class="flex flex-1 items-center justify-between cursor-pointer min-w-0">
-                          <span class="text-sm text-[#333333] truncate">{b.name}</span>
-                          <span class="text-xs text-[#898989] shrink-0 ml-1">{b.count.toLocaleString('ru-RU')}</span>
-                        </label>
-                      </li>
-                    ))}
-                    {availableBrands.length > 8 && (
-                      <li>
-                        <button type="button" id="show-all-brands"
-                          class="text-xs text-[#FFAE01] hover:opacity-80 transition-opacity mt-1">
-                          Ещё {availableBrands.length - 8} брендов ▾
-                        </button>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              )}
-
-              {sortParam && sortParam !== 'popular' && (
-                <input type="hidden" name="sort" value={sortParam} />
-              )}
-              {PAGE_SIZE !== 60 && (
-                <input type="hidden" name="per_page" value={String(PAGE_SIZE)} />
-              )}
-
-              <button type="submit"
-                class="w-full h-11 bg-[#FFAE01] hover:bg-[#E09800] text-black font-semibold text-sm rounded-[5px] transition-colors mb-2">
-                Показать {totalCount.toLocaleString('ru-RU')} товаров
-              </button>
-
-              {hasFilters && (
-                <a href={`/catalog/${categorySlug}/${subcategorySlug}`}
-                  class="block text-center text-sm text-[#898989] hover:text-[#333333] transition-colors py-1">
-                  Сбросить фильтры
-                </a>
-              )}
-            </form>
-          </aside>
-          <!-- └────────────────────────────────────────────────────────────┘ -->
-
-          <!-- ┌─ ПРАВАЯ ЧАСТЬ ──────────────────────────────────────────────┐ -->
-          <div class="flex-1 min-w-0">
-
-            <!-- Мобильная кнопка фильтров -->
-            <div class="lg:hidden mb-4 flex items-center gap-3">
-              <button type="button" id="mobile-filter-btn"
-                class="inline-flex items-center gap-2 h-9 px-4 bg-white border border-[#E9E9E9] rounded-[5px] text-sm font-medium text-[#333333] hover:border-[#FFAE01] transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-                </svg>
-                Фильтры
-                {hasFilters && (
-                  <span class="inline-flex items-center justify-center w-4 h-4 bg-[#FFAE01] text-black text-[10px] font-bold rounded-full">!</span>
-                )}
-              </button>
+        {totalCount > 0 ? (
+          <>
+            <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+              <p class="text-[#333333] font-semibold">Популярные позиции</p>
+              <p class="text-sm text-[#898989]">Полный ассортимент — уточняйте по телефону</p>
             </div>
-
-            {totalCount === 0 ? (
-              <div class="bg-white border border-dashed border-[#E9E9E9] rounded-[5px] p-12 text-center">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F5F5F5] flex items-center justify-center">
-                  <svg class="w-8 h-8 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                  </svg>
-                </div>
-                <p class="text-[#333333] font-semibold text-lg mb-2">Товары загружаются</p>
-                <p class="text-[#898989] text-sm max-w-xs mx-auto mb-6">
-                  Ассортимент появится в ближайшее время. Для уточнения — позвоните нам.
-                </p>
-                <a href="tel:88003339495"
-                  class="inline-flex items-center gap-2 bg-[#FFAE01] hover:bg-[#E09800] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors">
-                  Позвонить
-                </a>
-              </div>
-            ) : (
-              <>
-                <!-- ── Панель сортировки (по Figma: дропдауны + вид) ─────── -->
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-white border border-[#E9E9E9] rounded-[5px] px-4 py-2.5">
-
-                  <!-- Сортировка — select -->
-                  <div class="flex items-center gap-4 flex-wrap">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm text-[#898989] whitespace-nowrap hidden sm:block">Сортировать:</span>
-                      <div class="relative">
-                        <select
-                          id="sort-select"
-                          class="h-8 pl-3 pr-7 text-sm border border-[#E9E9E9] rounded-[5px] bg-white text-[#333333] appearance-none cursor-pointer focus:outline-none focus:border-[#FFAE01] transition-colors"
-                        >
-                          <option value="popular" selected={sortParam === 'popular'}>По популярности</option>
-                          <option value="name_asc" selected={sortParam === 'name_asc'}>А — Я</option>
-                          <option value="price_asc" selected={sortParam === 'price_asc'}>Сначала дешевле</option>
-                          <option value="price_desc" selected={sortParam === 'price_desc'}>Сначала дороже</option>
-                        </select>
-                        <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#898989] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                      </div>
-                    </div>
-
-                    <!-- Показывать по — select -->
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm text-[#898989] whitespace-nowrap hidden sm:block">Показывать по:</span>
-                      <div class="relative">
-                        <select
-                          id="perpage-select"
-                          class="h-8 pl-3 pr-7 text-sm border border-[#E9E9E9] rounded-[5px] bg-white text-[#333333] appearance-none cursor-pointer focus:outline-none focus:border-[#FFAE01] transition-colors"
-                        >
-                          <option value="30" selected={PAGE_SIZE === 30}>30</option>
-                          <option value="60" selected={PAGE_SIZE === 60}>60</option>
-                        </select>
-                        <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#898989] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Вид + счётчик -->
-                  <div class="flex items-center gap-3">
-                    <span class="text-sm text-[#898989] hidden xl:block whitespace-nowrap">
-                      {((page - 1) * PAGE_SIZE + 1).toLocaleString('ru-RU')}–{Math.min(page * PAGE_SIZE, totalCount).toLocaleString('ru-RU')} из {totalCount.toLocaleString('ru-RU')}
-                    </span>
-
-                    <!-- Переключатель вид: плитка / список -->
-                    <div class="flex items-center border border-[#E9E9E9] rounded-[5px] overflow-hidden">
-                      <button type="button" id="view-grid"
-                        class="view-toggle-btn w-8 h-8 flex items-center justify-center bg-white text-[#898989] hover:text-[#333333] transition-colors"
-                        title="Плитка" aria-pressed="false">
-                        <!-- Grid icon -->
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                          <rect x="0" y="0" width="7" height="7" rx="1"/>
-                          <rect x="9" y="0" width="7" height="7" rx="1"/>
-                          <rect x="0" y="9" width="7" height="7" rx="1"/>
-                          <rect x="9" y="9" width="7" height="7" rx="1"/>
-                        </svg>
-                      </button>
-                      <button type="button" id="view-list"
-                        class="view-toggle-btn w-8 h-8 flex items-center justify-center bg-[#FFAE01] text-black transition-colors"
-                        title="Список" aria-pressed="true">
-                        <!-- List icon -->
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                          <rect x="0" y="1" width="16" height="3" rx="1"/>
-                          <rect x="0" y="7" width="16" height="3" rx="1"/>
-                          <rect x="0" y="13" width="16" height="3" rx="1"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ── Сетка товаров (3 кол. на десктопе — по Figma) ─────── -->
-                <div
-                  class="flex flex-col gap-3"
-                  id="products-grid"
-                >
-                  {pageProducts.map((p: any) => (
-                    <ProductCard
-                      kod={p.kod}
-                      name={p.name}
-                      artikul={p.artikul}
-                      unit={p.unit}
-                      brand={p.brand}
-                      priceGroup={p.priceGroup}
-                      categorySlug={categorySlug!}
-                      subcategorySlug={subcategorySlug!}
-                      image={p.image ?? null}
-                      price={p.price}
-                      serverPriced={p.serverPriced ?? false}
-                    />
-                  ))}
-                </div>
-
-                <!-- ── Пагинация ─────────────────────────────────────────── -->
-                {totalPages > 1 && (
-                  <div class="flex items-center justify-center flex-wrap gap-1.5 mt-8">
-                    {page > 1 && (
-                      <a href={buildUrl({ page: String(page - 1) })}
-                        class="px-4 py-2 text-sm border border-[#E9E9E9] rounded-[5px] hover:border-[#FFAE01] hover:text-[#FFAE01] transition-colors bg-white">
-                        ← Назад
-                      </a>
-                    )}
-                    {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                      const p2 = Math.max(1, page - 3) + i;
-                      if (p2 > totalPages) return null;
-                      return (
-                        <a href={buildUrl({ page: String(p2) })}
-                          class={`w-10 h-10 flex items-center justify-center text-sm rounded-[5px] transition-colors ${
-                            p2 === page
-                              ? 'bg-[#FFAE01] text-black font-semibold'
-                              : 'bg-white border border-[#E9E9E9] hover:border-[#FFAE01] hover:text-[#FFAE01]'
-                          }`}>
-                          {p2}
-                        </a>
-                      );
-                    })}
-                    {page < totalPages && (
-                      <a href={buildUrl({ page: String(page + 1) })}
-                        class="px-4 py-2 text-sm border border-[#E9E9E9] rounded-[5px] hover:border-[#FFAE01] hover:text-[#FFAE01] transition-colors bg-white">
-                        Вперёд →
-                      </a>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-
-            <!-- ── CTA ─────────────────────────────────────────────────── -->
-            <div class="mt-8 bg-[#333333] text-white rounded-[5px] px-6 py-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <p class="font-bold text-base">Нужна консультация по {subcategory.title.toLowerCase()}?</p>
-                <p class="text-[#898989] text-sm mt-1">Поможем подобрать под ваш проект и бюджет, рассчитаем количество</p>
-              </div>
-              <a href="tel:88003339495"
-                class="shrink-0 bg-[#FFAE01] hover:bg-[#E09800] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap">
-                Позвонить
-              </a>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {products.map((p: any) => (
+                <ProductCard
+                  kod={p.kod}
+                  name={p.name}
+                  artikul={p.artikul}
+                  unit={p.unit}
+                  brand={p.brand}
+                  categorySlug={categorySlug}
+                  subcategorySlug={subcategorySlug}
+                  image={p.image ?? null}
+                  price={p.price}
+                  serverPriced={true}
+                />
+              ))}
             </div>
-
+          </>
+        ) : (
+          <div class="bg-white border border-dashed border-[#E9E9E9] rounded-[5px] p-12 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+              <svg class="w-8 h-8 text-[#d0d0d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+            </div>
+            <p class="text-[#333333] font-semibold text-lg mb-2">Ассортимент уточняйте у менеджера</p>
+            <p class="text-[#898989] text-sm max-w-xs mx-auto mb-6">
+              Поможем подобрать {subcategory.title.toLowerCase()} под ваш проект и бюджет.
+            </p>
+            <a href="tel:88003339495"
+              class="inline-flex items-center gap-2 bg-[#FFAE01] hover:bg-[#E09800] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors">
+              Позвонить
+            </a>
           </div>
-          <!-- └────────────────────────────────────────────────────────────┘ -->
+        )}
+
+        <!-- CTA -->
+        <div class="mt-8 bg-[#333333] text-white rounded-[5px] px-6 py-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p class="font-bold text-base">Нужна консультация по {subcategory.title.toLowerCase()}?</p>
+            <p class="text-[#898989] text-sm mt-1">Поможем подобрать под ваш проект и бюджет, рассчитаем количество</p>
+          </div>
+          <a href="tel:88003339495"
+            class="shrink-0 bg-[#FFAE01] hover:bg-[#E09800] text-black font-semibold px-6 py-3 rounded-[5px] transition-colors whitespace-nowrap">
+            Позвонить
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- ══ НИЖНИЕ КОНТЕНТ-БЛОКИ (Figma: под основной областью листинга) ═══════ -->
+    <!-- Нижние контент-блоки -->
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px]">
-      <!-- Блок 9 — Сервисы расчёта (1-в-1 Figma 139:2506, переиспользуемый) -->
       <ServicesCalculatorsBlock />
-      <!-- Блок 10 — Бренды (1-в-1 Figma; имена-заглушки до лого-ассетов) -->
       <BrandsBlock />
-      <!-- Блок 11 — Преимущества (1-в-1 Figma, переиспользуемый компонент) -->
       <AdvantagesBlock />
-      <!-- Блоки 13–14 — SEO-контент категории (рендерится только при наличии) -->
       {seo && <CatalogSeoContent {...seo} />}
     </div>
   </div>
-
-  <!-- ══ Клиентский JS ══════════════════════════════════════════════════════ -->
-  <script define:vars={{ kodsBatch, priceMin, priceMax, sortParam }}>
-
-    // ── Утилиты ───────────────────────────────────────────────────────────────
-    function fmt(n) {
-      return n.toLocaleString('ru-RU') + ' ₽';
-    }
-
-    function fillCard(card, priceData, stockQty) {
-      // Серверная цена из снимка (Döcke) — клиентский JS её не перетирает
-      if (card.dataset.serverPriced) return;
-      const skeleton   = card.querySelector('.price-skeleton');
-      const loaded     = card.querySelector('.price-loaded');
-      const noPrice    = card.querySelector('.no-price');
-      const origEl     = card.querySelector('.original-price');
-      const dispEl     = card.querySelector('.price-display');
-      const discBadge  = card.querySelector('.discount-badge');
-      const stockBadge = card.querySelector('.stock-badge');
-
-      // ── Цены ─────────────────────────────────────────────────────────────
-      if (skeleton) skeleton.classList.add('hidden');
-
-      if (priceData && (priceData.price > 0 || priceData.discounted_price > 0)) {
-        if (loaded) loaded.classList.remove('hidden');
-
-        const hasDiscount =
-          priceData.discounted_price > 0 &&
-          priceData.discounted_price < priceData.price;
-
-        if (hasDiscount) {
-          if (origEl) { origEl.textContent = fmt(priceData.price); origEl.classList.remove('hidden'); }
-          if (dispEl) {
-            dispEl.textContent = fmt(priceData.discounted_price);
-            dispEl.classList.add('text-brand');
-            dispEl.classList.remove('text-slate-900');
-          }
-          if (discBadge) discBadge.classList.remove('hidden');
-          card.dataset.priceValue = String(priceData.discounted_price);
-        } else {
-          const price = priceData.discounted_price > 0 ? priceData.discounted_price : priceData.price;
-          if (dispEl) dispEl.textContent = fmt(price);
-          card.dataset.priceValue = String(price);
-        }
-      } else {
-        if (noPrice) noPrice.classList.remove('hidden');
-      }
-
-      // ── Наличие ───────────────────────────────────────────────────────────
-      if (stockQty !== undefined && stockBadge) {
-        stockBadge.classList.remove('hidden');
-        if (stockQty > 0) {
-          stockBadge.textContent = 'В наличии';
-          stockBadge.className =
-            'stock-badge absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-green-100 text-green-700';
-        } else {
-          stockBadge.textContent = 'Под заказ';
-          stockBadge.className =
-            'stock-badge absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500';
-        }
-      }
-    }
-
-    // ── Загрузка цен и наличия ─────────────────────────────────────────────
-    async function loadPricesAndStock() {
-      if (!kodsBatch || kodsBatch.length === 0) return;
-
-      const [pricesRes, stockRes] = await Promise.allSettled([
-        fetch('/api/catalog/prices', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ kods: kodsBatch }),
-        }).then(r => r.ok ? r.json() : { prices: {} }),
-        fetch('/api/catalog/stock', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ kods: kodsBatch }),
-        }).then(r => r.ok ? r.json() : { stock: {} }),
-      ]);
-
-      const prices = pricesRes.status === 'fulfilled' ? (pricesRes.value?.prices ?? {}) : {};
-      const stock  = stockRes.status === 'fulfilled'  ? (stockRes.value?.stock  ?? {}) : {};
-
-      document.querySelectorAll('[data-product-kod]').forEach(card => {
-        const kod = card.getAttribute('data-product-kod');
-        if (!kod) return;
-        fillCard(card, prices[kod], stock[kod]);
-      });
-
-      // Клиентский фильтр по цене (если переданы price_min/price_max)
-      const pMin = priceMin ? parseFloat(priceMin) : null;
-      const pMax = priceMax ? parseFloat(priceMax) : null;
-      if (pMin !== null || pMax !== null) {
-        applyPriceFilter(pMin, pMax);
-      }
-
-      // Клиентская сортировка по цене
-      if (sortParam === 'price_asc' || sortParam === 'price_desc') {
-        sortCardsByPrice(sortParam === 'price_asc');
-      }
-
-      // Обновить слайдер цен
-      updatePriceSlider();
-    }
-
-    // ── Клиентский фильтр по цене ──────────────────────────────────────────
-    function applyPriceFilter(pMin, pMax) {
-      document.querySelectorAll('[data-product-kod]').forEach(card => {
-        const val = parseFloat(card.dataset.priceValue || '0');
-        let show = true;
-        if (pMin !== null && val > 0 && val < pMin) show = false;
-        if (pMax !== null && val > 0 && val > pMax) show = false;
-        card.style.display = show ? '' : 'none';
-      });
-    }
-
-    // ── Сортировка карточек по цене ────────────────────────────────────────
-    function sortCardsByPrice(ascending) {
-      const grid = document.getElementById('products-grid');
-      if (!grid) return;
-      const cards = Array.from(grid.querySelectorAll('[data-product-kod]'));
-      cards.sort((a, b) => {
-        const pA = parseFloat(a.dataset.priceValue || '0');
-        const pB = parseFloat(b.dataset.priceValue || '0');
-        if (pA === 0 && pB === 0) return 0;
-        if (pA === 0) return ascending ? 1 : -1;
-        if (pB === 0) return ascending ? -1 : 1;
-        return ascending ? pA - pB : pB - pA;
-      });
-      cards.forEach(card => grid.appendChild(card));
-    }
-
-    // ── Слайдер цен (визуальный) ───────────────────────────────────────────
-    // ── Двухползунковый слайдер цены (F2) ──────────────────────────────────
-    let sliderMin = 0, sliderMax = 0, sliderReady = false;
-    const pctOf = (v) => sliderMax > sliderMin ? ((v - sliderMin) / (sliderMax - sliderMin)) * 100 : 0;
-    const valOf = (p) => Math.round(sliderMin + (p / 100) * (sliderMax - sliderMin));
-
-    function renderSlider() {
-      const fill = document.getElementById('price-slider-fill');
-      const hMin = document.getElementById('price-handle-min');
-      const hMax = document.getElementById('price-handle-max');
-      const minInput = document.getElementById('price-min-input');
-      const maxInput = document.getElementById('price-max-input');
-      if (!fill || !hMin || !hMax || !minInput || !maxInput) return;
-      const vMin = minInput.value ? parseFloat(minInput.value) : sliderMin;
-      const vMax = maxInput.value ? parseFloat(maxInput.value) : sliderMax;
-      const pMin = Math.max(0, Math.min(100, pctOf(vMin)));
-      const pMax = Math.max(0, Math.min(100, pctOf(vMax)));
-      hMin.style.left = pMin + '%';
-      hMax.style.left = pMax + '%';
-      fill.style.left = pMin + '%';
-      fill.style.right = (100 - pMax) + '%';
-    }
-
-    function applyPriceLive() {
-      const minInput = document.getElementById('price-min-input');
-      const maxInput = document.getElementById('price-max-input');
-      const pMin = minInput && minInput.value ? parseFloat(minInput.value) : null;
-      const pMax = maxInput && maxInput.value ? parseFloat(maxInput.value) : null;
-      applyPriceFilter(pMin, pMax);
-    }
-
-    function initSlider() {
-      if (sliderReady) return;
-      const track = document.getElementById('price-track');
-      const hMin = document.getElementById('price-handle-min');
-      const hMax = document.getElementById('price-handle-max');
-      const minInput = document.getElementById('price-min-input');
-      const maxInput = document.getElementById('price-max-input');
-      if (!track || !hMin || !hMax || !minInput || !maxInput) return;
-      sliderReady = true;
-      let dragging = null;
-      function moveTo(clientX) {
-        const rect = track.getBoundingClientRect();
-        if (rect.width <= 0) return;
-        let p = ((clientX - rect.left) / rect.width) * 100;
-        p = Math.max(0, Math.min(100, p));
-        const v = valOf(p);
-        if (dragging === 'min') {
-          const vMaxCur = maxInput.value ? parseFloat(maxInput.value) : sliderMax;
-          minInput.value = String(Math.min(v, vMaxCur));
-        } else {
-          const vMinCur = minInput.value ? parseFloat(minInput.value) : sliderMin;
-          maxInput.value = String(Math.max(v, vMinCur));
-        }
-        renderSlider();
-        applyPriceLive();
-      }
-      hMin.addEventListener('pointerdown', (e) => { dragging = 'min'; e.preventDefault(); });
-      hMax.addEventListener('pointerdown', (e) => { dragging = 'max'; e.preventDefault(); });
-      window.addEventListener('pointermove', (e) => { if (dragging) moveTo(e.clientX); });
-      window.addEventListener('pointerup', () => { dragging = null; });
-      minInput.addEventListener('input', () => { renderSlider(); applyPriceLive(); });
-      maxInput.addEventListener('input', () => { renderSlider(); applyPriceLive(); });
-    }
-
-    function updatePriceSlider() {
-      const cards = Array.from(document.querySelectorAll('[data-product-kod]'));
-      const prices = cards.map(c => parseFloat(c.dataset.priceValue || '0')).filter(p => p > 0);
-      if (prices.length === 0) return;
-      const minAll = Math.floor(Math.min(...prices));
-      const maxAll = Math.ceil(Math.max(...prices));
-      if (minAll >= maxAll) return;
-      sliderMin = minAll;
-      sliderMax = maxAll;
-      const minInput = document.getElementById('price-min-input');
-      const maxInput = document.getElementById('price-max-input');
-      if (minInput && !minInput.value) minInput.placeholder = minAll.toLocaleString('ru-RU');
-      if (maxInput && !maxInput.value) maxInput.placeholder = maxAll.toLocaleString('ru-RU');
-      initSlider();
-      renderSlider();
-    }
-
-    // ── Дропдаун: сортировка ─────────────────────────────────────────────
-    const sortSelect = document.getElementById('sort-select');
-    if (sortSelect) {
-      sortSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const base = `/catalog/${window.location.pathname.split('/').slice(2, 4).join('/')}`;
-        const sp = new URLSearchParams(window.location.search);
-        if (val === 'popular') sp.delete('sort'); else sp.set('sort', val);
-        sp.delete('page');
-        const qs = sp.toString();
-        window.location.href = `${window.location.pathname}${qs ? '?' + qs : ''}`;
-      });
-    }
-
-    // ── Дропдаун: кол-во на странице ─────────────────────────────────────
-    const perpageSelect = document.getElementById('perpage-select');
-    if (perpageSelect) {
-      perpageSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const sp = new URLSearchParams(window.location.search);
-        if (val === '60') sp.delete('per_page'); else sp.set('per_page', val);
-        sp.delete('page');
-        const qs = sp.toString();
-        window.location.href = `${window.location.pathname}${qs ? '?' + qs : ''}`;
-      });
-    }
-
-    // ── Переключатель вида: плитка / список ──────────────────────────────
-    const viewGridBtn = document.getElementById('view-grid');
-    const viewListBtn = document.getElementById('view-list');
-    const productsGrid = document.getElementById('products-grid');
-
-    function setView(mode) {
-      if (!productsGrid) return;
-      if (mode === 'grid') {
-        productsGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3';
-        viewGridBtn?.classList.add('bg-[#FFAE01]', 'text-black');
-        viewGridBtn?.classList.remove('bg-white', 'text-[#898989]');
-        viewListBtn?.classList.add('bg-white', 'text-[#898989]');
-        viewListBtn?.classList.remove('bg-[#FFAE01]', 'text-black');
-        viewGridBtn?.setAttribute('aria-pressed', 'true');
-        viewListBtn?.setAttribute('aria-pressed', 'false');
-        // Reset list-view card styles
-        productsGrid.querySelectorAll('[data-product-kod]').forEach(card => {
-          card.classList.remove('flex', 'flex-row', 'gap-4', 'col-span-full');
-          card.classList.remove('list-card');
-        });
-      } else {
-        productsGrid.className = 'flex flex-col gap-3';
-        viewListBtn?.classList.add('bg-[#FFAE01]', 'text-black');
-        viewListBtn?.classList.remove('bg-white', 'text-[#898989]');
-        viewGridBtn?.classList.add('bg-white', 'text-[#898989]');
-        viewGridBtn?.classList.remove('bg-[#FFAE01]', 'text-black');
-        viewListBtn?.setAttribute('aria-pressed', 'true');
-        viewGridBtn?.setAttribute('aria-pressed', 'false');
-        // C1: карточки → горизонтальные строки (режим списка по Figma)
-        productsGrid.querySelectorAll('[data-product-kod]').forEach(card => {
-          card.classList.add('list-card');
-        });
-      }
-      try { localStorage.setItem('catalog-view', mode); } catch {}
-    }
-
-    viewGridBtn?.addEventListener('click', () => setView('grid'));
-    viewListBtn?.addEventListener('click', () => setView('list'));
-
-    // Восстановить вид из localStorage
-    try {
-      const saved = localStorage.getItem('catalog-view');
-      // По Figma листинг по умолчанию — режим «список»; сетка только если пользователь явно выбрал
-      if (saved === 'grid') setView('grid');
-      else setView('list');
-    } catch {}
-
-    // ── Кнопка «Все теги» ────────────────────────────────────────────────
-    const showAllTagsBtn = document.getElementById('show-all-tags');
-    const extraTags = document.getElementById('extra-tags');
-    if (showAllTagsBtn && extraTags) {
-      showAllTagsBtn.addEventListener('click', () => {
-        const isHidden = extraTags.classList.contains('hidden');
-        if (isHidden) {
-          extraTags.classList.remove('hidden');
-          extraTags.classList.add('flex');
-          showAllTagsBtn.innerHTML = 'Скрыть теги <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>';
-        } else {
-          extraTags.classList.add('hidden');
-          extraTags.classList.remove('flex');
-          showAllTagsBtn.innerHTML = 'Все теги <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>';
-        }
-      });
-    }
-
-    // ── Мобильный сайдбар ─────────────────────────────────────────────────
-    const mobileBtn  = document.getElementById('mobile-filter-btn');
-    const sidebar    = document.getElementById('catalog-sidebar');
-    if (mobileBtn && sidebar) {
-      mobileBtn.addEventListener('click', () => {
-        const isHidden = sidebar.classList.contains('hidden');
-        if (isHidden) {
-          sidebar.classList.remove('hidden');
-          sidebar.classList.add('block', 'w-full', 'mb-4');
-        } else {
-          sidebar.classList.add('hidden');
-          sidebar.classList.remove('block', 'w-full', 'mb-4');
-        }
-      });
-    }
-
-    // ── Раскрыть все бренды ────────────────────────────────────────────────
-    const showAllBrandsBtn = document.getElementById('show-all-brands');
-    if (showAllBrandsBtn) {
-      showAllBrandsBtn.addEventListener('click', () => {
-        const extras = document.querySelectorAll('.brand-extra');
-        const isCollapsed = extras.length > 0 && extras[0].classList.contains('hidden');
-        extras.forEach(el => el.classList.toggle('hidden'));
-        showAllBrandsBtn.textContent = isCollapsed
-          ? 'Скрыть ▴'
-          : `Ещё ${extras.length} брендов ▾`;
-      });
-    }
-
-    // ── Радиокнопка бренда → авто-сабмит формы ───────────────────────────
-    document.querySelectorAll('input[name="brand"]').forEach(input => {
-      input.addEventListener('change', () => {
-        document.getElementById('filter-form')?.submit();
-      });
-    });
-
-    document.addEventListener('DOMContentLoaded', loadPricesAndStock);
-  </script>
-
-  <style is:global>
-    /* C1: режим «список» — карточка ProductCard горизонтально (фото слева, инфо справа) */
-    .list-card { flex-direction: row !important; align-items: stretch; }
-    .list-card > a:first-of-type { width: 240px; flex-shrink: 0; }
-    .list-card > div { justify-content: center; }
-    @media (max-width: 639px) {
-      .list-card { flex-direction: column !important; }
-      .list-card > a:first-of-type { width: 100%; }
-    }
-  </style>
-
 </BaseLayout>

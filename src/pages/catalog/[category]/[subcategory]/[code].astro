@@ -1,100 +1,63 @@
 ---
-export const prerender = false;
-
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+/**
+ * Карточка товара — СТАТИЧЕСКАЯ (Timeweb MVP).
+ * getStaticPaths только по курируемому demo-набору (≤150 карточек), цена из снимка.
+ * Полные карточки всех 31.8k товаров со SSR — позже на Cloudflare.
+ */
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import { categories } from '../../../../data/categories';
-import { fetchPrices, fetchStock } from '../../../../lib/kroval';
-import { snapshotItemByVendor, snapshotItemsFor, humanUnit, SPEC_LABELS, PACK_LABELS } from '../../../../lib/snapshot';
+import { humanUnit, SPEC_LABELS, PACK_LABELS } from '../../../../lib/snapshot';
+import type { SnapshotItem } from '../../../../lib/snapshot';
+import { demoItems, demoItemsFor, toCard } from '../../../../lib/demo';
 import ProductCard from '../../../../components/catalog/ProductCard.astro';
 import AdvantagesBlock from '../../../../components/AdvantagesBlock.astro';
 
-const { category: categorySlug, subcategory: subcategorySlug, code } = Astro.params;
-
-const category = categories.find(c => c.slug === categorySlug);
-const subcategory = category?.subcategories?.find(s => s.slug === subcategorySlug);
-
-if (!category || !subcategory) {
-  return new Response(null, { status: 404 });
-}
-
-let product: any = null;
-let relatedProducts: any[] = [];
-
-// ─── ИСТОЧНИК 1 (авторитетный): СНИМОК. Сайт читает только снимок — цена/фото/ТХ оттуда.
-let snapItem = snapshotItemByVendor(code!) ?? null;
-if (snapItem && snapItem.category === `${categorySlug}/${subcategorySlug}`) {
-  product = {
-    kod: snapItem.vendor,
-    name: snapItem.name ?? snapItem.vendor,
-    artikul: snapItem.vendor,
-    unit: humanUnit(snapItem.unit),
-    brand: snapItem.brand ?? '',
-    image: snapItem.images[0] ?? null,
-    description: snapItem.description ?? null,
-  };
-  relatedProducts = snapshotItemsFor(categorySlug!, subcategorySlug!)
-    .filter(i => i.vendor !== code)
-    .slice(0, 4)
-    .map(i => ({
-      kod: i.vendor, name: i.name ?? i.vendor, artikul: i.vendor,
-      unit: humanUnit(i.unit), brand: i.brand ?? '',
-      image: i.images[0] ?? null, price: i.price, serverPriced: true,
-    }));
-} else {
-  snapItem = null;
-  // ─── ИСТОЧНИК 2 (запасной): старый локальный файл + живой API — для товаров, ещё не в снимке.
-  const dataPath = resolve('src/data/catalog', categorySlug!, `${subcategorySlug}.json`);
-  if (existsSync(dataPath)) {
-    try {
-      const data = JSON.parse(readFileSync(dataPath, 'utf-8'));
-      const list = data.products ?? [];
-      product = list.find((p: any) => p.kod === code);
-      relatedProducts = list.filter((p: any) => p.kod !== code).slice(0, 4);
-    } catch {}
+export function getStaticPaths() {
+  const paths: any[] = [];
+  for (const item of demoItems) {
+    const parts = (item.category || '').split('/');
+    if (parts.length !== 2 || !item.vendor) continue;
+    const [catSlug, subSlug] = parts;
+    const category = categories.find(c => c.slug === catSlug);
+    const subcategory = category?.subcategories?.find(s => s.slug === subSlug);
+    if (!category || !subcategory) continue;
+    paths.push({
+      params: { category: catSlug, subcategory: subSlug, code: item.vendor },
+      props: { item, category, subcategory },
+    });
   }
+  return paths;
 }
 
-if (!product) {
-  return new Response(null, { status: 404 });
-}
+const { item, category, subcategory } = Astro.props as { item: SnapshotItem; category: any; subcategory: any };
+const categorySlug = category.slug;
+const subcategorySlug = subcategory.slug;
+const code = item.vendor;
+const snapItem = item;
 
-const relatedKods = relatedProducts.map((p: any) => p.kod).filter(Boolean);
+const product: any = {
+  kod: snapItem.vendor,
+  name: snapItem.name ?? snapItem.vendor,
+  artikul: snapItem.vendor,
+  unit: humanUnit(snapItem.unit),
+  brand: snapItem.brand ?? '',
+  image: snapItem.images?.[0] ?? null,
+  description: snapItem.description ?? null,
+};
 
-let priceData: { price: number; discounted_price: number } | null = null;
-let stockData: Record<string, number> = {};
+const relatedProducts = demoItemsFor(categorySlug, subcategorySlug)
+  .filter(i => i.vendor !== code)
+  .slice(0, 4)
+  .map(toCard);
 
-if (snapItem) {
-  // Döcke: цена из снимка (РРЦ→округление); null = «по запросу». Остатки не тянем.
-  if (snapItem.price && snapItem.price > 0) {
-    priceData = { price: snapItem.price, discounted_price: 0 };
-  }
-} else {
-  try {
-    const [prices, stocks] = await Promise.allSettled([
-      fetchPrices([product.kod]),
-      fetchStock([product.kod]),
-    ]);
-    if (prices.status === 'fulfilled' && prices.value.length > 0) {
-      priceData = prices.value[0];
-    }
-    if (stocks.status === 'fulfilled') {
-      stockData = stocks.value;
-    }
-  } catch {}
-}
+// Цена из снимка (РРЦ→округление); null = «по запросу». Остатки не показываем.
+const basePrice = (snapItem.price && snapItem.price > 0) ? snapItem.price : null;
+const hasDiscount = false;
+const discountPercent = 0;
+const displayPrice = basePrice;
+const inStock: boolean | null = null;
 
-const basePrice = priceData?.price ?? null;
-const discountedPrice = (priceData?.discounted_price ?? 0) > 0 ? priceData!.discounted_price : null;
-const hasDiscount = !!(discountedPrice && basePrice && discountedPrice < basePrice);
-const displayPrice = hasDiscount ? discountedPrice! : basePrice;
-const discountPercent = hasDiscount ? Math.round((1 - discountedPrice! / basePrice!) * 100) : 0;
-
-const stockQty = product.kod ? (stockData[product.kod] ?? null) : null;
-const inStock = stockQty !== null ? stockQty > 0 : null;
-
-// ─── Характеристики из снимка (Döcke): только реальные поля поставщика ─────
+// Характеристики из снимка
 const snapSpecs: Record<string, string> = (snapItem?.specs as Record<string, string>) ?? {};
 function specRow(k: string, map: Record<string, { label: string; unit?: string }>) {
   const v = snapSpecs[k];
@@ -105,7 +68,7 @@ function specRow(k: string, map: Record<string, { label: string; unit?: string }
 }
 const snapSpecRows: { label: string; value: string }[] = [];
 const snapPackRows: { label: string; value: string }[] = [];
-if (snapItem) {
+{
   const hasDims = snapSpecs.length && snapSpecs.width;
   if (hasDims) snapSpecRows.push({ label: 'Рабочие размеры', value: `${snapSpecs.length}×${snapSpecs.width} мм` });
   for (const k of ['thickness', 'area', 'material', 'series', 'foundation', 'topping', 'bitumen_type', 'm2_roll_area', 'country_of_origin', 'warranty']) {
@@ -117,47 +80,18 @@ if (snapItem) {
   if (snapItem.color) snapSpecRows.push({ label: 'Цвет', value: snapItem.color });
   for (const k of Object.keys(PACK_LABELS)) { const r = specRow(k, PACK_LABELS); if (r) snapPackRows.push(r); }
 }
-// короткая форма гарантии для мини-панели («50 лет» из длинного текста)
 const warrantyShort = snapSpecs.warranty ? (snapSpecs.warranty.match(/^\d+\s*(?:лет|год[а]?)/)?.[0] ?? null) : null;
 
-// Парсим характеристики из названия
-const widthMatch = product.name?.match(/\(ширина\s+([\d.,]+)м?\)/i);
-const effectiveWidth: number = widthMatch ? parseFloat(widthMatch[1].replace(',', '.')) : 1.19;
-
+// Парсинг из названия (для не-снимочных полей)
+const coatings = ['Satin', 'PE', 'Pural', 'Drap', 'Matt', 'PURMAN', 'Colorcoat'];
+const coatingFound = product.name ? coatings.find((c: string) => product.name.toLowerCase().includes(c.toLowerCase())) : null;
 const thicknessMatch = product.name?.match(/\b0[,.](\d{1,2})\b/);
 const thickness = thicknessMatch ? `0,${thicknessMatch[1]}` : null;
-
-const coatings = ['Satin', 'PE', 'Pural', 'Drap', 'Matt', 'PURMAN', 'Colorcoat'];
-const coatingFound = product.name
-  ? coatings.find((c: string) => product.name.toLowerCase().includes(c.toLowerCase()))
-  : null;
-
 const ralMatch = product.name?.match(/RAL\s*(\d{4})/i);
 const colorRal = ralMatch ? `RAL ${ralMatch[1]}` : null;
 
-const isByArea = product.unit === 'м2' && product.areaEnabled;
-const isByLength = product.unit === 'м' && product.lengthEnabled;
-
-// Стандартные длины листа в мм (как в Figma — 470мм первым)
-const standardLengths = [
-  { mm: 470, label: '470 мм' },
-  { mm: 500, label: '500 мм' },
-  { mm: 1000, label: '1000 мм' },
-  { mm: 1500, label: '1500 мм' },
-  { mm: 2000, label: '2000 мм' },
-  { mm: 2500, label: '2500 мм' },
-  { mm: 3000, label: '3000 мм' },
-  { mm: 3500, label: '3500 мм' },
-  { mm: 4000, label: '4000 мм' },
-  { mm: 4500, label: '4500 мм' },
-  { mm: 5000, label: '5000 мм' },
-  { mm: 5500, label: '5500 мм' },
-  { mm: 6000, label: '6000 мм' },
-];
-
 const canonicalURL = `https://y-stroika.ru/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(code!)}/`;
 
-// Product + (Offer только при реальной цене — не выдумываем price/availability, см. docs/seo/07) + BreadcrumbList
 const hasRealPrice = typeof displayPrice === 'number' && displayPrice > 0;
 const productImg = product.image && product.image.startsWith('/') ? `https://y-stroika.ru${product.image}` : (product.image || undefined);
 const productLd: any = {
@@ -176,7 +110,6 @@ if (hasRealPrice) {
     'priceCurrency': 'RUB',
     'price': String(displayPrice),
     'seller': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://y-stroika.ru' },
-    // availability не указываем: остатки не отслеживаем (не выдумываем наличие)
   };
 }
 const jsonLd = {
@@ -202,12 +135,12 @@ const jsonLd = {
   description={`${product.name}. Код ${product.kod}.${product.brand ? ' Производитель: ' + product.brand + '.' : ''} Купить в Москве и МО с доставкой за 1 день. Звоните: 8-800-333-94-95.`}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+  <link rel="canonical" slot="head" href={canonicalURL} />
 
-  <!-- Белый фон как в Figma -->
   <div class="bg-white min-h-screen">
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6">
 
-      <!-- Хлебные крошки с точками-разделителями (как в Figma) -->
+      <!-- Хлебные крошки -->
       <nav class="flex flex-wrap items-center gap-0 text-sm text-[#898989] mb-4">
         <a href="/" class="hover:text-[#FFAE01] transition-colors">Главная</a>
         <span class="mx-2 w-1 h-1 rounded-full bg-[#898989] shrink-0 inline-block"></span>
@@ -224,21 +157,17 @@ const jsonLd = {
         )}
       </nav>
 
-      <!-- Заголовок товара (Montserrat SemiBold 30px, как в Figma) -->
       <h1 style="font-family: var(--font-heading);" class="text-[26px] lg:text-[30px] font-semibold text-[#333333] leading-snug mb-4">
         {product.name}
       </h1>
-
-      <!-- Разделительная линия (как в Figma) -->
       <hr class="border-[#E9E9E9] mb-4" />
 
-      <!-- Инфо-строка: рейтинг + действия | статус + код + цена -->
+      <!-- Инфо-строка -->
       <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <!-- Левая часть: рейтинг и действия -->
         <div class="flex flex-wrap items-center gap-4 text-sm text-[#898989]">
           <div class="flex items-center gap-1.5">
             <div class="flex items-center gap-0.5">
-              {[1,2,3,4,5].map((i) => (
+              {[1,2,3,4,5].map(() => (
                 <svg class="w-3.5 h-3.5 text-[#FFAE01]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
@@ -247,55 +176,28 @@ const jsonLd = {
             <span class="text-[#333333] font-semibold text-sm">5.0</span>
             <span class="text-[#898989]">0 отзывов</span>
           </div>
-          <button class="flex items-center gap-1.5 hover:text-[#333333] transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-            </svg>
-            Поделиться
-          </button>
-          <button class="flex items-center gap-1.5 hover:text-[#333333] transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-            В избранное
-          </button>
-          <button class="flex items-center gap-1.5 hover:text-[#333333] transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-            Сравнить
-          </button>
         </div>
-        <!-- Правая часть: наличие + код + цена -->
         <div class="flex flex-wrap items-center gap-4 text-sm">
-          <div class={`flex items-center gap-1.5 font-medium ${inStock === false ? 'text-amber-600' : 'text-green-600'}`}>
-            <span class={`w-2 h-2 rounded-full ${inStock === false ? 'bg-amber-500' : 'bg-green-500'}`}></span>
-            {inStock === false ? 'Уточните наличие' : 'В наличии'}
+          <div class="flex items-center gap-1.5 font-medium text-green-600">
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            В наличии
           </div>
           {product.kod && (
             <span class="text-[#898989]">Код товара: <span class="text-[#333333]">{product.kod}</span></span>
           )}
-          {basePrice && (
+          {basePrice ? (
             <div class="flex items-center gap-2">
-              {hasDiscount && (
-                <>
-                  <span class="text-[#898989] line-through text-sm">{basePrice.toLocaleString('ru-RU')} ₽/шт</span>
-                  <span class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">-{discountPercent}%</span>
-                </>
-              )}
               <span class="text-[18px] font-bold text-[#333333]">{displayPrice!.toLocaleString('ru-RU')} ₽</span>
             </div>
+          ) : (
+            <span class="text-[#898989]">Цена по запросу</span>
           )}
-          {!basePrice && <span class="text-[#898989]">Цена по запросу</span>}
         </div>
       </div>
 
-      <!-- Основная двухколоночная сетка: галерея (лево) + правая колонка -->
+      <!-- Галерея + правая колонка -->
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] items-start gap-5 mb-6">
-
-        <!-- Галерея -->
         <div class="flex gap-3">
-          <!-- Вертикальный ряд превью -->
           <div class="flex flex-col gap-2 shrink-0">
             {[1,2,3,4,5].map((i) => (
               <div class={`w-[68px] h-[68px] rounded-[5px] border-2 cursor-pointer transition-colors ${i === 1 ? 'border-[#FFAE01]' : 'border-[#E9E9E9] hover:border-[#FFAE01]'} bg-[#f5f5f5] flex items-center justify-center`}>
@@ -305,13 +207,7 @@ const jsonLd = {
               </div>
             ))}
           </div>
-          <!-- Основное фото (реальное из снимка, иначе заглушка) -->
           <div class="relative flex-1 min-h-[340px] lg:min-h-[400px] bg-[#f5f5f5] rounded-[5px] flex items-center justify-center overflow-hidden">
-            {hasDiscount && (
-              <div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-[3px] z-10">
-                Скидка
-              </div>
-            )}
             {product.image ? (
               <img src={product.image} alt={product.name} class="absolute inset-0 w-full h-full object-contain p-6" />
             ) : (
@@ -322,52 +218,9 @@ const jsonLd = {
           </div>
         </div>
 
-        <!-- Правая колонка: панель + аккордеоны + мини-характеристики (как в Figma) -->
         <div class="flex flex-col gap-3">
-
-        <!-- Панель покупки (тёмная, как в Figma) -->
-        <div class="relative bg-[#333333] rounded-[5px] p-5 text-white">
-
-          <!-- "%" значок — поверх панели сверху-справа (как в Figma) -->
-          <div class="absolute -top-3 -right-3 w-10 h-10 bg-[#FFAE01] rounded-full flex items-center justify-center shadow-md z-10">
-            <span class="text-[#333333] font-bold text-sm">%</span>
-          </div>
-
-          <!-- Строки выбора длины листа -->
-          {isByArea && (
-            <div id="length-rows" class="flex flex-col gap-3 mb-3">
-              <!-- Первая строка (шаблон) -->
-              <div class="length-row">
-                <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-end">
-                  <div>
-                    <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Выберите длину листа</label>
-                    <select class="length-select w-full bg-[#464646] border border-[#565656] text-white rounded-[3px] px-2 py-2 text-sm focus:outline-none focus:border-[#FFAE01] cursor-pointer">
-                      {standardLengths.map(l => (
-                        <option value={l.mm}>{l.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Количество листов</label>
-                    <div class="flex items-stretch h-9">
-                      <button class="qty-minus w-8 bg-[#464646] hover:bg-[#565656] border border-r-0 border-[#565656] rounded-l-[3px] flex items-center justify-center text-white transition-colors text-lg leading-none">−</button>
-                      <input type="number" value="1" min="1" class="qty-input w-10 h-full bg-[#464646] border-y border-[#565656] text-white text-center text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                      <button class="qty-plus w-8 bg-[#464646] hover:bg-[#565656] border border-l-0 border-[#565656] rounded-r-[3px] flex items-center justify-center text-white transition-colors text-lg leading-none">+</button>
-                    </div>
-                  </div>
-                  <div class="min-w-[90px]">
-                    <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Итого за <span class="row-area">0,00</span> м²</label>
-                    <div class="h-9 flex items-center">
-                      <span class="row-total text-white font-bold text-sm">—</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <!-- Простой счётчик для штучных товаров -->
-          {!isByArea && !isByLength && (
+          <!-- Панель покупки -->
+          <div class="relative bg-[#333333] rounded-[5px] p-5 text-white">
             <div class="mb-4">
               <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Количество, {product.unit}</label>
               <div class="flex items-stretch h-9 w-36">
@@ -376,127 +229,85 @@ const jsonLd = {
                 <button id="qty-plus-s" class="w-9 bg-[#464646] hover:bg-[#565656] border border-l-0 border-[#565656] rounded-r-[3px] flex items-center justify-center text-white transition-colors text-lg">+</button>
               </div>
             </div>
-          )}
-
-          <!-- Ввод длины для погонных товаров -->
-          {isByLength && (
-            <div class="mb-4">
-              <label class="text-[10px] text-[#898989] mb-1 block uppercase tracking-wide">Длина, м</label>
-              <input type="number" value="1" min="0.1" step="0.1" class="w-full bg-[#464646] border border-[#565656] text-white rounded-[3px] px-3 py-2 text-sm focus:outline-none focus:border-[#FFAE01]" />
-            </div>
-          )}
-
-          <!-- Ссылки: добавить строку + калькулятор -->
-          {isByArea && (
-            <div class="flex items-center justify-between mb-4 gap-2">
-              <button id="add-row-btn" class="flex items-center gap-1 text-xs text-[#898989] hover:text-white transition-colors">
-                <span class="text-base leading-none">+</span>
-                Добавить лист другой длины
+            <div class="flex gap-2">
+              <button data-add-cart data-kod={product.kod} data-name={product.name} data-url={canonicalURL} data-unit={product.unit}
+                class="flex-1 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold py-3 rounded-[3px] transition-colors text-sm">
+                Добавить в корзину
               </button>
-              <a href="/raschet" class="flex items-center gap-1 text-xs text-[#FFAE01] hover:opacity-80 transition-opacity whitespace-nowrap">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-                Рассчитать в калькуляторе кровли
+              <a href="tel:88003339495" class="flex-1 inline-flex items-center justify-center border border-[#565656] hover:border-white text-white font-semibold py-3 rounded-[3px] transition-colors text-sm whitespace-nowrap">
+                Консультация
               </a>
             </div>
-          )}
-
-          <!-- Кнопки действий -->
-          <div class="flex gap-2">
-            <button data-add-cart data-kod={product.kod} data-name={product.name} data-url={Astro.url.pathname} data-unit={product.unit}
-              class="flex-1 bg-[#FFAE01] hover:bg-[#e09d00] text-black font-semibold py-3 rounded-[3px] transition-colors text-sm">
-              Добавить в корзину
-            </button>
-            <a href="tel:88003339495" class="flex-1 inline-flex items-center justify-center border border-[#565656] hover:border-white text-white font-semibold py-3 rounded-[3px] transition-colors text-sm whitespace-nowrap">
-              Получить консультацию
-            </a>
           </div>
 
-        </div>
+          <!-- Аккордеоны -->
+          <div class="border border-[#E9E9E9] rounded-[5px] divide-y divide-[#E9E9E9]">
+            <details class="group">
+              <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none text-sm text-[#333333] hover:bg-[#f9f9f9] transition-colors">
+                Информация о доставке
+                <svg class="w-4 h-4 text-[#898989] transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </summary>
+              <div class="px-5 pb-4 text-sm text-[#898989] leading-relaxed">
+                Доставка по Москве и МО от 1 дня. Самовывоз со склада. Уточнить сроки и стоимость — по телефону.
+              </div>
+            </details>
+            <details class="group">
+              <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none text-sm text-[#333333] hover:bg-[#f9f9f9] transition-colors">
+                Варианты оплаты
+                <svg class="w-4 h-4 text-[#898989] transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </summary>
+              <div class="px-5 pb-4 text-sm text-[#898989] leading-relaxed">
+                Наличные, безналичный расчёт, банковская карта. Для юридических лиц — по счёту.
+              </div>
+            </details>
+          </div>
 
-        <!-- Аккордеоны: доставка и оплата (внутри правой колонки, как в Figma) -->
-        <div class="border border-[#E9E9E9] rounded-[5px] divide-y divide-[#E9E9E9]">
-          <details class="group">
-            <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none text-sm text-[#333333] hover:bg-[#f9f9f9] transition-colors">
-              Информация о доставке
-              <svg class="w-4 h-4 text-[#898989] transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </summary>
-            <div class="px-5 pb-4 text-sm text-[#898989] leading-relaxed">
-              Доставка по Москве и МО от 1 дня. Самовывоз со склада. Уточнить сроки и стоимость — по телефону.
+          <!-- Мини-характеристики -->
+          <div class="grid grid-cols-2 border border-[#E9E9E9] rounded-[5px]">
+            <div class="px-4 py-3 border-r border-b border-[#E9E9E9]">
+              <div class="text-xs text-[#898989] mb-1">Цвет</div>
+              <div class="font-semibold text-[#333333] text-sm">{snapItem?.color ?? colorRal ?? '—'}</div>
             </div>
-          </details>
-          <details class="group">
-            <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer list-none text-sm text-[#333333] hover:bg-[#f9f9f9] transition-colors">
-              Варианты оплаты
-              <svg class="w-4 h-4 text-[#898989] transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </summary>
-            <div class="px-5 pb-4 text-sm text-[#898989] leading-relaxed">
-              Наличные, безналичный расчёт, банковская карта. Для юридических лиц — по счёту.
+            <div class="px-4 py-3 border-b border-[#E9E9E9]">
+              <div class="text-xs text-[#898989] mb-1">Серия</div>
+              <div class="font-semibold text-[#333333] text-sm">{snapSpecs.series ?? '—'}</div>
             </div>
-          </details>
-        </div>
-
-        <!-- Мини-характеристики (2×2, внутри правой колонки, как в Figma) -->
-        <div class="grid grid-cols-2 border border-[#E9E9E9] rounded-[5px]">
-          <div class="px-4 py-3 border-r border-b border-[#E9E9E9]">
-            <div class="text-xs text-[#898989] mb-1">Цвет</div>
-            <div class="font-semibold text-[#333333] text-sm">{snapItem?.color ?? colorRal ?? '—'}</div>
-          </div>
-          <div class="px-4 py-3 border-b border-[#E9E9E9]">
-            <div class="text-xs text-[#898989] mb-1">{snapItem ? 'Серия' : 'Покрытие'}</div>
-            <div class="font-semibold text-[#333333] text-sm">{snapItem ? (snapSpecs.series ?? '—') : (coatingFound ?? '—')}</div>
-          </div>
-          <div class="px-4 py-3 border-r border-[#E9E9E9]">
-            <div class="text-xs text-[#898989] mb-1">Толщина</div>
-            <div class="font-semibold text-[#333333] text-sm">{snapItem ? (snapSpecs.thickness ? `${snapSpecs.thickness} мм` : '—') : (thickness ? `${thickness} мм` : '—')}</div>
-          </div>
-          <div class="px-4 py-3">
-            <div class="text-xs text-[#898989] mb-1">Гарантия</div>
-            <div class="font-semibold text-[#333333] text-sm">{snapItem ? (warrantyShort ?? '—') : '20 лет'}</div>
+            <div class="px-4 py-3 border-r border-[#E9E9E9]">
+              <div class="text-xs text-[#898989] mb-1">Толщина</div>
+              <div class="font-semibold text-[#333333] text-sm">{snapSpecs.thickness ? `${snapSpecs.thickness} мм` : (thickness ? `${thickness} мм` : '—')}</div>
+            </div>
+            <div class="px-4 py-3">
+              <div class="text-xs text-[#898989] mb-1">Гарантия</div>
+              <div class="font-semibold text-[#333333] text-sm">{warrantyShort ?? '—'}</div>
+            </div>
           </div>
         </div>
+      </div>
 
-        </div>{/* конец правой колонки */}
-      </div>{/* конец основной сетки */}
-
-      <!-- Табы: Описание / Характеристики / Отзывы -->
+      <!-- Табы -->
       <div class="border border-[#E9E9E9] rounded-[5px] mb-6">
         <div class="flex border-b border-[#E9E9E9]" id="tabs-nav">
           {['Описание', 'Характеристики', 'Отзывы'].map((tab, i) => (
-            <button
-              data-tab={String(i)}
-              class={`px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${i === 0 ? 'text-[#333333] border-[#FFAE01]' : 'text-[#898989] border-transparent hover:text-[#333333]'}`}
-            >
+            <button data-tab={String(i)}
+              class={`px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${i === 0 ? 'text-[#333333] border-[#FFAE01]' : 'text-[#898989] border-transparent hover:text-[#333333]'}`}>
               {tab}
             </button>
           ))}
         </div>
 
-        <!-- Описание -->
         <div data-tab-content="0" class="p-6">
           <div class="prose prose-sm max-w-none text-[#333333]">
             {snapItem?.description ? (
               <p><strong>{product.name}</strong> — {snapItem.description}</p>
             ) : (
               <>
-                <p>
-                  <strong>{product.name}</strong> — профессиональный кровельный материал{product.brand ? ` производства ${product.brand}` : ''}.
-                  {isByArea && ` Эффективная ширина листа — ${effectiveWidth} м.`}
-                  {coatingFound && ` Покрытие: ${coatingFound}.`}
-                  {thickness && ` Толщина металла: ${thickness} мм.`}
-                </p>
+                <p><strong>{product.name}</strong> — кровельный/фасадный материал{product.brand ? ` производства ${product.brand}` : ''}.{coatingFound ? ` Покрытие: ${coatingFound}.` : ''}{thickness ? ` Толщина металла: ${thickness} мм.` : ''}</p>
                 <p>Подходит для жилых домов, дач, коттеджей, хозяйственных построек.</p>
               </>
             )}
           </div>
         </div>
 
-        <!-- Характеристики -->
         <div data-tab-content="1" class="p-6 hidden">
           <table class="w-full text-sm">
             <tbody>
@@ -504,12 +315,6 @@ const jsonLd = {
                 <td class="py-2.5 pr-4 text-[#898989] w-1/2">Код товара</td>
                 <td class="py-2.5 font-medium text-[#333333] font-mono text-xs">{product.kod}</td>
               </tr>
-              {product.artikul && (
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989]">Артикул</td>
-                  <td class="py-2.5 font-medium text-[#333333]">{product.artikul}</td>
-                </tr>
-              )}
               {product.brand && (
                 <tr class="border-b border-[#f5f5f5]">
                   <td class="py-2.5 pr-4 text-[#898989]">Производитель</td>
@@ -520,30 +325,6 @@ const jsonLd = {
                 <td class="py-2.5 pr-4 text-[#898989]">Единица измерения</td>
                 <td class="py-2.5 font-medium text-[#333333]">{product.unit}</td>
               </tr>
-              {coatingFound && (
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989]">Покрытие</td>
-                  <td class="py-2.5 font-medium text-[#333333]">{coatingFound}</td>
-                </tr>
-              )}
-              {thickness && (
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989]">Толщина металла</td>
-                  <td class="py-2.5 font-medium text-[#333333]">{thickness} мм</td>
-                </tr>
-              )}
-              {isByArea && (
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989]">Ширина листа (эфф.)</td>
-                  <td class="py-2.5 font-medium text-[#333333]">{effectiveWidth} м</td>
-                </tr>
-              )}
-              {colorRal && (
-                <tr class="border-b border-[#f5f5f5]">
-                  <td class="py-2.5 pr-4 text-[#898989]">Цвет</td>
-                  <td class="py-2.5 font-medium text-[#333333]">{colorRal}</td>
-                </tr>
-              )}
               {snapSpecRows.map(r => (
                 <tr class="border-b border-[#f5f5f5]">
                   <td class="py-2.5 pr-4 text-[#898989]">{r.label}</td>
@@ -570,13 +351,12 @@ const jsonLd = {
           )}
         </div>
 
-        <!-- Отзывы -->
         <div data-tab-content="2" class="p-6 hidden">
           <p class="text-sm text-[#898989]">Отзывов пока нет. Будьте первым!</p>
         </div>
       </div>
 
-      <!-- Вам может понадобиться (Figma PC1) -->
+      <!-- Вам может понадобиться -->
       {relatedProducts.length > 0 && (
         <section class="mt-10 mb-8">
           <div class="flex items-end gap-[25px] mb-6">
@@ -590,55 +370,23 @@ const jsonLd = {
               <ProductCard
                 kod={p.kod}
                 name={p.name}
+                artikul={p.artikul}
                 unit={p.unit}
                 brand={p.brand}
-                priceGroup={p.priceGroup}
-                categorySlug={categorySlug!}
-                subcategorySlug={subcategorySlug!}
+                categorySlug={categorySlug}
+                subcategorySlug={subcategorySlug}
+                image={p.image ?? null}
+                price={p.price}
+                serverPriced={true}
               />
             ))}
           </div>
         </section>
       )}
 
-      <!-- Полезные видео (Figma PC1) -->
-      <section class="mt-10 mb-8">
-        <div class="flex items-end gap-[25px] mb-6">
-          <h2 class="font-[Montserrat] font-semibold text-[22px] lg:text-[28px] text-[#333333] leading-snug flex-shrink-0">
-            Полезные видео
-          </h2>
-          <div class="flex-1 h-px bg-[#E9E9E9] mb-2"></div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            'Инструкция по монтажу металлочерепицы',
-            'Как выбрать кровельный материал для дома',
-            'Расчёт количества материала на кровлю',
-          ].map((title) => (
-            <div class="group cursor-pointer">
-              <div class="relative aspect-video rounded-[5px] overflow-hidden bg-[#333333] mb-3">
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="w-[60px] h-[60px] rounded-full bg-[#FFAE01]/90 flex items-center justify-center group-hover:bg-[#FFAE01] transition-colors">
-                    <svg class="w-6 h-6 text-[#333333] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  </span>
-                </div>
-              </div>
-              <p class="text-sm text-[#333333] font-medium leading-snug group-hover:text-[#FFAE01] transition-colors">{title}</p>
-            </div>
-          ))}
-        </div>
-        <div class="flex justify-center mt-6">
-          <a href="/novosti" class="inline-flex items-center justify-center border border-[#333333] text-[#333333] hover:bg-[#333333] hover:text-white font-semibold text-sm rounded-[5px] transition-colors" style="height:50px;padding:0 40px;">
-            Смотреть больше видео
-          </a>
-        </div>
-      </section>
-
-      <!-- Блок преимуществ (Figma PC1) -->
       <AdvantagesBlock />
 
-      <!-- Назад в раздел -->
-      <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity">
+      <a href={`/catalog/${categorySlug}/${subcategorySlug}`} class="inline-flex items-center gap-2 text-sm font-semibold text-[#FFAE01] hover:opacity-80 transition-opacity mt-8">
         <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
@@ -649,165 +397,39 @@ const jsonLd = {
   </div>
 </BaseLayout>
 
-<script define:vars={{ displayPrice, isByArea, effectiveWidth, standardLengths }}>
-
-// ── Вспомогательные функции ─────────────────────────────────────────────────
-function fmtPrice(n) {
-  return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ₽';
-}
-function fmtArea(n) {
-  return n.toFixed(3).replace('.', ',');
-}
-
-// ── Инициализация строки длины ──────────────────────────────────────────────
-function initRow(row, isFirst) {
-  const select = row.querySelector('.length-select');
-  const qtyInput = row.querySelector('.qty-input');
-  const minusBtn = row.querySelector('.qty-minus');
-  const plusBtn = row.querySelector('.qty-plus');
-  const rowAreaEl = row.querySelector('.row-area');
-  const rowTotalEl = row.querySelector('.row-total');
-  const removeBtn = row.querySelector('.remove-row');
-
-  function updateRow() {
-    const lengthM = parseFloat(select?.value || '1000') / 1000;
-    const qty = Math.max(1, parseInt(qtyInput?.value || '1', 10));
-    const area = qty * lengthM * effectiveWidth;
-    if (rowAreaEl) rowAreaEl.textContent = fmtArea(area);
-    if (rowTotalEl) {
-      rowTotalEl.textContent = displayPrice ? fmtPrice(area * displayPrice) : 'по запросу';
-    }
-  }
-
-  select?.addEventListener('change', updateRow);
-  qtyInput?.addEventListener('input', updateRow);
-  minusBtn?.addEventListener('click', () => {
-    const v = parseInt(qtyInput?.value || '1', 10);
-    if (v > 1 && qtyInput) { qtyInput.value = String(v - 1); updateRow(); }
-  });
-  plusBtn?.addEventListener('click', () => {
-    const v = parseInt(qtyInput?.value || '1', 10);
-    if (qtyInput) { qtyInput.value = String(v + 1); updateRow(); }
-  });
-  removeBtn?.addEventListener('click', () => {
-    row.remove();
-  });
-
-  updateRow();
-}
-
-// ── Инициализируем первую строку ────────────────────────────────────────────
-if (isByArea) {
-  const container = document.getElementById('length-rows');
-  const firstRow = container?.querySelector('.length-row');
-  if (firstRow) initRow(firstRow, true);
-
-  // ── Кнопка "+" добавить строку ─────────────────────────────────────────
-  const addBtn = document.getElementById('add-row-btn');
-  addBtn?.addEventListener('click', () => {
-    const template = container?.querySelector('.length-row');
-    if (!template || !container) return;
-
-    const newRow = template.cloneNode(true);
-
-    // Добавить кнопку удаления строки
-    const grid = newRow.querySelector('.grid');
-    if (grid && !newRow.querySelector('.remove-row')) {
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'remove-row self-end pb-2 text-[#898989] hover:text-white transition-colors text-lg leading-none flex-shrink-0';
-      removeBtn.textContent = '×';
-      grid.style.gridTemplateColumns = '1fr auto auto auto';
-      grid.appendChild(removeBtn);
-    }
-
-    // Сбросить значения
-    const qtyInput = newRow.querySelector('.qty-input');
-    if (qtyInput) qtyInput.value = '1';
-
-    container.appendChild(newRow);
-    initRow(newRow, false);
-  });
-}
-
-// ── Табы ────────────────────────────────────────────────────────────────────
-const tabsNav = document.getElementById('tabs-nav');
-if (tabsNav) {
-  tabsNav.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-tab]');
-    if (!btn) return;
-    const idx = btn.dataset.tab;
-    tabsNav.querySelectorAll('[data-tab]').forEach(b => {
-      const active = b.dataset.tab === idx;
-      b.classList.toggle('text-[#333333]', active);
-      b.classList.toggle('border-[#FFAE01]', active);
-      b.classList.toggle('text-[#898989]', !active);
-      b.classList.toggle('border-transparent', !active);
-    });
-    document.querySelectorAll('[data-tab-content]').forEach(c => {
-      c.classList.toggle('hidden', c.dataset.tabContent !== idx);
-    });
-  });
-}
-
-// ── Простой счётчик (штучные товары) ────────────────────────────────────────
-const minusS = document.getElementById('qty-minus-s');
-const plusS = document.getElementById('qty-plus-s');
-const qtyS = document.getElementById('qty-simple');
-if (minusS && plusS && qtyS) {
-  minusS.addEventListener('click', () => {
-    const v = parseInt(qtyS.value, 10);
-    if (v > 1) qtyS.value = String(v - 1);
-  });
-  plusS.addEventListener('click', () => {
-    qtyS.value = String(parseInt(qtyS.value, 10) + 1);
-  });
-}
-</script>
-
-<!-- Цены/наличие для блока «Вам может понадобиться» -->
-<script define:vars={{ relatedKods }}>
-  (async function () {
-    if (!relatedKods || !relatedKods.length) return;
-    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
-    function fillCard(card, priceData, stockQty) {
-      const skeleton = card.querySelector('.price-skeleton');
-      const loaded   = card.querySelector('.price-loaded');
-      const noPrice  = card.querySelector('.no-price');
-      const origEl   = card.querySelector('.original-price');
-      const dispEl   = card.querySelector('.price-display');
-      const discBadge= card.querySelector('.discount-badge');
-      const stockBadge = card.querySelector('.stock-badge');
-      if (skeleton) skeleton.classList.add('hidden');
-      if (priceData && (priceData.price > 0 || priceData.discounted_price > 0)) {
-        if (loaded) loaded.classList.remove('hidden');
-        const hasDiscount = priceData.discounted_price > 0 && priceData.discounted_price < priceData.price;
-        if (hasDiscount) {
-          if (origEl) { origEl.textContent = fmt(priceData.price); origEl.classList.remove('hidden'); }
-          if (dispEl) dispEl.textContent = fmt(priceData.discounted_price);
-          if (discBadge) discBadge.classList.remove('hidden');
-        } else {
-          const price = priceData.discounted_price > 0 ? priceData.discounted_price : priceData.price;
-          if (dispEl) dispEl.textContent = fmt(price);
-        }
-      } else if (noPrice) {
-        noPrice.classList.remove('hidden');
-      }
-      if (stockQty > 0 && stockBadge) {
-        stockBadge.classList.remove('hidden');
-        stockBadge.classList.add('inline-flex');
-      }
-    }
-    try {
-      const [pricesRes, stockRes] = await Promise.allSettled([
-        fetch('/api/catalog/prices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kods: relatedKods }) }).then(r => r.ok ? r.json() : { prices: {} }),
-        fetch('/api/catalog/stock',  { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kods: relatedKods }) }).then(r => r.ok ? r.json() : { stock: {} }),
-      ]);
-      const prices = pricesRes.status === 'fulfilled' ? (pricesRes.value?.prices ?? {}) : {};
-      const stock  = stockRes.status === 'fulfilled'  ? (stockRes.value?.stock  ?? {}) : {};
-      document.querySelectorAll('[data-product-kod]').forEach(card => {
-        const kod = card.getAttribute('data-product-kod');
-        if (kod && relatedKods.includes(kod)) fillCard(card, prices[kod], stock[kod]);
+<script>
+  // Табы
+  const tabsNav = document.getElementById('tabs-nav');
+  if (tabsNav) {
+    tabsNav.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('[data-tab]') as HTMLElement | null;
+      if (!btn) return;
+      const idx = btn.dataset.tab;
+      tabsNav.querySelectorAll('[data-tab]').forEach(b => {
+        const el = b as HTMLElement;
+        const active = el.dataset.tab === idx;
+        el.classList.toggle('text-[#333333]', active);
+        el.classList.toggle('border-[#FFAE01]', active);
+        el.classList.toggle('text-[#898989]', !active);
+        el.classList.toggle('border-transparent', !active);
       });
-    } catch (e) {}
-  })();
+      document.querySelectorAll('[data-tab-content]').forEach(c => {
+        const el = c as HTMLElement;
+        el.classList.toggle('hidden', el.dataset.tabContent !== idx);
+      });
+    });
+  }
+  // Простой счётчик
+  const minusS = document.getElementById('qty-minus-s');
+  const plusS = document.getElementById('qty-plus-s');
+  const qtyS = document.getElementById('qty-simple') as HTMLInputElement | null;
+  if (minusS && plusS && qtyS) {
+    minusS.addEventListener('click', () => {
+      const v = parseInt(qtyS.value, 10);
+      if (v > 1) qtyS.value = String(v - 1);
+    });
+    plusS.addEventListener('click', () => {
+      qtyS.value = String(parseInt(qtyS.value, 10) + 1);
+    });
+  }
 </script>
