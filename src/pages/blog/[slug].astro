@@ -24,7 +24,7 @@ const dateFmt = (d: Date | string) => {
 };
 
 const articleSlug = entry.id.replace(/\.mdx?$/, '');
-const canonicalURL = `https://ystroika.ru/blog/${articleSlug}/`;
+const canonicalURL = `https://y-stroika.ru/blog/${articleSlug}/`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -32,8 +32,8 @@ const jsonLd = {
   'headline': article.title,
   'datePublished': new Date(article.publishDate).toISOString(),
   'dateModified': article.updatedDate ? new Date(article.updatedDate).toISOString() : new Date(article.publishDate).toISOString(),
-  'author': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://ystroika.ru' },
-  'publisher': { '@type': 'Organization', 'name': 'У-Стройка', 'logo': { '@type': 'ImageObject', 'url': 'https://ystroika.ru/images/logo.svg' } },
+  'author': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://y-stroika.ru' },
+  'publisher': { '@type': 'Organization', 'name': 'У-Стройка', 'logo': { '@type': 'ImageObject', 'url': 'https://y-stroika.ru/images/logo.svg' } },
   'url': canonicalURL,
   'description': article.excerpt ?? article.seoDescription,
 };

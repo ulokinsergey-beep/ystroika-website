@@ -6,7 +6,7 @@ import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://ystroika.ru',
+  site: 'https://y-stroika.ru',
   // output: 'static' (default) + adapter даёт hybrid-режим автоматически
   // Страницы с export const prerender = false → SSR, остальные → SSG
   adapter: node({ mode: 'standalone' }),

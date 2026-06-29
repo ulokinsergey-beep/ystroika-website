@@ -3,4 +3,4 @@ Allow: /
 
 Clean-param: brand&sort&per_page&page&price_min&price_max /catalog/
 
-Sitemap: https://ystroika.ru/sitemap-index.xml
+Sitemap: https://y-stroika.ru/sitemap-index.xml

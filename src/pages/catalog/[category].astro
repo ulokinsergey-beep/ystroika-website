@@ -11,7 +11,7 @@ export function getStaticPaths() {
 
 const { category } = Astro.props;
 
-const canonicalURL = new URL(`/catalog/${category.slug}/`, 'https://ystroika.ru').href;
+const canonicalURL = new URL(`/catalog/${category.slug}/`, 'https://y-stroika.ru').href;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -19,8 +19,8 @@ const jsonLd = {
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ystroika.ru/" },
-        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://ystroika.ru/catalog/" },
+        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://y-stroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://y-stroika.ru/catalog/" },
         { "@type": "ListItem", "position": 3, "name": category.title, "item": canonicalURL }
       ]
     },
@@ -31,7 +31,7 @@ const jsonLd = {
       "description": `${category.title} в Москве и МО — ${category.description}`,
       "url": canonicalURL,
       "breadcrumb": { "@type": "BreadcrumbList" },
-      "isPartOf": { "@id": "https://ystroika.ru/#website" }
+      "isPartOf": { "@id": "https://y-stroika.ru/#website" }
     }
   ]
 };
