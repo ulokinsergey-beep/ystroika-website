@@ -155,11 +155,11 @@ const standardLengths = [
   { mm: 6000, label: '6000 мм' },
 ];
 
-const canonicalURL = `https://ystroika.ru/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(code!)}/`;
+const canonicalURL = `https://y-stroika.ru/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(code!)}/`;
 
 // Product + (Offer только при реальной цене — не выдумываем price/availability, см. docs/seo/07) + BreadcrumbList
 const hasRealPrice = typeof displayPrice === 'number' && displayPrice > 0;
-const productImg = product.image && product.image.startsWith('/') ? `https://ystroika.ru${product.image}` : (product.image || undefined);
+const productImg = product.image && product.image.startsWith('/') ? `https://y-stroika.ru${product.image}` : (product.image || undefined);
 const productLd: any = {
   '@type': 'Product',
   'name': product.name,
@@ -175,7 +175,7 @@ if (hasRealPrice) {
     'url': canonicalURL,
     'priceCurrency': 'RUB',
     'price': String(displayPrice),
-    'seller': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://ystroika.ru' },
+    'seller': { '@type': 'Organization', 'name': 'У-Стройка', 'url': 'https://y-stroika.ru' },
     // availability не указываем: остатки не отслеживаем (не выдумываем наличие)
   };
 }
@@ -186,10 +186,10 @@ const jsonLd = {
     {
       '@type': 'BreadcrumbList',
       'itemListElement': [
-        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://ystroika.ru/' },
-        { '@type': 'ListItem', position: 2, name: 'Каталог', item: 'https://ystroika.ru/catalog/' },
-        { '@type': 'ListItem', position: 3, name: category.title, item: `https://ystroika.ru/catalog/${categorySlug}/` },
-        { '@type': 'ListItem', position: 4, name: subcategory.title, item: `https://ystroika.ru/catalog/${categorySlug}/${subcategorySlug}/` },
+        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://y-stroika.ru/' },
+        { '@type': 'ListItem', position: 2, name: 'Каталог', item: 'https://y-stroika.ru/catalog/' },
+        { '@type': 'ListItem', position: 3, name: category.title, item: `https://y-stroika.ru/catalog/${categorySlug}/` },
+        { '@type': 'ListItem', position: 4, name: subcategory.title, item: `https://y-stroika.ru/catalog/${categorySlug}/${subcategorySlug}/` },
         { '@type': 'ListItem', position: 5, name: product.name, item: canonicalURL },
       ],
     },

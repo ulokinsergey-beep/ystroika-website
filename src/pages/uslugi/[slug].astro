@@ -16,7 +16,7 @@ const { entry, services } = Astro.props;
 const { Content } = await entry.render();
 const service = entry.data;
 const serviceSlug = entry.id.replace(/\.mdx?$/, '');
-const canonicalURL = `https://ystroika.ru/uslugi/${serviceSlug}/`;
+const canonicalURL = `https://y-stroika.ru/uslugi/${serviceSlug}/`;
 const price = service.priceFrom || 'по запросу';
 const hasBody = !!(entry.body && entry.body.trim());
 
@@ -78,7 +78,7 @@ const others = services.filter((s) => s.id !== entry.id).slice(0, 7).map((s) => 
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Service', name: service.title, description: service.shortDescription, url: canonicalURL,
-  provider: { '@type': 'Organization', name: 'У-Стройка', url: 'https://ystroika.ru', telephone: '+78003339495' },
+  provider: { '@type': 'Organization', name: 'У-Стройка', url: 'https://y-stroika.ru', telephone: '+78003339495' },
   ...(service.priceFrom ? { offers: { '@type': 'Offer', priceCurrency: 'RUB', description: service.priceFrom } } : {}),
 };
 ---
