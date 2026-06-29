@@ -155,7 +155,7 @@ const hasFilters = !!(selectedBrand || priceMin || priceMax);
 
 const canonicalURL = new URL(
   `/catalog/${categorySlug}/${subcategorySlug}/`,
-  'https://ystroika.ru'
+  'https://y-stroika.ru'
 ).href;
 
 const jsonLd = {
@@ -164,9 +164,9 @@ const jsonLd = {
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Главная",  "item": "https://ystroika.ru/" },
-        { "@type": "ListItem", "position": 2, "name": "Каталог",  "item": "https://ystroika.ru/catalog/" },
-        { "@type": "ListItem", "position": 3, "name": category.title, "item": `https://ystroika.ru/catalog/${categorySlug}/` },
+        { "@type": "ListItem", "position": 1, "name": "Главная",  "item": "https://y-stroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Каталог",  "item": "https://y-stroika.ru/catalog/" },
+        { "@type": "ListItem", "position": 3, "name": category.title, "item": `https://y-stroika.ru/catalog/${categorySlug}/` },
         { "@type": "ListItem", "position": 4, "name": subcategory.title, "item": canonicalURL }
       ]
     },

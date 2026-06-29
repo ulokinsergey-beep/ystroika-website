@@ -86,9 +86,9 @@
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "name": "У-Стройка",
-  "url": "https://ystroika.ru/",
+  "url": "https://y-stroika.ru/",
   "telephone": "+7-800-333-94-95",
-  "image": "https://ystroika.ru/og/logo.png",
+  "image": "https://y-stroika.ru/og/logo.png",
   "address": {"@type": "PostalAddress", "addressLocality": "Москва", "addressRegion": "Московская область", "addressCountry": "RU"},
   "areaServed": ["Москва", "Московская область"],
   "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "19:00"}],
@@ -115,10 +115,10 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Металлочерепица Монтеррей",
-  "image": "https://ystroika.ru/img/monterrey.jpg",
+  "image": "https://y-stroika.ru/img/monterrey.jpg",
   "brand": {"@type": "Brand", "name": "Grand Line"},
   "sku": "MC-MONT-8017",
-  "offers": {"@type": "Offer", "priceCurrency": "RUB", "price": "650", "availability": "https://schema.org/InStock", "url": "https://ystroika.ru/catalog/krovlya/metallocherepica/monterrey/", "seller": {"@type": "Organization", "name": "У-Стройка"}}
+  "offers": {"@type": "Offer", "priceCurrency": "RUB", "price": "650", "availability": "https://schema.org/InStock", "url": "https://y-stroika.ru/catalog/krovlya/metallocherepica/monterrey/", "seller": {"@type": "Organization", "name": "У-Стройка"}}
 }
 ```
 
@@ -131,7 +131,7 @@
   "author": {"@type": "Person", "name": "Имя Эксперта"},
   "datePublished": "2026-06-01",
   "dateModified": "2026-06-09",
-  "publisher": {"@type": "Organization", "name": "У-Стройка", "logo": {"@type": "ImageObject", "url": "https://ystroika.ru/og/logo.png"}}
+  "publisher": {"@type": "Organization", "name": "У-Стройка", "logo": {"@type": "ImageObject", "url": "https://y-stroika.ru/og/logo.png"}}
 }
 ```
 ```json

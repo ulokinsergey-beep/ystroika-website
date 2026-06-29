@@ -9,22 +9,22 @@ const jsonLd = {
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ystroika.ru/" },
-        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://ystroika.ru/catalog/" }
+        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://y-stroika.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Каталог", "item": "https://y-stroika.ru/catalog/" }
       ]
     },
     {
       "@type": "CollectionPage",
-      "@id": "https://ystroika.ru/catalog/",
+      "@id": "https://y-stroika.ru/catalog/",
       "name": "Каталог материалов — У-Стройка",
       "description": "Полный каталог кровельных, фасадных материалов и водостоков в Москве и МО.",
-      "url": "https://ystroika.ru/catalog/",
-      "isPartOf": { "@id": "https://ystroika.ru/#website" },
+      "url": "https://y-stroika.ru/catalog/",
+      "isPartOf": { "@id": "https://y-stroika.ru/#website" },
       "hasPart": categories.map(cat => ({
         "@type": "CollectionPage",
         "name": cat.title,
         "description": cat.description,
-        "url": `https://ystroika.ru/catalog/${cat.slug}/`
+        "url": `https://y-stroika.ru/catalog/${cat.slug}/`
       }))
     }
   ]

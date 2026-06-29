@@ -90,7 +90,7 @@ Disallow: /poisk/
 Disallow: /*sort=
 Disallow: /*?*utm_
 Allow: /
-Sitemap: https://ystroika.ru/sitemap.xml
+Sitemap: https://y-stroika.ru/sitemap.xml
 ```
 
 ## 13. Canonical для фильтров (примеры)
