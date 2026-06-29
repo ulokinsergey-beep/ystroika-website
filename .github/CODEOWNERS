@@ -1,0 +1,17 @@
+# CODEOWNERS - ulokinsergey-beep/ystroika-website
+# Owner-only governance for agent PR workflow. Owner reviews changes.
+# Artyom (operator) can be added as additional code owner for /src /public /scripts later.
+
+/.github/                @ulokinsergey-beep
+/.github/workflows/      @ulokinsergey-beep
+*.env                    @ulokinsergey-beep
+.env.*                   @ulokinsergey-beep
+credentials*             @ulokinsergey-beep
+/astro.config.*          @ulokinsergey-beep
+/tailwind.config.*       @ulokinsergey-beep
+/package.json            @ulokinsergey-beep
+/package-lock.json       @ulokinsergey-beep
+/src/                    @ulokinsergey-beep
+/public/                 @ulokinsergey-beep
+/scripts/                @ulokinsergey-beep
+*                        @ulokinsergey-beep
