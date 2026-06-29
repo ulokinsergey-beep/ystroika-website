@@ -122,15 +122,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       document.getElementById('cart-clear')?.addEventListener('click', function () { write([]); render(); });
 
-      // Подгрузка цен
-      var items = read();
-      var kods = items.map(function (i) { return i.kod; }).filter(Boolean);
-      if (kods.length) {
-        fetch('/api/catalog/prices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kods: kods }) })
-          .then(function (r) { return r.ok ? r.json() : { prices: {} }; })
-          .then(function (d) { prices = d.prices || {}; recalc(); render(); })
-          .catch(function () {});
-      }
+      // Timeweb MVP: статический сайт — Astro API /api/catalog/* удалён.
+      // Живые цены корзины подключатся позже через PHP-прокси (public/api/prices.php)
+      // или Cloudflare SSR. Пока цена «по запросу», сумму уточняет менеджер по телефону.
+      // Никаких запросов к удалённому эндпоинту (без 404/ошибок в консоли).
       render();
     })();
   </script>
