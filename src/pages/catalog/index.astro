@@ -1,7 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CategoryCard from '../../components/catalog/CategoryCard.astro';
+import ProductCard from '../../components/catalog/ProductCard.astro';
 import { categories } from '../../data/categories';
+import { demoTop, toCard } from '../../lib/demo';
+
+// Витрина: топ demo-товары (с фото и ценой) для главной страницы каталога
+const showcase = demoTop(8).map(i => {
+  const [cat, sub] = (i.category || '').split('/');
+  return { ...toCard(i), categorySlug: cat, subcategorySlug: sub };
+});
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -68,6 +76,31 @@ const jsonLd = {
           />
         ))}
       </div>
+
+      {showcase.length > 0 && (
+        <div class="mt-12">
+          <div class="flex items-end gap-4 mb-6">
+            <h2 class="text-xl lg:text-2xl font-bold text-slate-900 shrink-0">Популярные товары</h2>
+            <div class="flex-1 h-px bg-[#e5e5e5] mb-1.5"></div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {showcase.map((p: any) => (
+              <ProductCard
+                kod={p.kod}
+                name={p.name}
+                artikul={p.artikul}
+                unit={p.unit}
+                brand={p.brand}
+                categorySlug={p.categorySlug}
+                subcategorySlug={p.subcategorySlug}
+                image={p.image ?? null}
+                price={p.price}
+                serverPriced={true}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <!-- CTA -->
       <div class="mt-10 bg-slate-900 text-white rounded-[10px] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">

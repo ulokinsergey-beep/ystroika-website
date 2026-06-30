@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:staging": "node scripts/build-staging.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
