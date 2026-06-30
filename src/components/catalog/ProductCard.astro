@@ -4,7 +4,7 @@
  *
  * Структура:
  *  - Фото (placeholder пока нет реальных фото от API)
- *  - ⭐ 5.0 | ✓ В наличии
+ *  - ⭐ 5.0 | Наличие уточняется (нейтральный статус — реального стока для каталога нет)
  *  - Название товара (2 строки)
  *  - Кол-во счётчик
  *  - Старая цена / Текущая цена
@@ -86,12 +86,13 @@ const displayBrand = brand || (() => {
         5.0
       </span>
 
-      <!-- ✓ В наличии — скрыт, показывается JS -->
-      <span class="stock-badge hidden items-center gap-[4px] text-[11px] font-medium text-[#38A169]">
+      <!-- Наличие: реальных данных склада для каталога пока нет (появится с Cloudflare/КровАльянс).
+           Показываем честный нейтральный статус, без подтверждения склада. -->
+      <span class="stock-badge inline-flex items-center gap-[4px] text-[11px] font-medium text-[#898989]">
         <svg class="w-[12px] h-[12px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        В наличии
+        Наличие уточняется
       </span>
     </div>
 
