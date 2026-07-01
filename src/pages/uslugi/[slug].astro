@@ -6,6 +6,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdvantagesBlock from '../../components/AdvantagesBlock.astro';
 import { getCollection } from 'astro:content';
+import { resolveAvailability } from '../../lib/availability.mjs';
 
 export async function getStaticPaths() {
   const services = await getCollection('services', ({ data }) => data.published !== false);
@@ -387,11 +388,11 @@ const jsonLd = {
             <!-- Оценка + наличие -->
             <div class="flex items-center justify-between mb-[12px]">
               <span class="inline-flex items-center gap-[5px] bg-[#333333] text-white text-[13px] rounded-[5px]" style="padding:2px 7px;"><svg class="w-[14px] h-[14px] fill-[#FFAE01]" viewBox="0 0 20 20"><path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03 1.07 3.29c.3.92-.76 1.69-1.54 1.12L10 14.43l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29-2.8-2.03c-.78-.57-.38-1.81.59-1.81h3.46l1.07-3.29z"/></svg>5.0</span>
-              <span class={`flex items-center gap-[5px] text-[13px] ${a.stock === 'in' ? 'text-[#4AC71E]' : 'text-[#C51212]'}`}>
-                {a.stock === 'in'
+              <span class={`flex items-center gap-[5px] text-[13px] ${resolveAvailability(a.stock).state === 'in' ? 'text-[#4AC71E]' : 'text-[#898989]'}`}>
+                {resolveAvailability(a.stock).state === 'in'
                   ? <svg class="w-[13px] h-[13px]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                   : <svg class="w-[13px] h-[13px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8v5M12 16h.01"/></svg>}
-                {a.stock === 'in' ? 'В наличии' : 'Уточните у менеджера'}
+                {resolveAvailability(a.stock).label}
               </span>
             </div>
             <!-- Название -->
