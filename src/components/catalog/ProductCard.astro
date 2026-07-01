@@ -4,15 +4,17 @@
  *
  * Структура:
  *  - Фото (placeholder пока нет реальных фото от API)
- *  - ⭐ 5.0 | ✓ В наличии
+ *  - ⭐ 5.0 | Наличие уточняется (единый статус resolveAvailability — реального стока для каталога нет)
  *  - Название товара (2 строки)
  *  - Кол-во счётчик
  *  - Старая цена / Текущая цена
  *  - Кнопки: избранное + корзина
  *
- * Цена и наличие подгружаются клиентским JS (api/catalog/prices + stock).
- * JS заполняет: .price-display, .original-price, .stock-badge, .discount-badge
+ * Цена подгружается клиентским JS там, где нет серверной цены из снимка.
+ * Наличие — статично через resolveAvailability(): данных о складе для каталога нет → «Наличие уточняется».
  */
+import { resolveAvailability } from '../../lib/availability.mjs';
+
 export interface Props {
   kod: string;
   name: string;
@@ -26,10 +28,14 @@ export interface Props {
   image?: string | null;
   price?: number | null;        // null = «по запросу»; undefined = цена грузится клиентским JS
   serverPriced?: boolean;
+  /** Статус наличия из данных (если появится). Для каталога данных о складе нет → «Наличие уточняется». */
+  stock?: string | number | boolean | null;
 }
 
 const { kod, name, artikul, unit, brand, priceGroup, categorySlug, subcategorySlug,
-        image = null, price = undefined, serverPriced = false } = Astro.props;
+        image = null, price = undefined, serverPriced = false, stock = undefined } = Astro.props;
+// Единый статус наличия. Для каталога реального стока нет → «Наличие уточняется».
+const avail = resolveAvailability(stock);
 const productUrl = `/catalog/${categorySlug}/${subcategorySlug}/${encodeURIComponent(kod)}/`;
 const hasServerPrice = serverPriced && typeof price === 'number' && price > 0;
 const fmtPrice = hasServerPrice ? price!.toLocaleString('ru-RU') + ' ₽' : '';
@@ -86,12 +92,18 @@ const displayBrand = brand || (() => {
         5.0
       </span>
 
-      <!-- ✓ В наличии — скрыт, показывается JS -->
-      <span class="stock-badge hidden items-center gap-[4px] text-[11px] font-medium text-[#38A169]">
-        <svg class="w-[12px] h-[12px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-        </svg>
-        В наличии
+      <!-- Наличие: единая логика resolveAvailability(). Для каталога данных о складе нет → «Наличие уточняется». -->
+      <span class:list={["stock-badge inline-flex items-center gap-[4px] text-[11px] font-medium", avail.state === 'in' ? 'text-[#38A169]' : 'text-[#898989]']}>
+        {avail.state === 'in' ? (
+          <svg class="w-[12px] h-[12px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+        ) : (
+          <svg class="w-[12px] h-[12px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        )}
+        {avail.label}
       </span>
     </div>
 
